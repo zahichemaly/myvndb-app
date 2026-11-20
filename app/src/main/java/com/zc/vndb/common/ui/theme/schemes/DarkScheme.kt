@@ -131,7 +131,6 @@ private val DarkColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    chipLength = tinted(Periwinkle),
     releaseNew = tinted(Tertiary),
     releaseTranslation = tinted(Periwinkle),
     releasePatch = tinted(Amber),

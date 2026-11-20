@@ -2,10 +2,10 @@ package com.zc.vndb.feature.detail.presentation.mapper
 
 import com.zc.vndb.common.ui.mapper.platformName
 import com.zc.vndb.common.ui.mapper.toIsoLabel
-import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
-import com.zc.vndb.feature.detail.domain.model.PlatformFamily
 import com.zc.vndb.feature.detail.domain.model.ReleaseSummary
+import com.zc.vndb.feature.detail.presentation.component.editionrow.mapper.toMorePlatformsLabel
+import com.zc.vndb.feature.detail.presentation.component.editionrow.mapper.toPlatformIcons
 import com.zc.vndb.feature.detail.presentation.component.editionrow.model.EditionRowUIModel
 import com.zc.vndb.feature.detail.presentation.model.ReleaseGroupUIModel
 import java.util.Locale
@@ -24,11 +24,16 @@ fun List<ReleaseSummary>.toReleaseGroups(): ImmutableList<ReleaseGroupUIModel> =
         .map { (code, releases) ->
             ReleaseGroupUIModel(
                 languageCode = code,
-                title = UiText.StringValue("${code.toLanguageName()} (${releases.size})"),
+                title = code.toGroupTitle(releases.size),
                 releases = releases.map { it.toRowUIModel(code) }.toImmutableList(),
             )
         }
         .toImmutableList()
+
+/** "🇯🇵 Japanese (12)", without the flag when the language has none. */
+private fun String.toGroupTitle(count: Int): UiText = UiText.StringValue(
+    listOfNotNull(languageFlag(this), "${toLanguageName()} ($count)").joinToString(" "),
+)
 
 private fun ReleaseSummary.toRowUIModel(languageCode: String) = EditionRowUIModel(
     key = "$languageCode-$id",
@@ -38,18 +43,9 @@ private fun ReleaseSummary.toRowUIModel(languageCode: String) = EditionRowUIMode
     languagesLabel = null,
     dateLabel = releaseDate.toIsoLabel(),
     family = family,
-    familyLabel = family.toLabel(),
+    platformIcons = platforms.toPlatformIcons(),
+    morePlatformsLabel = platforms.toMorePlatformsLabel(),
 )
 
 private fun String.toLanguageName(): String =
     if (isEmpty()) "?" else Locale.forLanguageTag(this).displayLanguage.ifBlank { this }
-
-private fun PlatformFamily.toLabel(): UiText = UiText.StringResource(
-    when (this) {
-        PlatformFamily.Pc -> StringResource.detail_family_pc
-        PlatformFamily.Console -> StringResource.detail_family_console
-        PlatformFamily.Mobile -> StringResource.detail_family_mobile
-        PlatformFamily.Web -> StringResource.detail_family_web
-        PlatformFamily.Other -> StringResource.detail_family_other
-    },
-)

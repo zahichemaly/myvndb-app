@@ -65,11 +65,8 @@ data class VndbColors(
     val spoilerMajor: TintedColors,
     val tagNsfw: TintedColors,
 
-    // Neutral metadata chips (tags, platforms)
+    // Neutral metadata chips (tags, platforms, length); tappable chips use the accent instead
     val chipNeutral: TintedColors,
-
-    // Length category pill on Title Detail
-    val chipLength: TintedColors,
 
     // Release labels (Discover "New & Trending")
     val releaseNew: TintedColors,

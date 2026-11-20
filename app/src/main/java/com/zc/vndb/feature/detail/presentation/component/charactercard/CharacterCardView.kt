@@ -49,7 +49,7 @@ fun CharacterCardView(
         Text(
             text = model.roleLabel.asString(),
             style = MaterialTheme.typography.labelSmall,
-            color = if (model.isMain) VndbTheme.colors.accent else VndbTheme.colors.score,
+            color = if (model.isMain) VndbTheme.colors.score else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = VndbTheme.spacing.xs),
         )
         Text(

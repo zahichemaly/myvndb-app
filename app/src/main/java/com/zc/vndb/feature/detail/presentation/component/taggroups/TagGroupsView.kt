@@ -1,6 +1,5 @@
 package com.zc.vndb.feature.detail.presentation.component.taggroups
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -9,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import com.zc.vndb.common.ui.component.chip.TagChipView
 import com.zc.vndb.common.ui.component.sectioncard.SectionCardView
 import com.zc.vndb.common.ui.resource.StringResource
@@ -19,8 +17,8 @@ import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
 import com.zc.vndb.feature.detail.presentation.component.taggroups.model.ContentNoteTone
 import com.zc.vndb.feature.detail.presentation.component.taggroups.model.ContentNoteUIModel
-import com.zc.vndb.feature.detail.presentation.component.taggroups.model.TagChipUIModel
 import com.zc.vndb.feature.detail.presentation.component.taggroups.model.TagGroupUIModel
+import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -41,12 +39,7 @@ fun TagGroupsView(
             GroupTitle(group.title.asString())
             ChipFlow {
                 group.tags.forEach { tag ->
-                    TagChipView(
-                        label = tag.label,
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.small)
-                            .clickable { onTagClick(tag.id) },
-                    )
+                    TagChipView(label = tag.label, onClick = { onTagClick(tag.id) })
                 }
             }
         }

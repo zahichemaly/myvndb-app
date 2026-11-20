@@ -38,7 +38,12 @@ fun QuoteCardView(
                 Text(
                     text = "— ${name.asString()}",
                     style = MaterialTheme.typography.labelLarge,
-                    color = VndbTheme.colors.accent,
+                    // Accent only when the name opens the character.
+                    color = if (model.characterId != null) {
+                        VndbTheme.colors.accent
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                     modifier = Modifier
                         .clip(MaterialTheme.shapes.small)
                         .then(

@@ -99,7 +99,7 @@ private fun MetaRow(model: BrowseNovelCardUIModel) {
         Text(
             text = model.yearLabel.asString(),
             style = MaterialTheme.typography.labelMedium,
-            color = VndbTheme.colors.accent,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -122,12 +122,7 @@ private fun TagsAndLength(model: BrowseNovelCardUIModel) {
         ) {
             model.tags.forEach { tag -> TagChipView(label = tag) }
         }
-        model.lengthLabel?.let { length ->
-            TagChipView(
-                label = length,
-                colors = VndbTheme.colors.chipLength,
-            )
-        }
+        model.lengthLabel?.let { length -> TagChipView(label = length) }
     }
 }
 

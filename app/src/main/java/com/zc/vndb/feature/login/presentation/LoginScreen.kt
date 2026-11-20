@@ -129,7 +129,7 @@ private fun StepsHeader() {
         Text(
             text = UiText.StringResource(StringResource.login_steps_count).asString(),
             style = MaterialTheme.typography.labelMedium,
-            color = VndbTheme.colors.accent,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

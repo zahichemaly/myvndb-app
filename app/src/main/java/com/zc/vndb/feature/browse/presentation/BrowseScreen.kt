@@ -60,6 +60,7 @@ import com.zc.vndb.feature.browse.presentation.component.filterbar.ActiveFilters
 import com.zc.vndb.feature.browse.presentation.component.filterbar.FilterButtonView
 import com.zc.vndb.feature.browse.presentation.component.filterbar.SortRowView
 import com.zc.vndb.feature.browse.presentation.component.filtersheet.FilterSheetView
+import com.zc.vndb.feature.browse.presentation.component.scopeheader.ScopeHeaderSkeletonView
 import com.zc.vndb.feature.browse.presentation.component.scopeheader.ScopeHeaderView
 import com.zc.vndb.feature.browse.presentation.component.searchfield.SearchFieldView
 import com.zc.vndb.feature.browse.presentation.model.ActiveFilterKey
@@ -263,9 +264,21 @@ private fun LazyGridScope.filters(state: BrowseState, actions: BrowseActions) {
     }
 }
 
-/** On a tag or producer page: what it is, above the usual filters. */
+/**
+ * On a tag, producer or staff page: what it is, above the usual filters. The skeleton and the
+ * header share one key, so the grid, which keeps its first item in place, opens at the header
+ * instead of at the search field.
+ */
 private fun LazyGridScope.header(state: BrowseState, actions: BrowseActions) {
-    val header = state.header ?: return
+    val header = state.header
+    if (header == null) {
+        if (state.isHeaderLoading) {
+            fullWidthItem("scope-header") {
+                ScopeHeaderSkeletonView(modifier = Modifier.fillMaxWidth())
+            }
+        }
+        return
+    }
     fullWidthItem(
         "scope-header",
     ) { ScopeHeaderView(model = header, modifier = Modifier.fillMaxWidth()) }

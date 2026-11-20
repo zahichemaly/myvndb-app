@@ -59,7 +59,7 @@ fun QuoteOfTheDayView(
             Text(
                 text = model.attribution.asString(),
                 style = MaterialTheme.typography.labelMedium,
-                color = VndbTheme.colors.accent,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

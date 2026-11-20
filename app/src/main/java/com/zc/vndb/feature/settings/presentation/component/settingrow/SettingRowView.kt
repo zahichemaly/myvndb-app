@@ -136,13 +136,13 @@ fun SettingSwitchRowView(
     }
 }
 
-/** The current value of a choice row, in the accent color. */
+/** The current value of a choice row; the row itself is what the user taps. */
 @Composable
 fun SettingValueView(value: UiText, modifier: Modifier = Modifier) {
     Text(
         text = value.asString(),
         style = MaterialTheme.typography.labelLarge,
-        color = VndbTheme.colors.accent,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier,
     )
 }

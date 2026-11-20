@@ -218,16 +218,18 @@ class BrowseViewModel(
         if (!_state.value.loadMoreFailed) loadNextPage()
     }
 
-    /** The header is optional: if it fails to load, the list still works. */
+    /** The header is optional: if it fails to load, the list still works (and keeps the old one). */
     private fun loadHeader() {
+        if (scope == BrowseScope.None) return
+        _state.update { it.copy(isHeaderLoading = true) }
         viewModelScope.launch {
             val header = when (val scope = scope) {
-                BrowseScope.None -> return@launch
+                BrowseScope.None -> null
                 is BrowseScope.Tag -> getTag(scope.id).map { it.toHeaderUIModel() }
                 is BrowseScope.Producer -> getProducer(scope.id).map { it.toHeaderUIModel() }
                 is BrowseScope.Staff -> getStaff(scope.id).map { it.toHeaderUIModel() }
-            }
-            header.onSuccess { model -> _state.update { it.copy(header = model) } }
+            }?.getOrNull()
+            _state.update { it.copy(header = header ?: it.header, isHeaderLoading = false) }
         }
     }
 

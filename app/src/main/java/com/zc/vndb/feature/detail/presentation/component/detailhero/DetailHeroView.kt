@@ -34,6 +34,7 @@ import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
 import com.zc.vndb.feature.detail.presentation.component.detailhero.model.DetailHeroUIModel
 import com.zc.vndb.feature.detail.presentation.component.detailhero.model.HeroDeveloperUIModel
+import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -49,6 +50,7 @@ private val LengthLabelTopPadding = 2.dp
 fun DetailHeroView(
     model: DetailHeroUIModel,
     onDeveloperClick: (String) -> Unit,
+    onTagClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     SectionCardView(modifier = modifier) {
@@ -81,7 +83,7 @@ fun DetailHeroView(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                HeroChips(model)
+                HeroChips(model, onTagClick)
             }
         }
         DeveloperLine(model.developers, onDeveloperClick)
@@ -176,13 +178,15 @@ private fun ScoreLine(model: DetailHeroUIModel) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun HeroChips(model: DetailHeroUIModel) {
+private fun HeroChips(model: DetailHeroUIModel, onTagClick: (String) -> Unit) {
     FlowRow(
         modifier = Modifier.padding(top = VndbTheme.spacing.xs),
         horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
         verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
     ) {
-        model.tags.forEach { tag -> TagChipView(label = tag) }
+        model.tags.forEach { tag ->
+            TagChipView(label = tag.label, onClick = { onTagClick(tag.id) })
+        }
         model.ageLabel?.let { age ->
             TagChipView(
                 label = age,
@@ -240,7 +244,7 @@ private fun LengthLine(model: DetailHeroUIModel) {
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             }
-            model.lengthName?.let { TagChipView(label = it, colors = VndbTheme.colors.chipLength) }
+            model.lengthName?.let { TagChipView(label = it) }
             model.lengthVotesLabel?.let { votes ->
                 Text(
                     text = "${UiText.StringResource(
@@ -277,11 +281,12 @@ private fun DetailHeroViewPreview() {
                 scoreVotesLabel = UiText.StringValue("17,205 votes"),
                 ageLabel = UiText.StringValue("All Ages / 15+"),
                 tags = persistentListOf(
-                    UiText.StringValue("Sci-Fi"),
-                    UiText.StringValue("Time Travel"),
+                    TagChipUIModel("g105", UiText.StringValue("Sci-Fi")),
+                    TagChipUIModel("g230", UiText.StringValue("Time Travel")),
                 ),
             ),
             onDeveloperClick = {},
+            onTagClick = {},
             modifier = Modifier.padding(VndbTheme.spacing.lg),
         )
     }

@@ -152,11 +152,6 @@
     <string name="detail_role_primary">ROLE: PRIMARY</string>
     <string name="detail_cv">CV: %1$s</string>
     <string name="detail_releases">Releases &amp; Editions</string>
-    <string name="detail_family_pc">PC</string>
-    <string name="detail_family_console">Console</string>
-    <string name="detail_family_mobile">Mobile</string>
-    <string name="detail_family_web">Web</string>
-    <string name="detail_family_other">Other</string>
     <string name="detail_relations">Relations</string>
     <string name="detail_relation_sequel">SEQUEL</string>
     <string name="detail_relation_prequel">PREQUEL</string>

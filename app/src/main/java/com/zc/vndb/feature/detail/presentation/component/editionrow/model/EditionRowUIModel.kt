@@ -3,6 +3,7 @@ package com.zc.vndb.feature.detail.presentation.component.editionrow.model
 import androidx.compose.runtime.Immutable
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.detail.domain.model.PlatformFamily
+import kotlinx.collections.immutable.ImmutableList
 
 @Immutable
 data class EditionRowUIModel(
@@ -13,5 +14,7 @@ data class EditionRowUIModel(
     val languagesLabel: UiText?,
     val dateLabel: UiText,
     val family: PlatformFamily,
-    val familyLabel: UiText,
+    /** One icon per distinct platform icon, capped; [morePlatformsLabel] counts the rest ("+2"). */
+    val platformIcons: ImmutableList<PlatformIcon>,
+    val morePlatformsLabel: UiText?,
 )

@@ -84,6 +84,7 @@ import com.zc.vndb.feature.detail.presentation.model.DetailTabUIModel
 import com.zc.vndb.feature.detail.presentation.model.MediaImageUIModel
 import com.zc.vndb.feature.detail.presentation.model.PagedListUIState
 import com.zc.vndb.feature.detail.presentation.model.SectionState
+import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -178,7 +179,7 @@ private fun DetailContent(
             ),
             verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.md),
         ) {
-            header(state, hero, actions.onIntent, actions.onDeveloperClick)
+            header(state, hero, actions)
             stickyHeader(key = "tabs", contentType = "tabs") {
                 DetailTabRowView(
                     tabs = state.tabs,
@@ -241,8 +242,7 @@ private fun DetailTopBar(onIntent: (DetailIntent) -> Unit) {
 private fun LazyListScope.header(
     state: DetailState,
     hero: DetailHeroUIModel,
-    onIntent: (DetailIntent) -> Unit,
-    onDeveloperClick: (String) -> Unit,
+    actions: DetailActions,
 ) {
     item(
         key = "hero",
@@ -250,7 +250,8 @@ private fun LazyListScope.header(
     ) {
         DetailHeroView(
             model = hero,
-            onDeveloperClick = onDeveloperClick,
+            onDeveloperClick = actions.onDeveloperClick,
+            onTagClick = actions.onTagClick,
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -258,7 +259,7 @@ private fun LazyListScope.header(
         item(key = "my-list", contentType = "my-list") {
             MyListCardView(
                 model = myList,
-                onEdit = { onIntent(DetailIntent.MyListClicked) },
+                onEdit = { actions.onIntent(DetailIntent.MyListClicked) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -733,7 +734,10 @@ private val previewState = DetailState(
         lengthValueLabel = UiText.StringValue("(44h)"),
         lengthVotesLabel = UiText.StringValue("1,021 length votes"),
         ageLabel = UiText.StringValue("All Ages / 15+"),
-        tags = persistentListOf(UiText.StringValue("Sci-Fi"), UiText.StringValue("Time Travel")),
+        tags = persistentListOf(
+            TagChipUIModel("g105", UiText.StringValue("Sci-Fi")),
+            TagChipUIModel("g230", UiText.StringValue("Time Travel")),
+        ),
     ),
     links = persistentListOf(
         LinkUIModel(UiText.StringValue("vndb.org"), "https://vndb.org/v2002", isVndb = true),

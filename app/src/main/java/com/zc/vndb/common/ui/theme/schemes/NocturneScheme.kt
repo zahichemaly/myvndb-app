@@ -129,7 +129,6 @@ private val NocturneColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    chipLength = tinted(SkyBlue),
     releaseNew = tinted(Tertiary),
     releaseTranslation = tinted(SkyBlue),
     releasePatch = tinted(Amber),

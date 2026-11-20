@@ -6,6 +6,7 @@ import com.zc.vndb.feature.detail.domain.model.AgeRange
 import com.zc.vndb.feature.detail.domain.model.DetailSamples.novel
 import com.zc.vndb.feature.detail.domain.model.DetailSamples.tag
 import com.zc.vndb.feature.detail.presentation.component.detailhero.model.HeroDeveloperUIModel
+import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -51,7 +52,13 @@ class DetailHeroUIModelMapperTest {
             UiText.StringResource(StringResource.detail_length_votes, listOf("1,021")),
             hero.lengthVotesLabel,
         )
-        assertEquals(listOf<UiText>(UiText.StringValue("B"), UiText.StringValue("C")), hero.tags)
+        assertEquals(
+            listOf(
+                TagChipUIModel("g-B", UiText.StringValue("B")),
+                TagChipUIModel("g-C", UiText.StringValue("C")),
+            ),
+            hero.tags,
+        )
         assertEquals(
             UiText.StringResource(StringResource.detail_age_range_from_all, listOf(15)),
             hero.ageLabel,

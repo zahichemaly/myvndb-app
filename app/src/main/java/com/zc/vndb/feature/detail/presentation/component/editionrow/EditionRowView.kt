@@ -9,12 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Computer
-import androidx.compose.material.icons.outlined.Devices
-import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material.icons.outlined.PhoneAndroid
-import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,23 +16,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.zc.vndb.common.ui.component.chip.TagChipView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
-import com.zc.vndb.common.ui.theme.TintedColors
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.theme.cardBackground
 import com.zc.vndb.common.ui.util.AdaptivePreviews
 import com.zc.vndb.feature.detail.domain.model.PlatformFamily
+import com.zc.vndb.feature.detail.presentation.component.editionrow.mapper.toColors
+import com.zc.vndb.feature.detail.presentation.component.editionrow.mapper.toImageVector
+import com.zc.vndb.feature.detail.presentation.component.editionrow.mapper.toPlatformIcon
 import com.zc.vndb.feature.detail.presentation.component.editionrow.model.EditionRowUIModel
+import com.zc.vndb.feature.detail.presentation.component.editionrow.model.PlatformIcon
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 private val IconBoxSize = 36.dp
 private val IconSize = 20.dp
+private val PlatformIconSize = 16.dp
 
-/** One edition: platform icon, title, "Windows • English, Japanese • 2016-09-08", family badge. */
+/** One edition: family icon, title, "Windows • English, Japanese • 2016-09-08", platform logos. */
 @Composable
 fun EditionRowView(model: EditionRowUIModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
@@ -57,9 +56,9 @@ fun EditionRowView(model: EditionRowUIModel, onClick: () -> Unit, modifier: Modi
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                imageVector = model.family.icon(),
+                imageVector = model.family.toPlatformIcon().toImageVector(),
                 contentDescription = null,
-                tint = model.family.colors().content,
+                tint = model.family.toColors().content,
                 modifier = Modifier.size(IconSize),
             )
         }
@@ -79,7 +78,34 @@ fun EditionRowView(model: EditionRowUIModel, onClick: () -> Unit, modifier: Modi
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        TagChipView(label = model.familyLabel, colors = model.family.colors())
+        PlatformIcons(icons = model.platformIcons, moreLabel = model.morePlatformsLabel)
+    }
+}
+
+/** Platform logos; decorative, since the details line already names the platforms. */
+@Composable
+private fun PlatformIcons(icons: ImmutableList<PlatformIcon>, moreLabel: UiText?) {
+    if (icons.isEmpty()) return
+    Row(
+        modifier = Modifier.clearAndSetSemantics {},
+        horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        icons.forEach { icon ->
+            Icon(
+                imageVector = icon.toImageVector(),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(PlatformIconSize),
+            )
+        }
+        moreLabel?.let {
+            Text(
+                text = it.asString(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -94,22 +120,6 @@ private fun details(model: EditionRowUIModel): String {
         .joinToString(separator)
 }
 
-private fun PlatformFamily.icon(): ImageVector = when (this) {
-    PlatformFamily.Pc -> Icons.Outlined.Computer
-    PlatformFamily.Console -> Icons.Outlined.SportsEsports
-    PlatformFamily.Mobile -> Icons.Outlined.PhoneAndroid
-    PlatformFamily.Web -> Icons.Outlined.Language
-    PlatformFamily.Other -> Icons.Outlined.Devices
-}
-
-@Composable
-private fun PlatformFamily.colors(): TintedColors = when (this) {
-    PlatformFamily.Pc -> VndbTheme.colors.releaseTranslation
-    PlatformFamily.Console -> VndbTheme.colors.releasePatch
-    PlatformFamily.Mobile -> VndbTheme.colors.releaseRerelease
-    PlatformFamily.Web, PlatformFamily.Other -> VndbTheme.colors.chipNeutral
-}
-
 @AdaptivePreviews
 @Composable
 private fun EditionRowViewPreview() {
@@ -119,11 +129,12 @@ private fun EditionRowViewPreview() {
                 key = "r1-win",
                 releaseId = "r1",
                 title = UiText.StringValue("Steins;Gate - Steam Edition"),
-                platformLabel = UiText.StringValue("Windows"),
+                platformLabel = UiText.StringValue("Windows, Switch"),
                 languagesLabel = UiText.StringValue("English, Japanese"),
                 dateLabel = UiText.StringValue("2016-09-08"),
                 family = PlatformFamily.Pc,
-                familyLabel = UiText.StringValue("PC"),
+                platformIcons = persistentListOf(PlatformIcon.Windows, PlatformIcon.Nintendo),
+                morePlatformsLabel = null,
             ),
             onClick = {},
             modifier = Modifier.fillMaxWidth().padding(VndbTheme.spacing.lg),

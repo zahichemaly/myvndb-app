@@ -8,7 +8,7 @@ import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.detail.domain.model.DetailSamples.novel
 import com.zc.vndb.feature.detail.domain.model.DetailSamples.tag
 import com.zc.vndb.feature.detail.presentation.component.taggroups.model.ContentNoteTone
-import com.zc.vndb.feature.detail.presentation.component.taggroups.model.TagChipUIModel
+import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
