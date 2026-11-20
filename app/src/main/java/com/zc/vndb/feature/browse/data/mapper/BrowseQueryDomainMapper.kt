@@ -19,7 +19,7 @@ private const val ADULT_MIN_AGE = 18
 
 private const val BROWSE_FIELDS = "title, alttitle, released, rating, length, length_minutes, " +
     "image.url, image.thumbnail, image.sexual, image.violence, developers.name, " +
-    "tags.name, tags.rating, tags.spoiler, tags.category"
+    "tags.name, tags.rating, tags.spoiler, tags.category, languages"
 
 /** The `POST /vn` body for one page of [BrowseFilter] results. Expects a normalised filter. */
 fun BrowseFilter.toQueryDTO(page: Int, pageSize: Int, withCount: Boolean): QueryDTO = QueryDTO(

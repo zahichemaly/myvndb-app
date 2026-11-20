@@ -25,4 +25,5 @@ fun BrowseNovelDTO.toDomain(): BrowseNovel = BrowseNovel(
     developerNames = developers.orEmpty().map { it.name },
     tags = tags.orEmpty().mapNotNull { it.toDomain() },
     length = toNovelLength(lengthMinutes = lengthMinutes, estimate = length),
+    languages = languages.orEmpty(),
 )

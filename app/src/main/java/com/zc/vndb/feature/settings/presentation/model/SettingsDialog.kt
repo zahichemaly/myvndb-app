@@ -5,6 +5,7 @@ enum class SettingsDialog {
     TitleLanguage,
     SpoilerLevel,
     TrendingLanguages,
+    CardLanguages,
     ConfirmSensitive,
     ClearImageCache,
     ConfirmLogOut,

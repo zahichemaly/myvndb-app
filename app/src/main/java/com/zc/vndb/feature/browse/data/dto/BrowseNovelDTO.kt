@@ -18,4 +18,6 @@ data class BrowseNovelDTO(
     @SerialName("image") val image: ImageDTO?,
     @SerialName("developers") val developers: List<DeveloperDTO>?,
     @SerialName("tags") val tags: List<TagDTO>?,
+    /** Every language with a release, original included. */
+    @SerialName("languages") val languages: List<String>?,
 )

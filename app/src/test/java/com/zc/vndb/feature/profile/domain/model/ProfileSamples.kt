@@ -25,6 +25,7 @@ object ProfileSamples {
         id: String,
         labels: List<EntryLabel> = listOf(EntryLabel(ListLabel.PLAYING, "Playing")),
         vote: Int? = null,
+        languages: List<String> = listOf("ja", "en", "ko"),
     ) = ListEntry(
         novelId = id,
         title = "Novel $id",
@@ -37,5 +38,6 @@ object ProfileSamples {
         notes = null,
         labels = labels,
         lastModified = Instant.parse("2026-11-14T00:00:00Z"),
+        languages = languages,
     )
 }

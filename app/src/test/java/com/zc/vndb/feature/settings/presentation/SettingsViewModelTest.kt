@@ -235,39 +235,91 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `the language dialog lists the fetched languages, common ones first, with the saved ones ticked`() =
-        runTest {
-            languages.current.value = listOf(
-                LanguageOption("ar", "Arabic"),
-                LanguageOption("ja", "Japanese"),
-                LanguageOption("en", "English"),
-                LanguageOption("eu", "Basque"),
-            )
-            val viewModel = createViewModel()
-            collect(viewModel.state)
-            advanceUntilIdle()
+    fun `the language dialogs list the fetched languages, common ones first`() = runTest {
+        languages.current.value = listOf(
+            LanguageOption("ar", "Arabic"),
+            LanguageOption("ja", "Japanese"),
+            LanguageOption("en", "English"),
+            LanguageOption("eu", "Basque"),
+        )
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
 
-            val options = viewModel.state.value.languageOptions
-            assertEquals(listOf("en", "ja", "ar", "eu"), options.map { it.key })
-            assertEquals(listOf(true, true, false, false), options.map { it.isSelected })
-            assertEquals(UiText.StringValue("English"), options.first().label)
+        with(viewModel.state.value) {
+            assertEquals(listOf("en", "ja", "ar", "eu"), languages.map { it.code })
+            assertEquals(listOf("en", "ja"), trendingLanguages)
+            assertEquals(UiText.StringValue("English, Japanese"), languagesLabel)
         }
+    }
 
     @Test
     fun `a saved language that is not in the list can still be unticked`() = runTest {
-        settings.current.value = AppSettings(trendingLanguages = listOf("en", "xx"))
+        settings.current.value = AppSettings(
+            trendingLanguages = listOf("en", "xx"),
+            cardLanguages = listOf("yy"),
+        )
         languages.current.value = listOf(LanguageOption("en", "English"))
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
 
-        val options = viewModel.state.value.languageOptions
-        assertEquals(listOf("en", "xx"), options.map { it.key })
-        assertTrue(options.all { it.isSelected })
+        assertEquals(listOf("en", "xx", "yy"), viewModel.state.value.languages.map { it.code })
     }
 
     @Test
-    fun `opening the language dialog refreshes the list, other dialogs do not`() = runTest {
+    fun `languages on cards is off until languages are picked`() = runTest {
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
+
+        assertEquals(
+            UiText.StringResource(StringResource.settings_card_languages_off),
+            viewModel.state.value.cardLanguagesLabel,
+        )
+        assertTrue(viewModel.state.value.cardLanguages.isEmpty())
+
+        viewModel.onIntent(SettingsIntent.CardLanguagesConfirmed(setOf("en", "ko")))
+        advanceUntilIdle()
+
+        assertEquals(listOf("en", "ko"), settings.current.value.cardLanguages)
+        assertEquals(listOf("en", "ko"), viewModel.state.value.cardLanguages)
+        assertEquals(
+            UiText.StringValue("English, Korean"),
+            viewModel.state.value.cardLanguagesLabel,
+        )
+        assertNull(viewModel.state.value.dialog)
+    }
+
+    @Test
+    fun `confirming nothing turns languages on cards off again`() = runTest {
+        settings.current.value = AppSettings(cardLanguages = listOf("en"))
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+
+        viewModel.onIntent(SettingsIntent.CardLanguagesConfirmed(emptySet()))
+        advanceUntilIdle()
+
+        assertTrue(settings.current.value.cardLanguages.isEmpty())
+        assertEquals(
+            UiText.StringResource(StringResource.settings_card_languages_off),
+            viewModel.state.value.cardLanguagesLabel,
+        )
+    }
+
+    @Test
+    fun `at most two card languages are saved`() = runTest {
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+
+        viewModel.onIntent(SettingsIntent.CardLanguagesConfirmed(setOf("en", "ja", "ko")))
+        advanceUntilIdle()
+
+        assertEquals(listOf("en", "ja"), settings.current.value.cardLanguages)
+    }
+
+    @Test
+    fun `opening either language dialog refreshes the list, other dialogs do not`() = runTest {
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
@@ -281,6 +333,11 @@ class SettingsViewModelTest {
         advanceUntilIdle()
         assertEquals(1, languages.refreshCalls)
         assertEquals(SettingsDialog.TrendingLanguages, viewModel.state.value.dialog)
+
+        viewModel.onIntent(SettingsIntent.DialogOpened(SettingsDialog.CardLanguages))
+        advanceUntilIdle()
+        assertEquals(2, languages.refreshCalls)
+        assertEquals(SettingsDialog.CardLanguages, viewModel.state.value.dialog)
     }
 
     @Test
@@ -289,10 +346,10 @@ class SettingsViewModelTest {
         val viewModel = createViewModel()
         collect(viewModel.state)
 
-        viewModel.onIntent(SettingsIntent.DialogOpened(SettingsDialog.TrendingLanguages))
+        viewModel.onIntent(SettingsIntent.DialogOpened(SettingsDialog.CardLanguages))
         advanceUntilIdle()
 
-        assertEquals(SettingsDialog.TrendingLanguages, viewModel.state.value.dialog)
-        assertTrue(viewModel.state.value.languageOptions.isNotEmpty())
+        assertEquals(SettingsDialog.CardLanguages, viewModel.state.value.dialog)
+        assertTrue(viewModel.state.value.languages.isNotEmpty())
     }
 }

@@ -10,4 +10,6 @@ data class EntryNovelDTO(
     @SerialName("alttitle") val altTitle: String?,
     @SerialName("released") val released: String?,
     @SerialName("image") val image: ImageDTO?,
+    /** Every language with a release, original included. */
+    @SerialName("languages") val languages: List<String>?,
 )

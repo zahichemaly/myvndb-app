@@ -33,9 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.NovelLength
+import com.zc.vndb.common.ui.component.languagesdialog.LanguagesDialogView
 import com.zc.vndb.common.ui.component.selectablechip.SelectableChipView
-import com.zc.vndb.common.ui.mapper.displayName
-import com.zc.vndb.common.ui.mapper.languageName
+import com.zc.vndb.common.ui.mapper.nameOf
 import com.zc.vndb.common.ui.mapper.toLanguagesLabel
 import com.zc.vndb.common.ui.mapper.toNameLabel
 import com.zc.vndb.common.ui.resource.StringResource
@@ -216,7 +216,9 @@ private fun LanguageSection(
         )
     }
     if (showDialog) {
-        SupportedLanguagesDialogView(
+        LanguagesDialogView(
+            title = UiText.StringResource(StringResource.browse_filter_supported_languages),
+            hint = UiText.StringResource(StringResource.browse_supported_languages_hint),
             options = languages,
             selected = advanced.supportedLanguages,
             onConfirm = {
@@ -285,10 +287,6 @@ private fun OriginalLanguageRow(
         )
     }
 }
-
-/** The language's name from the fetched list, or the device's name for a code that is not in it. */
-private fun List<LanguageOption>.nameOf(code: String): String =
-    firstOrNull { it.code == code }?.displayName() ?: languageName(code)
 
 @Composable
 private fun LengthSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> Unit) {

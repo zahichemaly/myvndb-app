@@ -29,3 +29,11 @@ fun List<LanguageOption>.inPickerOrder(): List<LanguageOption> {
         .sortedBy { it.displayName().lowercase() }
     return common + rest
 }
+
+/** The name of [code] from this list, or the device's name for a code that is not in it. */
+fun List<LanguageOption>.nameOf(code: String): String =
+    firstOrNull { it.code == code }?.displayName() ?: languageName(code)
+
+/** [codes] as options carrying this list's labels; a code that is not in the list has no label. */
+fun List<LanguageOption>.resolve(codes: List<String>): List<LanguageOption> =
+    codes.map { code -> firstOrNull { it.code == code } ?: LanguageOption(code, "") }

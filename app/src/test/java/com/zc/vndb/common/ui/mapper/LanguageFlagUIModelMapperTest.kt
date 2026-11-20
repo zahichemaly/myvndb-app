@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.detail.presentation.mapper
+package com.zc.vndb.common.ui.mapper
 
 import com.zc.vndb.common.data.dto.SchemaDTO
 import com.zc.vndb.common.data.network.appJson

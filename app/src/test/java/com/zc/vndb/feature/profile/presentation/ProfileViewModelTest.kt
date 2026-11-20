@@ -1,10 +1,13 @@
 package com.zc.vndb.feature.profile.presentation
 
 import app.cash.turbine.test
+import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.ListSort
+import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSessionRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
+import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
 import com.zc.vndb.common.domain.util.FixedClock
 import com.zc.vndb.common.ui.resource.StringResource
@@ -53,6 +56,7 @@ class ProfileViewModelTest {
     }
 
     private val settings = FakeSettingsRepository()
+    private val languages = FakeLanguageRepository()
 
     private fun createViewModel() = ProfileViewModel(
         observeSession = ObserveSessionUseCase(sessions),
@@ -60,6 +64,7 @@ class ProfileViewModelTest {
         getListEntries = GetListEntriesUseCase(profile),
         clock = FixedClock(Instant.parse("2026-11-16T00:00:00Z")),
         observeSettings = ObserveSettingsUseCase(settings),
+        observeLanguages = ObserveLanguagesUseCase(languages),
         updateSettings = UpdateSettingsUseCase(settings),
         observeListChanges = ObserveListChangesUseCase(profile),
     )
@@ -193,6 +198,39 @@ class ProfileViewModelTest {
         assertFalse(viewModel.state.value.isRefreshing)
         assertEquals(25, viewModel.state.value.entries.items.size)
         assertTrue(profile.calls.containsAll(listOf("labels", "user", "entries:1:1")))
+    }
+
+    @Test
+    fun `entries show pills for the chosen languages`() = runTest {
+        settings.current.value = AppSettings(cardLanguages = listOf("en"))
+        sessions.current.value = ProfileSamples.session()
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
+
+        val items = viewModel.state.value.entries.items
+        assertTrue(items.isNotEmpty())
+        assertTrue(items.all { card -> card.languagePills.map { it.code } == listOf("en") })
+    }
+
+    @Test
+    fun `changing the setting redraws the pills without asking the API again`() = runTest {
+        sessions.current.value = ProfileSamples.session()
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
+        val calls = profile.calls.size
+        assertTrue(viewModel.state.value.entries.items.all { it.languagePills.isEmpty() })
+
+        settings.current.value = AppSettings(cardLanguages = listOf("ko", "ja"))
+        advanceUntilIdle()
+
+        assertTrue(
+            viewModel.state.value.entries.items.all { card ->
+                card.languagePills.map { it.code } == listOf("ko", "ja")
+            },
+        )
+        assertEquals(calls, profile.calls.size)
     }
 
     @Test

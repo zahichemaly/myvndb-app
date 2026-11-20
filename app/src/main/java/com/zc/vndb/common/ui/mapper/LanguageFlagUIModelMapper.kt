@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.detail.presentation.mapper
+package com.zc.vndb.common.ui.mapper
 
 import java.util.Locale
 

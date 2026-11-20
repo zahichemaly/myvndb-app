@@ -3,11 +3,14 @@ package com.zc.vndb.feature.profile.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zc.vndb.common.domain.model.DomainError
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.ListSort
 import com.zc.vndb.common.domain.model.Session
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
 import com.zc.vndb.common.ui.component.error.mapper.toErrorUIModel
+import com.zc.vndb.common.ui.mapper.resolve
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.profile.domain.model.ListCursor
@@ -34,6 +37,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -53,6 +58,7 @@ class ProfileViewModel(
     private val getListEntries: GetListEntriesUseCase,
     private val clock: Clock,
     private val observeSettings: ObserveSettingsUseCase,
+    private val observeLanguages: ObserveLanguagesUseCase,
     private val updateSettings: UpdateSettingsUseCase,
     observeListChanges: ObserveListChangesUseCase,
 ) : ViewModel() {
@@ -79,12 +85,26 @@ class ProfileViewModel(
     private var selectedLabelId: Int? = null
     private val entriesByLabel = mutableMapOf<Int, LabelEntries>()
     private var titleLanguage = TitleLanguage.Romanized
+
+    /** The languages the user chose to flag on cards (Settings), with their names. */
+    private var cardLanguages: List<LanguageOption> = emptyList()
     private var listSort = ListSort.Title
     private var isSortReversed = false
     private var overviewJob: Job? = null
     private var entriesJob: Job? = null
 
     init {
+        // The pills only change what the cards show, so the loaded entries are drawn again.
+        viewModelScope.launch {
+            combine(
+                observeSettings().map { it.cardLanguages }.distinctUntilChanged(),
+                observeLanguages(),
+            ) { codes, options -> options.resolve(codes) }
+                .collect { resolved ->
+                    cardLanguages = resolved
+                    selectedLabelId?.let(::render)
+                }
+        }
         // An entry edited in the list editor can move between labels: reload what is shown.
         viewModelScope.launch {
             observeListChanges().collect {
@@ -303,7 +323,7 @@ class ProfileViewModel(
             it.copy(
                 entries = EntriesUIState(
                     items = loaded.entries.map { entry ->
-                        entry.toCardUIModel(now, titleLanguage)
+                        entry.toCardUIModel(now, titleLanguage, cardLanguages)
                     }.toImmutableList(),
                     hasMore = loaded.hasMore,
                 ),

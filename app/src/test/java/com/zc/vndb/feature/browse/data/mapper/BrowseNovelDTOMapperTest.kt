@@ -15,6 +15,7 @@ class BrowseNovelDTOMapperTest {
         alttitle: String? = null,
         length: Int? = null,
         lengthMinutes: Int? = null,
+        languages: List<String>? = null,
     ) = BrowseNovelDTO(
         id = "v2002",
         title = title,
@@ -26,6 +27,7 @@ class BrowseNovelDTOMapperTest {
         image = null,
         developers = null,
         tags = null,
+        languages = languages,
     )
 
     @Test
@@ -71,5 +73,11 @@ class BrowseNovelDTOMapperTest {
         assertEquals(ReleaseDate.Tba, novel.releaseDate)
         assertNull(novel.cover)
         assertTrue(novel.developerNames.isEmpty() && novel.tags.isEmpty())
+    }
+
+    @Test
+    fun `languages map through, and none is an empty list`() {
+        assertEquals(listOf("ja", "en"), dto(languages = listOf("ja", "en")).toDomain().languages)
+        assertEquals(emptyList(), dto(languages = null).toDomain().languages)
     }
 }

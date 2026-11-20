@@ -4,7 +4,7 @@ import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.SpoilerPreference
 import com.zc.vndb.common.domain.model.TitleLanguage
-import com.zc.vndb.common.ui.mapper.displayName
+import com.zc.vndb.common.ui.mapper.nameOf
 import com.zc.vndb.common.ui.mapper.toLabel
 import com.zc.vndb.common.ui.mapper.toLanguagesLabel
 import com.zc.vndb.common.ui.resource.StringResource
@@ -33,14 +33,14 @@ fun SettingsState.withSettings(
     spoilIfFinished = settings.spoilIfFinished,
     showSensitiveContent = settings.showSensitiveContent,
     includeAdultInBrowse = settings.includeAdultInBrowse,
-    languageOptions = languages.withChosen(settings.trendingLanguages).map {
-        SettingOptionUIModel(
-            it.code,
-            UiText.StringValue(it.displayName()),
-            it.code in settings.trendingLanguages,
-        )
-    }.toImmutableList(),
-    languagesLabel = settings.trendingLanguages.toLanguagesLabel(),
+    languages = languages.withChosen(settings.trendingLanguages + settings.cardLanguages)
+        .toImmutableList(),
+    trendingLanguages = settings.trendingLanguages.toImmutableList(),
+    languagesLabel = settings.trendingLanguages.toLanguagesLabel(languages::nameOf),
+    cardLanguages = settings.cardLanguages.toImmutableList(),
+    cardLanguagesLabel = settings.cardLanguages.takeIf { it.isNotEmpty() }
+        ?.toLanguagesLabel(languages::nameOf)
+        ?: UiText.StringResource(StringResource.settings_card_languages_off),
 )
 
 /** The listed languages, plus any saved choice that is not in the list so it can still be unticked. */

@@ -1,5 +1,6 @@
 package com.zc.vndb.feature.browse.presentation.component.browsenovelcard.mapper
 
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.NovelLength
 import com.zc.vndb.common.domain.model.ReleaseDate
 import com.zc.vndb.common.ui.mapper.toNameWithRangeLabel
@@ -9,6 +10,7 @@ import com.zc.vndb.feature.browse.domain.model.BrowseSamples
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.datetime.YearMonth
 
 class BrowseNovelCardUIModelMapperTest {
@@ -71,5 +73,24 @@ class BrowseNovelCardUIModelMapperTest {
         assertNull(bare.lengthLabel)
         assertNull(bare.ratingLabel)
         assertNull(bare.coverUrl)
+    }
+
+    @Test
+    fun `pills for the chosen languages the novel is available in`() {
+        val chosen = listOf(LanguageOption("en", "English"), LanguageOption("de", "German"))
+
+        val card = novel.copy(languages = listOf("ja", "en", "ko"))
+            .toCardUIModel(cardLanguages = chosen)
+
+        assertEquals(listOf("en"), card.languagePills.map { it.code })
+        assertEquals(listOf("ja", "en", "ko"), card.languageCodes)
+    }
+
+    @Test
+    fun `no pills when no language is chosen`() {
+        val card = novel.copy(languages = listOf("ja", "en")).toCardUIModel()
+
+        assertTrue(card.languagePills.isEmpty())
+        assertEquals(listOf("ja", "en"), card.languageCodes)
     }
 }

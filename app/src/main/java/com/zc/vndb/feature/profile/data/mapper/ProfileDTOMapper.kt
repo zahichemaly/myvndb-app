@@ -40,6 +40,7 @@ fun ListEntryDTO.toDomain() = ListEntry(
     notes = notes?.takeIf { it.isNotBlank() },
     labels = labels.orEmpty().map { EntryLabel(it.id, it.label) },
     lastModified = Instant.fromEpochSeconds(lastMod),
+    languages = vn.languages.orEmpty(),
 )
 
 fun MyListEntryDTO.toDomain() = MyListEntry(

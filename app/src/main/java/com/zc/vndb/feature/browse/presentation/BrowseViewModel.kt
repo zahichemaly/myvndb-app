@@ -2,12 +2,15 @@ package com.zc.vndb.feature.browse.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.TitleLanguage
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
 import com.zc.vndb.common.domain.usecase.RefreshLanguagesUseCase
 import com.zc.vndb.common.ui.component.error.mapper.toErrorUIModel
 import com.zc.vndb.common.ui.mapper.inPickerOrder
+import com.zc.vndb.common.ui.mapper.resolve
+import com.zc.vndb.common.ui.mapper.toLanguagePills
 import com.zc.vndb.feature.browse.domain.model.AdvancedFilters
 import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseFilter
@@ -35,6 +38,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -72,6 +76,9 @@ class BrowseViewModel(
     private var defaultAgeRating = AgeRating.AllAges
     private var titleLanguage = TitleLanguage.Romanized
 
+    /** The languages the user chose to flag on cards (Settings), with their names. */
+    private var cardLanguages: List<LanguageOption> = emptyList()
+
     // The age rating follows Settings ("Show 18+ titles in Browse"): the list loads with it, and
     // every change of the setting loads the list again from the API.
     init {
@@ -82,10 +89,29 @@ class BrowseViewModel(
             }
         }
         viewModelScope.launch {
+            combine(
+                observeSettings().map { it.cardLanguages }.distinctUntilChanged(),
+                observeLanguages(),
+            ) { codes, options -> options.resolve(codes) }
+                .collect(::onCardLanguagesChanged)
+        }
+        viewModelScope.launch {
             observeSettings()
                 .map { it.includeAdultInBrowse }
                 .distinctUntilChanged()
                 .collect(::onIncludeAdultChanged)
+        }
+    }
+
+    /** The pills only change what the cards show, so the listed novels stay as they are. */
+    private fun onCardLanguagesChanged(resolved: List<LanguageOption>) {
+        cardLanguages = resolved
+        _state.update { state ->
+            state.copy(
+                results = state.results
+                    .map { it.copy(languagePills = toLanguagePills(it.languageCodes, resolved)) }
+                    .toImmutableList(),
+            )
         }
     }
 
@@ -278,7 +304,7 @@ class BrowseViewModel(
                         it.copy(
                             isLoading = false,
                             results = page.novels.map { novel ->
-                                novel.toCardUIModel(titleLanguage)
+                                novel.toCardUIModel(titleLanguage, cardLanguages)
                             }.toImmutableList(),
                             resultCountLabel = page.totalCount?.toResultCountLabel(),
                             canLoadMore = page.hasMore,
@@ -321,7 +347,7 @@ class BrowseViewModel(
                         it.copy(
                             isRefreshing = false,
                             results = page.novels.map { novel ->
-                                novel.toCardUIModel(titleLanguage)
+                                novel.toCardUIModel(titleLanguage, cardLanguages)
                             }.toImmutableList(),
                             resultCountLabel = page.totalCount?.toResultCountLabel(),
                             canLoadMore = page.hasMore,
@@ -347,7 +373,7 @@ class BrowseViewModel(
                         val known = state.results.mapTo(HashSet()) { it.id }
                         val added = page.novels.filter {
                             it.id !in known
-                        }.map { it.toCardUIModel(titleLanguage) }
+                        }.map { it.toCardUIModel(titleLanguage, cardLanguages) }
                         state.copy(
                             isLoadingMore = false,
                             results = (state.results + added).toImmutableList(),

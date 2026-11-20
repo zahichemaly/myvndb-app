@@ -14,7 +14,7 @@ import kotlinx.serialization.json.putJsonArray
 
 private const val ENTRY_FIELDS =
     "id, vote, lastmod, started, finished, notes, labels.id, labels.label, " +
-        "vn.title, vn.alttitle, vn.released, vn.image.url, vn.image.thumbnail, vn.image.sexual, vn.image.violence"
+        "vn.title, vn.alttitle, vn.released, vn.image.url, vn.image.thumbnail, vn.image.sexual, vn.image.violence, vn.languages"
 
 /** VNDB's virtual "Voted" label: every entry with a vote. */
 private const val VOTED_LABEL = 7

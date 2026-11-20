@@ -28,4 +28,19 @@ class UpdateSettingsUseCaseTest {
             repository.current.value.trendingLanguages,
         )
     }
+
+    @Test
+    fun `card languages are optional`() = runTest {
+        useCase { it.copy(cardLanguages = listOf("en")) }
+        useCase { it.copy(cardLanguages = emptyList()) }
+
+        assertEquals(emptyList(), repository.current.value.cardLanguages)
+    }
+
+    @Test
+    fun `card languages keep at most two, without repeats`() = runTest {
+        useCase { it.copy(cardLanguages = listOf("en", "en", "ja", "ko")) }
+
+        assertEquals(listOf("en", "ja"), repository.current.value.cardLanguages)
+    }
 }

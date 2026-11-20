@@ -46,6 +46,12 @@ class SettingsLocalDataSource(
                 ?.filter { it.isNotBlank() }
                 ?.takeIf { it.isNotEmpty() }
                 ?: defaults.trendingLanguages,
+            cardLanguages = this[CARD_LANGUAGES]
+                ?.split(SEPARATOR)
+                ?.filter { it.isNotBlank() }
+                ?.distinct()
+                ?.take(AppSettings.MAX_CARD_LANGUAGES)
+                ?: defaults.cardLanguages,
             listSort = this[LIST_SORT].toEnumOr(defaults.listSort),
             isListSortReversed = this[LIST_SORT_REVERSED] ?: defaults.isListSortReversed,
             theme = this[THEME].toEnumOr(defaults.theme),
@@ -59,6 +65,7 @@ class SettingsLocalDataSource(
         this[SHOW_SENSITIVE] = settings.showSensitiveContent
         this[INCLUDE_ADULT] = settings.includeAdultInBrowse
         this[TRENDING_LANGUAGES] = settings.trendingLanguages.joinToString(SEPARATOR)
+        this[CARD_LANGUAGES] = settings.cardLanguages.joinToString(SEPARATOR)
         this[LIST_SORT] = settings.listSort.name
         this[LIST_SORT_REVERSED] = settings.isListSortReversed
         this[THEME] = settings.theme.name
@@ -76,6 +83,7 @@ class SettingsLocalDataSource(
         private val SHOW_SENSITIVE = booleanPreferencesKey("show_sensitive_content")
         private val INCLUDE_ADULT = booleanPreferencesKey("include_adult_in_browse")
         private val TRENDING_LANGUAGES = stringPreferencesKey("trending_languages")
+        private val CARD_LANGUAGES = stringPreferencesKey("card_languages")
         private val LIST_SORT = stringPreferencesKey("list_sort")
         private val LIST_SORT_REVERSED = booleanPreferencesKey("list_sort_reversed")
         private val THEME = stringPreferencesKey("theme")
