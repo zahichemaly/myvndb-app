@@ -1,5 +1,7 @@
 package com.zc.vndb.feature.detail.presentation.mapper
 
+import com.zc.vndb.common.data.dto.SchemaDTO
+import com.zc.vndb.common.data.network.appJson
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -20,9 +22,33 @@ class LanguageFlagUIModelMapperTest {
     }
 
     @Test
+    fun `Bosnian and Estonian have their national flags`() {
+        assertEquals("🇧🇦", languageFlag("bs"))
+        assertEquals("🇪🇪", languageFlag("et"))
+    }
+
+    @Test
+    fun `VNDB's Tagalog code ta shows the Philippine flag`() {
+        assertEquals("🇵🇭", languageFlag("ta"))
+        assertNull(languageFlag("tl"))
+    }
+
+    @Test
     fun `languages without a national flag have none`() {
-        assertNull(languageFlag("ca"))
-        assertNull(languageFlag("eo"))
-        assertNull(languageFlag(""))
+        listOf("ca", "eu", "gl", "gd", "eo", "la", "iu", "ck", "").forEach {
+            assertNull(languageFlag(it), "expected no flag for '$it'")
+        }
+    }
+
+    @Test
+    fun `every language VNDB lists has a flag, except the ones without a national flag`() {
+        val schema = checkNotNull(
+            LanguageFlagUIModelMapperTest::class.java.getResource("/schema/schema.json"),
+        ).readText()
+        val codes = appJson.decodeFromString<SchemaDTO>(schema).enums.language.map { it.id }
+        val withoutFlag = setOf("ca", "eu", "gl", "gd", "eo", "la", "iu", "ck")
+
+        assertEquals(57, codes.size)
+        assertEquals(withoutFlag, codes.filter { languageFlag(it) == null }.toSet())
     }
 }

@@ -6,18 +6,21 @@ private const val REGIONAL_INDICATOR_A = 0x1F1E6
 
 /**
  * VNDB language code → country whose flag stands for it. English uses the British flag; languages
- * without a national flag (Catalan, Basque, Esperanto, Latin, …) have none.
+ * without a national flag (Catalan, Basque, Galician, Scottish Gaelic, Esperanto, Latin, Inuktitut,
+ * Cherokee) have none. VNDB files Tagalog under `ta`, the code ISO uses for Tamil.
  */
 private val flagCountries = mapOf(
     "ar" to "SA",
     "be" to "BY",
     "bg" to "BG",
+    "bs" to "BA",
     "cs" to "CZ",
     "da" to "DK",
     "de" to "DE",
     "el" to "GR",
     "en" to "GB",
     "es" to "ES",
+    "et" to "EE",
     "fa" to "IR",
     "fi" to "FI",
     "fr" to "FR",
@@ -47,9 +50,8 @@ private val flagCountries = mapOf(
     "sl" to "SI",
     "sr" to "RS",
     "sv" to "SE",
-    "ta" to "IN",
+    "ta" to "PH",
     "th" to "TH",
-    "tl" to "PH",
     "tr" to "TR",
     "uk" to "UA",
     "ur" to "PK",
