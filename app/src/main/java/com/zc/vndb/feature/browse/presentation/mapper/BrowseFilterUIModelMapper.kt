@@ -3,10 +3,10 @@ package com.zc.vndb.feature.browse.presentation.mapper
 import com.zc.vndb.common.ui.resource.PluralResource
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
+import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseFilter
 import com.zc.vndb.feature.browse.domain.model.BrowseSort
 import com.zc.vndb.feature.browse.domain.model.Genre
-import com.zc.vndb.feature.browse.presentation.model.GenreChipUIState
 import com.zc.vndb.feature.browse.presentation.model.SortOptionUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -15,16 +15,6 @@ import kotlinx.collections.immutable.toImmutableList
 fun BrowseFilter.toSortOptions(): ImmutableList<SortOptionUIModel> = BrowseSort.entries
     .filter { it != BrowseSort.Relevance || query.isNotBlank() }
     .map { SortOptionUIModel(sort = it, label = it.toLabel()) }
-    .toImmutableList()
-
-fun BrowseFilter.toGenreChips(): ImmutableList<GenreChipUIState> = Genre.entries
-    .map {
-        GenreChipUIState(
-            genre = it,
-            label = it.toLabel(),
-            isSelected = it in genres,
-        )
-    }
     .toImmutableList()
 
 fun BrowseSort.toLabel(): UiText = UiText.StringResource(
@@ -37,6 +27,14 @@ fun BrowseSort.toLabel(): UiText = UiText.StringResource(
     },
 )
 
+fun AgeRating.toLabel(): UiText = UiText.StringResource(
+    when (this) {
+        AgeRating.AllAges -> StringResource.browse_age_all
+        AgeRating.Adult -> StringResource.browse_age_adult
+        AgeRating.Any -> StringResource.browse_age_any
+    },
+)
+
 /** "Found 142 titles", grouped for the device locale. */
 fun Int.toResultCountLabel(): UiText = UiText.StringPlural(
     PluralResource.browse_found_titles,
@@ -44,7 +42,7 @@ fun Int.toResultCountLabel(): UiText = UiText.StringPlural(
     listOf("%,d".format(this)),
 )
 
-private fun Genre.toLabel(): UiText = UiText.StringResource(
+fun Genre.toLabel(): UiText = UiText.StringResource(
     when (this) {
         Genre.Romance -> StringResource.browse_genre_romance
         Genre.Mystery -> StringResource.browse_genre_mystery

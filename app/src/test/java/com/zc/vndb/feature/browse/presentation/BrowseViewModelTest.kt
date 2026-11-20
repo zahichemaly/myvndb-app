@@ -5,8 +5,11 @@ import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.TagCategory
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
+import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
+import com.zc.vndb.common.domain.usecase.RefreshLanguagesUseCase
 import com.zc.vndb.common.ui.resource.PluralResource
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
@@ -27,10 +30,14 @@ import com.zc.vndb.feature.browse.domain.usecase.GetProducerUseCase
 import com.zc.vndb.feature.browse.domain.usecase.GetStaffUseCase
 import com.zc.vndb.feature.browse.domain.usecase.GetTagUseCase
 import com.zc.vndb.feature.browse.domain.usecase.SearchNovelsUseCase
+import com.zc.vndb.feature.browse.presentation.model.ActiveFilterKey
+import com.zc.vndb.feature.browse.presentation.model.FilterDraft
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
@@ -47,6 +54,7 @@ class BrowseViewModelTest {
     }
 
     private val settings = FakeSettingsRepository()
+    private val languages = FakeLanguageRepository()
 
     private fun createViewModel(scope: BrowseScope = BrowseScope.None) = BrowseViewModel(
         scope = scope,
@@ -55,7 +63,21 @@ class BrowseViewModelTest {
         getProducer = GetProducerUseCase(repository),
         getStaff = GetStaffUseCase(repository),
         observeSettings = ObserveSettingsUseCase(settings),
+        observeLanguages = ObserveLanguagesUseCase(languages),
+        refreshLanguages = RefreshLanguagesUseCase(languages),
     )
+
+    /** Opens the sheet, edits the draft and taps Apply, as the user would. */
+    private fun TestScope.applyFilters(
+        viewModel: BrowseViewModel,
+        edit: (FilterDraft) -> FilterDraft,
+    ) {
+        viewModel.onIntent(BrowseIntent.FiltersOpened)
+        val draft = assertNotNull(viewModel.state.value.filterSheet).draft
+        viewModel.onIntent(BrowseIntent.FilterDraftChanged(edit(draft)))
+        viewModel.onIntent(BrowseIntent.FiltersApplied)
+        advanceUntilIdle()
+    }
 
     @Test
     fun `loads the first page with the default filter`() = runTest {
@@ -70,7 +92,6 @@ class BrowseViewModelTest {
             state.resultCountLabel,
         )
         assertTrue(state.canLoadMore)
-        assertEquals(AgeRating.AllAges, state.ageRating)
         assertEquals(BrowseSort.Popularity, state.sort)
     }
 
@@ -118,8 +139,9 @@ class BrowseViewModelTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        viewModel.onIntent(BrowseIntent.AgeRatingSelected(AgeRating.Adult))
-        viewModel.onIntent(BrowseIntent.GenreToggled(Genre.Mystery))
+        applyFilters(viewModel) {
+            it.copy(ageRating = AgeRating.Adult, genres = setOf(Genre.Mystery))
+        }
         viewModel.onIntent(BrowseIntent.SortSelected(BrowseSort.Rating))
         advanceUntilIdle()
 
@@ -133,11 +155,14 @@ class BrowseViewModelTest {
             last.filter,
         )
         assertEquals(1, last.page)
-        val state = viewModel.state.value
-        assertEquals(AgeRating.Adult, state.ageRating)
-        assertEquals(listOf(Genre.Mystery), state.genres.filter { it.isSelected }.map { it.genre })
+        assertEquals(
+            listOf(ActiveFilterKey.Age, ActiveFilterKey.GenreFilter(Genre.Mystery)),
+            viewModel.state.value.activeFilters.map { it.key },
+        )
 
-        viewModel.onIntent(BrowseIntent.GenreToggled(Genre.Mystery))
+        viewModel.onIntent(
+            BrowseIntent.ActiveFilterRemoved(ActiveFilterKey.GenreFilter(Genre.Mystery)),
+        )
         advanceUntilIdle()
         assertTrue(repository.requests.last().filter.genres.isEmpty())
     }
@@ -147,7 +172,7 @@ class BrowseViewModelTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        viewModel.onIntent(BrowseIntent.AgeRatingSelected(AgeRating.AllAges))
+        applyFilters(viewModel) { it }
         viewModel.onIntent(BrowseIntent.SortSelected(BrowseSort.Popularity))
         advanceUntilIdle()
 
@@ -276,8 +301,7 @@ class BrowseViewModelTest {
         assertEquals(UiText.StringValue("Time Travel"), state.header?.name)
         assertEquals(BrowseScope.Tag("g249"), repository.requests.single().filter.scope)
 
-        viewModel.onIntent(BrowseIntent.GenreToggled(Genre.Mystery))
-        advanceUntilIdle()
+        applyFilters(viewModel) { it.copy(genres = setOf(Genre.Mystery)) }
         assertEquals(BrowseScope.Tag("g249"), repository.requests.last().filter.scope)
     }
 
@@ -343,8 +367,7 @@ class BrowseViewModelTest {
         assertEquals(BrowseScope.Producer("p30"), filter.scope)
         assertEquals(BrowseSort.Newest, filter.sort)
 
-        viewModel.onIntent(BrowseIntent.GenreToggled(Genre.Mystery))
-        advanceUntilIdle()
+        applyFilters(viewModel) { it.copy(genres = setOf(Genre.Mystery)) }
         assertEquals(BrowseScope.Producer("p30"), repository.requests.last().filter.scope)
     }
 
@@ -471,16 +494,6 @@ class BrowseViewModelTest {
         }
         assertFalse(viewModel.state.value.isRefreshing)
         assertEquals(20, viewModel.state.value.results.size)
-    }
-
-    @Test
-    fun `include 18+ in Browse starts with both ages`() = runTest {
-        settings.current.value = AppSettings(includeAdultInBrowse = true)
-        val viewModel = createViewModel()
-        advanceUntilIdle()
-
-        assertEquals(AgeRating.Any, repository.requests.single().filter.ageRating)
-        assertEquals(AgeRating.Any, viewModel.state.value.ageRating)
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.zc.vndb.feature.browse.presentation.mapper
 import com.zc.vndb.common.ui.resource.PluralResource
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
+import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseFilter
 import com.zc.vndb.feature.browse.domain.model.BrowseSort
 import com.zc.vndb.feature.browse.domain.model.Genre
@@ -28,14 +29,18 @@ class BrowseFilterUIModelMapperTest {
     }
 
     @Test
-    fun `genre chips reflect the selection`() {
-        val chips = BrowseFilter(genres = setOf(Genre.Horror)).toGenreChips()
-
-        assertEquals(Genre.entries, chips.map { it.genre })
-        assertEquals(listOf(Genre.Horror), chips.filter { it.isSelected }.map { it.genre })
+    fun `genres and age ratings have labels`() {
         assertEquals(
             UiText.StringResource(StringResource.browse_genre_scifi),
-            chips.single { it.genre == Genre.SciFi }.label,
+            Genre.SciFi.toLabel(),
+        )
+        assertEquals(
+            UiText.StringResource(StringResource.browse_age_any),
+            AgeRating.Any.toLabel(),
+        )
+        assertEquals(
+            Genre.entries.size,
+            Genre.entries.map { it.toLabel() }.toSet().size,
         )
     }
 

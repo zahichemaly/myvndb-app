@@ -4,7 +4,6 @@ import com.zc.vndb.common.domain.model.TagCategory
 import com.zc.vndb.feature.browse.domain.model.BrowseFilter
 import com.zc.vndb.feature.browse.domain.model.BrowseNovel
 import com.zc.vndb.feature.browse.domain.model.BrowsePage
-import com.zc.vndb.feature.browse.domain.model.BrowseSort
 import com.zc.vndb.feature.browse.domain.repository.BrowseRepository
 import org.koin.core.annotation.Factory
 
@@ -23,23 +22,6 @@ class SearchNovelsUseCase(private val repository: BrowseRepository) {
             pageSize = PAGE_SIZE,
             withCount = page == FIRST_PAGE,
         ).map { result -> result.copy(novels = result.novels.map { it.withCardTags() }) }
-
-    private fun BrowseFilter.normalized(): BrowseFilter {
-        val trimmed = query.trim()
-        val effectiveSort = if (sort == BrowseSort.Relevance &&
-            trimmed.isEmpty()
-        ) {
-            scope.defaultSort
-        } else {
-            sort
-        }
-        // A fallback to the default sort starts in that sort's own direction.
-        return copy(
-            query = trimmed,
-            sort = effectiveSort,
-            isReversed = isReversed && effectiveSort == sort,
-        )
-    }
 
     private fun BrowseNovel.withCardTags(): BrowseNovel = copy(
         tags = tags

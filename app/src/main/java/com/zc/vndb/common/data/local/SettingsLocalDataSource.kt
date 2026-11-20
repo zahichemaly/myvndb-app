@@ -43,7 +43,7 @@ class SettingsLocalDataSource(
             includeAdultInBrowse = this[INCLUDE_ADULT] ?: defaults.includeAdultInBrowse,
             trendingLanguages = this[TRENDING_LANGUAGES]
                 ?.split(SEPARATOR)
-                ?.filter { it in AppSettings.TRENDING_LANGUAGE_CHOICES }
+                ?.filter { it.isNotBlank() }
                 ?.takeIf { it.isNotEmpty() }
                 ?: defaults.trendingLanguages,
             listSort = this[LIST_SORT].toEnumOr(defaults.listSort),

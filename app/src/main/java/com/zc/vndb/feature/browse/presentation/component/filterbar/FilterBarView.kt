@@ -33,53 +33,17 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.zc.vndb.common.ui.component.selectablechip.SelectableChipView
 import com.zc.vndb.common.ui.component.sortdirection.SortDirectionButtonView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
-import com.zc.vndb.common.ui.theme.TintedColors
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
-import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseSort
 import com.zc.vndb.feature.browse.presentation.model.SortOptionUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 private val SortIconSize = 16.dp
-
-private val AgeOptions = listOf(
-    AgeRating.AllAges to StringResource.browse_age_all,
-    AgeRating.Adult to StringResource.browse_age_adult,
-    AgeRating.Any to StringResource.browse_age_any,
-)
-
-/** The age rating chips: All Ages / 18+ / Any Age. */
-@Composable
-fun AgeRatingRowView(
-    ageRating: AgeRating,
-    onAgeRatingSelect: (AgeRating) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm),
-    ) {
-        val selectedColors = TintedColors(
-            container = VndbTheme.colors.accent,
-            content = VndbTheme.colors.onAccent,
-            border = VndbTheme.colors.accent,
-        )
-        AgeOptions.forEach { (option, label) ->
-            SelectableChipView(
-                label = UiText.StringResource(label),
-                isSelected = ageRating == option,
-                onClick = { onAgeRatingSelect(option) },
-                selectedColors = selectedColors,
-            )
-        }
-    }
-}
 
 /**
  * The result count on the left, the sort menu with a direction button on the right. The count
@@ -207,7 +171,6 @@ private fun FilterRowsPreview() {
             verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm),
             modifier = Modifier.fillMaxWidth().padding(VndbTheme.spacing.lg),
         ) {
-            AgeRatingRowView(ageRating = AgeRating.AllAges, onAgeRatingSelect = {})
             SortRowView(
                 resultCountLabel = UiText.StringValue("Found 142 titles"),
                 sort = BrowseSort.Popularity,

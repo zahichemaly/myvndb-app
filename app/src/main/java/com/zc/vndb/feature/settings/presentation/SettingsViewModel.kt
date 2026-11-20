@@ -6,7 +6,10 @@ import com.zc.vndb.BuildConfig
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.SpoilerPreference
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
+import com.zc.vndb.common.domain.usecase.RefreshLanguagesUseCase
+import com.zc.vndb.common.ui.mapper.inPickerOrder
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.profile.domain.usecase.LogOutUseCase
@@ -34,6 +37,8 @@ import org.koin.core.annotation.KoinViewModel
 class SettingsViewModel(
     observeSettings: ObserveSettingsUseCase,
     observeSession: ObserveSessionUseCase,
+    observeLanguages: ObserveLanguagesUseCase,
+    private val refreshLanguages: RefreshLanguagesUseCase,
     private val updateSettings: UpdateSettingsUseCase,
     private val getImageCacheSize: GetImageCacheSizeUseCase,
     private val clearImageCache: ClearImageCacheUseCase,
@@ -50,8 +55,13 @@ class SettingsViewModel(
     )
 
     val state: StateFlow<SettingsState> =
-        combine(_state, observeSettings(), observeSession()) { state, settings, session ->
-            state.withSettings(settings).copy(
+        combine(
+            _state,
+            observeSettings(),
+            observeSession(),
+            observeLanguages(),
+        ) { state, settings, session, languages ->
+            state.withSettings(settings, languages.inPickerOrder()).copy(
                 isSignedIn = session != null,
                 accountLabel = session?.let { UiText.StringValue(it.username) },
             )
@@ -69,7 +79,7 @@ class SettingsViewModel(
         when (intent) {
             SettingsIntent.BackClicked -> sendEffect(SettingsEffect.NavigateBack)
 
-            is SettingsIntent.DialogOpened -> _state.update { it.copy(dialog = intent.dialog) }
+            is SettingsIntent.DialogOpened -> openDialog(intent.dialog)
 
             SettingsIntent.DialogDismissed -> closeDialog()
 
@@ -118,6 +128,12 @@ class SettingsViewModel(
 
             is SettingsIntent.LinkClicked -> sendEffect(SettingsEffect.OpenUrl(intent.url))
         }
+    }
+
+    private fun openDialog(dialog: SettingsDialog) {
+        _state.update { it.copy(dialog = dialog) }
+        // The language list refreshes in the background if it is stale; the dialog shows what it has.
+        if (dialog == SettingsDialog.TrendingLanguages) viewModelScope.launch { refreshLanguages() }
     }
 
     private fun selectOption(dialog: SettingsDialog, key: String) {

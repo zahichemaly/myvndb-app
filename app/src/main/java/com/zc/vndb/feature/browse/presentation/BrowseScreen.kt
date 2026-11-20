@@ -4,10 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -46,26 +46,27 @@ import com.zc.vndb.common.ui.component.error.model.ErrorUIModel
 import com.zc.vndb.common.ui.component.expandabletext.ExpandableTextView
 import com.zc.vndb.common.ui.component.linksrow.LinksRowView
 import com.zc.vndb.common.ui.component.pulltorefresh.PullToRefreshView
-import com.zc.vndb.common.ui.component.selectablechip.SelectableChipView
 import com.zc.vndb.common.ui.component.skeleton.SkeletonRowView
 import com.zc.vndb.common.ui.component.skeleton.loadingSemantics
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
-import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseSort
 import com.zc.vndb.feature.browse.domain.model.Genre
 import com.zc.vndb.feature.browse.presentation.component.browsenovelcard.BrowseNovelCardView
 import com.zc.vndb.feature.browse.presentation.component.browsenovelcard.model.BrowseNovelCardUIModel
-import com.zc.vndb.feature.browse.presentation.component.filterbar.AgeRatingRowView
+import com.zc.vndb.feature.browse.presentation.component.filterbar.ActiveFiltersRowView
+import com.zc.vndb.feature.browse.presentation.component.filterbar.FilterButtonView
 import com.zc.vndb.feature.browse.presentation.component.filterbar.SortRowView
+import com.zc.vndb.feature.browse.presentation.component.filtersheet.FilterSheetView
 import com.zc.vndb.feature.browse.presentation.component.scopeheader.ScopeHeaderSkeletonView
 import com.zc.vndb.feature.browse.presentation.component.scopeheader.ScopeHeaderView
 import com.zc.vndb.feature.browse.presentation.component.searchfield.SearchFieldView
-import com.zc.vndb.feature.browse.presentation.model.GenreChipUIState
+import com.zc.vndb.feature.browse.presentation.model.ActiveFilterKey
+import com.zc.vndb.feature.browse.presentation.model.ActiveFilterUIModel
+import com.zc.vndb.feature.browse.presentation.model.FilterDraft
 import com.zc.vndb.feature.browse.presentation.model.SortOptionUIModel
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 
@@ -80,15 +81,20 @@ private class BrowseActions(
     val onQueryChange: (String) -> Unit,
     val onSearch: () -> Unit,
     val onClear: () -> Unit,
-    val onAgeRatingSelect: (AgeRating) -> Unit,
     val onSortSelect: (BrowseSort) -> Unit,
     val onSortDirectionToggle: () -> Unit,
-    val onGenreToggle: (Genre) -> Unit,
     val onNovelClick: (String) -> Unit,
     val onRetry: () -> Unit,
     val onLoadMoreRetry: () -> Unit,
     val onDescriptionToggle: () -> Unit,
     val onLinkClick: (String) -> Unit,
+    val onFiltersClick: () -> Unit,
+    val onDraftChange: (FilterDraft) -> Unit,
+    val onFiltersReset: () -> Unit,
+    val onFiltersApply: () -> Unit,
+    val onFiltersDismiss: () -> Unit,
+    val onActiveFilterRemove: (ActiveFilterKey) -> Unit,
+    val onActiveFiltersClear: () -> Unit,
 )
 
 @Composable
@@ -115,22 +121,7 @@ fun BrowseScreen(
     } else {
         VndbTheme.spacing.margin
     }
-    val actions = remember(onIntent) {
-        BrowseActions(
-            onQueryChange = { onIntent(BrowseIntent.QueryChanged(it)) },
-            onSearch = { onIntent(BrowseIntent.SearchSubmitted) },
-            onClear = { onIntent(BrowseIntent.QueryCleared) },
-            onAgeRatingSelect = { onIntent(BrowseIntent.AgeRatingSelected(it)) },
-            onSortSelect = { onIntent(BrowseIntent.SortSelected(it)) },
-            onSortDirectionToggle = { onIntent(BrowseIntent.SortDirectionToggled) },
-            onGenreToggle = { onIntent(BrowseIntent.GenreToggled(it)) },
-            onNovelClick = { onIntent(BrowseIntent.NovelClicked(it)) },
-            onRetry = { onIntent(BrowseIntent.Retry) },
-            onLoadMoreRetry = { onIntent(BrowseIntent.LoadMoreRetried) },
-            onDescriptionToggle = { onIntent(BrowseIntent.DescriptionToggled) },
-            onLinkClick = { onIntent(BrowseIntent.LinkClicked(it)) },
-        )
-    }
+    val actions = remember(onIntent) { browseActions(onIntent) }
     val gridState = rememberLazyGridState()
     LoadMoreTrigger(gridState) { onIntent(BrowseIntent.EndReached) }
 
@@ -154,7 +145,39 @@ fun BrowseScreen(
             BrowseGrid(state, actions, gridState, columns, margin)
         }
     }
+    state.filterSheet?.let { sheet ->
+        FilterSheetView(
+            sheet = sheet,
+            languages = state.languages,
+            onDraftChange = actions.onDraftChange,
+            onReset = actions.onFiltersReset,
+            onApply = actions.onFiltersApply,
+            onDismiss = actions.onFiltersDismiss,
+        )
+    }
 }
+
+/** Callbacks for [BrowseScreen], each sending one intent. */
+private fun browseActions(onIntent: (BrowseIntent) -> Unit) = BrowseActions(
+
+    onQueryChange = { onIntent(BrowseIntent.QueryChanged(it)) },
+    onSearch = { onIntent(BrowseIntent.SearchSubmitted) },
+    onClear = { onIntent(BrowseIntent.QueryCleared) },
+    onSortSelect = { onIntent(BrowseIntent.SortSelected(it)) },
+    onSortDirectionToggle = { onIntent(BrowseIntent.SortDirectionToggled) },
+    onNovelClick = { onIntent(BrowseIntent.NovelClicked(it)) },
+    onRetry = { onIntent(BrowseIntent.Retry) },
+    onLoadMoreRetry = { onIntent(BrowseIntent.LoadMoreRetried) },
+    onDescriptionToggle = { onIntent(BrowseIntent.DescriptionToggled) },
+    onLinkClick = { onIntent(BrowseIntent.LinkClicked(it)) },
+    onFiltersClick = { onIntent(BrowseIntent.FiltersOpened) },
+    onDraftChange = { onIntent(BrowseIntent.FilterDraftChanged(it)) },
+    onFiltersReset = { onIntent(BrowseIntent.FiltersReset) },
+    onFiltersApply = { onIntent(BrowseIntent.FiltersApplied) },
+    onFiltersDismiss = { onIntent(BrowseIntent.FiltersDismissed) },
+    onActiveFilterRemove = { onIntent(BrowseIntent.ActiveFilterRemoved(it)) },
+    onActiveFiltersClear = { onIntent(BrowseIntent.ActiveFiltersCleared) },
+)
 
 @Composable
 private fun BrowseGrid(
@@ -201,18 +224,33 @@ private fun LazyGridScope.fullWidthItem(key: String, content: @Composable () -> 
 private fun LazyGridScope.filters(state: BrowseState, actions: BrowseActions) {
     header(state, actions)
     fullWidthItem("search") {
-        SearchFieldView(
-            value = state.query,
-            onValueChange = actions.onQueryChange,
-            onSearch = actions.onSearch,
-            onClear = actions.onClear,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SearchFieldView(
+                value = state.query,
+                onValueChange = actions.onQueryChange,
+                onSearch = actions.onSearch,
+                onClear = actions.onClear,
+                modifier = Modifier.weight(1f),
+            )
+            FilterButtonView(
+                activeCount = state.activeFilters.size,
+                onClick = actions.onFiltersClick,
+            )
+        }
     }
-    fullWidthItem("age-rating") {
-        AgeRatingRowView(ageRating = state.ageRating, onAgeRatingSelect = actions.onAgeRatingSelect)
+    if (state.activeFilters.isNotEmpty()) {
+        fullWidthItem("active-filters") {
+            ActiveFiltersRowView(
+                filters = state.activeFilters,
+                onRemove = actions.onActiveFilterRemove,
+                onClearAll = actions.onActiveFiltersClear,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
-    fullWidthItem("genres") { GenreRow(genres = state.genres, onToggle = actions.onGenreToggle) }
     fullWidthItem("sort") {
         SortRowView(
             resultCountLabel = state.resultCountLabel,
@@ -305,19 +343,6 @@ private fun LazyGridScope.results(state: BrowseState, actions: BrowseActions) {
 }
 
 @Composable
-private fun GenreRow(genres: ImmutableList<GenreChipUIState>, onToggle: (Genre) -> Unit) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
-        items(items = genres, key = { it.genre.name }) { chip ->
-            SelectableChipView(
-                label = chip.label,
-                isSelected = chip.isSelected,
-                onClick = { onToggle(chip.genre) },
-            )
-        }
-    }
-}
-
-@Composable
 private fun CenteredProgress() {
     Box(
         modifier = Modifier
@@ -386,9 +411,13 @@ private val previewFilters = BrowseState(
     sortOptions = persistentListOf(
         SortOptionUIModel(BrowseSort.Popularity, UiText.StringValue("Popularity")),
     ),
-    genres = Genre.entries.map {
-        GenreChipUIState(it, UiText.StringValue(it.name), isSelected = it == Genre.Mystery)
-    }.toImmutableList(),
+    activeFilters = persistentListOf(
+        ActiveFilterUIModel(ActiveFilterKey.Age, UiText.StringValue("18+")),
+        ActiveFilterUIModel(
+            ActiveFilterKey.GenreFilter(Genre.Mystery),
+            UiText.StringValue("Mystery"),
+        ),
+    ),
 )
 
 private class BrowseStateProvider : PreviewParameterProvider<BrowseState> {

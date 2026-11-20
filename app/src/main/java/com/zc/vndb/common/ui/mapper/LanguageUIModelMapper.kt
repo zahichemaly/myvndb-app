@@ -1,5 +1,7 @@
 package com.zc.vndb.common.ui.mapper
 
+import com.zc.vndb.common.domain.model.CommonLanguageCodes
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.ui.text.UiText
 import java.util.Locale
 
@@ -11,8 +13,19 @@ fun languageName(code: String): String =
         .replaceFirstChar { it.titlecase(Locale.getDefault()) }
 
 /** "English, Japanese", or "English, Japanese +2" for longer lists. */
-fun List<String>.toLanguagesLabel(): UiText {
-    val names = take(LANGUAGES_LISTED).joinToString(", ") { languageName(it) }
+fun List<String>.toLanguagesLabel(nameOf: (String) -> String = ::languageName): UiText {
+    val names = take(LANGUAGES_LISTED).joinToString(", ") { nameOf(it) }
     val more = size - LANGUAGES_LISTED
     return UiText.StringValue(if (more > 0) "$names +$more" else names)
+}
+
+/** The name a picker shows: VNDB's English label, or the device's name for the code when there is none. */
+fun LanguageOption.displayName(): String = label.ifBlank { languageName(code) }
+
+/** The languages as a picker lists them: the common ones first in their usual order, then the rest A to Z. */
+fun List<LanguageOption>.inPickerOrder(): List<LanguageOption> {
+    val common = CommonLanguageCodes.mapNotNull { code -> firstOrNull { it.code == code } }
+    val rest = filter { it.code !in CommonLanguageCodes }
+        .sortedBy { it.displayName().lowercase() }
+    return common + rest
 }

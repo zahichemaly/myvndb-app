@@ -71,7 +71,7 @@ fun SearchFieldView(
                 onSearch()
             },
         ),
-        shape = MaterialTheme.shapes.small,
+        shape = MaterialTheme.shapes.medium,
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = VndbTheme.colors.surfaceInset,
             unfocusedContainerColor = VndbTheme.colors.surfaceInset,
