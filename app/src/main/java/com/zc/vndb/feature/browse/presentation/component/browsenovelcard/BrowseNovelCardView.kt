@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.zc.vndb.common.ui.component.chip.TagChipView
 import com.zc.vndb.common.ui.component.coverimage.CoverImageView
+import com.zc.vndb.common.ui.component.languagepills.LanguagePillsView
 import com.zc.vndb.common.ui.component.ratingbadge.RatingBadgeView
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
@@ -81,6 +82,7 @@ fun BrowseNovelCardView(
                 overflow = TextOverflow.Ellipsis,
             )
             TagsAndLength(model)
+            LanguagePillsView(model.languagePills)
         }
     }
 }

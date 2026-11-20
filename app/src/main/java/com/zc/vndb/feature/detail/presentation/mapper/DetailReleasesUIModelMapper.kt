@@ -1,5 +1,6 @@
 package com.zc.vndb.feature.detail.presentation.mapper
 
+import com.zc.vndb.common.ui.mapper.languageFlag
 import com.zc.vndb.common.ui.mapper.platformName
 import com.zc.vndb.common.ui.mapper.toIsoLabel
 import com.zc.vndb.common.ui.text.UiText

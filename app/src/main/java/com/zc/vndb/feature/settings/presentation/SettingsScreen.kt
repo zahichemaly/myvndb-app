@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Explicit
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
@@ -43,13 +44,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.ui.component.apptopbar.AppTopBarView
+import com.zc.vndb.common.ui.component.languagesdialog.LanguagesDialogView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
 import com.zc.vndb.feature.settings.presentation.component.choicedialog.ChoiceDialogView
-import com.zc.vndb.feature.settings.presentation.component.languagesdialog.LanguagesDialogView
 import com.zc.vndb.feature.settings.presentation.component.settingrow.SettingRowView
 import com.zc.vndb.feature.settings.presentation.component.settingrow.SettingSwitchRowView
 import com.zc.vndb.feature.settings.presentation.component.settingrow.SettingValueView
@@ -110,9 +112,9 @@ fun SettingsScreen(
                         )
                     }
                     displaySection(state, actions)
+                    languagesSection(state, actions)
                     spoilerSection(state, actions)
                     adultSection(state, actions)
-                    discoverSection(state, actions)
                     storageSection(state, actions)
                     aboutSection(state, actions)
                 }
@@ -209,16 +211,25 @@ private fun LazyListScope.adultSection(state: SettingsState, actions: SettingsAc
     }
 }
 
-private fun LazyListScope.discoverSection(state: SettingsState, actions: SettingsActions) {
-    sectionHeader("discover", UiText.StringResource(StringResource.settings_section_discover))
-    item(key = "languages", contentType = "row") {
+private fun LazyListScope.languagesSection(state: SettingsState, actions: SettingsActions) {
+    sectionHeader("languages", UiText.StringResource(StringResource.settings_section_languages))
+    item(key = "card-languages", contentType = "row") {
+        SettingRowView(
+            icon = Icons.Outlined.Flag,
+            title = UiText.StringResource(StringResource.settings_card_languages),
+            body = UiText.StringResource(StringResource.settings_card_languages_body),
+            onClick = { actions.open(SettingsDialog.CardLanguages) },
+            modifier = Modifier.fillMaxWidth(),
+        ) { state.cardLanguagesLabel?.let { SettingValueView(it) } }
+    }
+    item(key = "trending-languages", contentType = "row") {
         SettingRowView(
             icon = Icons.Outlined.Language,
             title = UiText.StringResource(StringResource.settings_trending_languages),
-            body = state.languagesLabel,
+            body = UiText.StringResource(StringResource.settings_trending_languages_body),
             onClick = { actions.open(SettingsDialog.TrendingLanguages) },
             modifier = Modifier.fillMaxWidth(),
-        )
+        ) { state.languagesLabel?.let { SettingValueView(it) } }
     }
 }
 
@@ -323,6 +334,42 @@ private fun LinkRow(icon: ImageVector, title: UiText, body: UiText?, onClick: ()
     }
 }
 
+/** New & Trending: any number of languages, but at least one. */
+@Composable
+private fun TrendingLanguagesDialog(
+    state: SettingsState,
+    onIntent: (SettingsIntent) -> Unit,
+    dismiss: () -> Unit,
+) {
+    LanguagesDialogView(
+        title = UiText.StringResource(StringResource.settings_trending_languages),
+        hint = UiText.StringResource(StringResource.settings_languages_hint),
+        options = state.languages,
+        selected = state.trendingLanguages.toSet(),
+        minSelected = 1,
+        onConfirm = { onIntent(SettingsIntent.LanguagesConfirmed(it)) },
+        onDismiss = dismiss,
+    )
+}
+
+/** Languages on cards: none to [AppSettings.MAX_CARD_LANGUAGES]; none turns the pills off. */
+@Composable
+private fun CardLanguagesDialog(
+    state: SettingsState,
+    onIntent: (SettingsIntent) -> Unit,
+    dismiss: () -> Unit,
+) {
+    LanguagesDialogView(
+        title = UiText.StringResource(StringResource.settings_card_languages),
+        hint = UiText.StringResource(StringResource.settings_card_languages_hint),
+        options = state.languages,
+        selected = state.cardLanguages.toSet(),
+        maxSelected = AppSettings.MAX_CARD_LANGUAGES,
+        onConfirm = { onIntent(SettingsIntent.CardLanguagesConfirmed(it)) },
+        onDismiss = dismiss,
+    )
+}
+
 @Composable
 private fun SettingsDialogs(state: SettingsState, onIntent: (SettingsIntent) -> Unit) {
     val dismiss = { onIntent(SettingsIntent.DialogDismissed) }
@@ -345,11 +392,9 @@ private fun SettingsDialogs(state: SettingsState, onIntent: (SettingsIntent) -> 
             onDismiss = dismiss,
         )
 
-        SettingsDialog.TrendingLanguages -> LanguagesDialogView(
-            options = state.languageOptions,
-            onConfirm = { onIntent(SettingsIntent.LanguagesConfirmed(it)) },
-            onDismiss = dismiss,
-        )
+        SettingsDialog.TrendingLanguages -> TrendingLanguagesDialog(state, onIntent, dismiss)
+
+        SettingsDialog.CardLanguages -> CardLanguagesDialog(state, onIntent, dismiss)
 
         SettingsDialog.ConfirmSensitive -> ConfirmDialog(
             title = UiText.StringResource(StringResource.settings_confirm_adult_title),

@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.settings.presentation
 
 import androidx.compose.runtime.Immutable
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.settings.presentation.model.SettingOptionUIModel
 import com.zc.vndb.feature.settings.presentation.model.SettingsDialog
@@ -24,8 +25,13 @@ data class SettingsState(
     val accountLabel: UiText? = null,
     val showSensitiveContent: Boolean = false,
     val includeAdultInBrowse: Boolean = false,
-    val languageOptions: ImmutableList<SettingOptionUIModel> = persistentListOf(),
+    /** Every language the two language dialogs offer, in picker order. */
+    val languages: ImmutableList<LanguageOption> = persistentListOf(),
+    val trendingLanguages: ImmutableList<String> = persistentListOf(),
     val languagesLabel: UiText? = null,
+    val cardLanguages: ImmutableList<String> = persistentListOf(),
+    /** "Off", or the languages flagged on cards ("English, Japanese"). */
+    val cardLanguagesLabel: UiText? = null,
     /** "142 MB"; null while measuring. */
     val imageCacheLabel: UiText? = null,
     val isClearingCache: Boolean = false,

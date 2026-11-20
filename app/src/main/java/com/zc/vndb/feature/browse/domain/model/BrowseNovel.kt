@@ -18,4 +18,6 @@ data class BrowseNovel(
     val developerNames: List<String>,
     val tags: List<NovelTag>,
     val length: NovelLength?,
+    /** Codes of every language the novel has a release in. */
+    val languages: List<String> = emptyList(),
 )

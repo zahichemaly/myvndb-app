@@ -98,6 +98,11 @@ class SettingsViewModel(
                 }
             }
 
+            is SettingsIntent.CardLanguagesConfirmed -> {
+                closeDialog()
+                save { it.copy(cardLanguages = intent.codes.toList()) }
+            }
+
             is SettingsIntent.SpoilIfFinishedChanged -> save {
                 it.copy(
                     spoilIfFinished = intent.isOn,
@@ -133,7 +138,9 @@ class SettingsViewModel(
     private fun openDialog(dialog: SettingsDialog) {
         _state.update { it.copy(dialog = dialog) }
         // The language list refreshes in the background if it is stale; the dialog shows what it has.
-        if (dialog == SettingsDialog.TrendingLanguages) viewModelScope.launch { refreshLanguages() }
+        if (dialog == SettingsDialog.TrendingLanguages || dialog == SettingsDialog.CardLanguages) {
+            viewModelScope.launch { refreshLanguages() }
+        }
     }
 
     private fun selectOption(dialog: SettingsDialog, key: String) {

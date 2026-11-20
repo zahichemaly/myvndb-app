@@ -1,5 +1,6 @@
 package com.zc.vndb.feature.profile.presentation.mapper
 
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelUIModel
 import com.zc.vndb.common.ui.resource.PluralResource
 import com.zc.vndb.common.ui.resource.StringResource
@@ -15,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -126,6 +128,19 @@ class ProfilePresentationMapperTest {
         assertEquals(
             StringResource.profile_updated_on,
             (now - 60.days).toUpdatedLabel(now).let { (it as UiText.StringResource).id },
+        )
+    }
+
+    @Test
+    fun `cards show the chosen languages the novel is available in`() {
+        val chosen = listOf(LanguageOption("en", "English"), LanguageOption("de", "German"))
+
+        val card = ProfileSamples.entry("v1", languages = listOf("ja", "en"))
+            .toCardUIModel(now = now, cardLanguages = chosen)
+
+        assertEquals(listOf("en"), card.languagePills.map { it.code })
+        assertTrue(
+            ProfileSamples.entry("v1").toCardUIModel(now = now).languagePills.isEmpty(),
         )
     }
 }

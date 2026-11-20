@@ -9,7 +9,11 @@ import kotlinx.datetime.LocalDate
 
 object BrowseSamples {
 
-    fun novel(id: String, tags: List<NovelTag> = emptyList()) = BrowseNovel(
+    fun novel(
+        id: String,
+        tags: List<NovelTag> = emptyList(),
+        languages: List<String> = listOf("ja", "en", "ko"),
+    ) = BrowseNovel(
         id = id,
         title = "Novel $id",
         originalTitle = null,
@@ -19,6 +23,7 @@ object BrowseSamples {
         developerNames = listOf("MAGES."),
         tags = tags,
         length = NovelLength.Long,
+        languages = languages,
     )
 
     fun tag(

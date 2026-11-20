@@ -41,6 +41,7 @@ class SettingsLocalDataSourceTest {
             showSensitiveContent = true,
             includeAdultInBrowse = true,
             trendingLanguages = listOf("en", "zh-Hans", "ko"),
+            cardLanguages = listOf("ja", "en"),
             listSort = ListSort.Vote,
             isListSortReversed = true,
             theme = AppTheme.AngelicSerenade,
@@ -57,6 +58,7 @@ class SettingsLocalDataSourceTest {
         store.edit {
             it[stringPreferencesKey("title_language")] = "Klingon"
             it[stringPreferencesKey("trending_languages")] = " , "
+            it[stringPreferencesKey("card_languages")] = " , "
             it[stringPreferencesKey("theme")] = "NotATheme"
         }
 
@@ -64,6 +66,18 @@ class SettingsLocalDataSourceTest {
 
         assertEquals(TitleLanguage.Romanized, settings.titleLanguage)
         assertEquals(AppSettings.DEFAULT_TRENDING_LANGUAGES, settings.trendingLanguages)
+        assertEquals(emptyList(), settings.cardLanguages)
         assertEquals(AppTheme.Original, settings.theme)
+    }
+
+    @Test
+    fun `card languages are off by default and capped at two when read`() = runTest {
+        val store = dataStore()
+        val local = SettingsLocalDataSource(store)
+        assertEquals(emptyList(), local.settings.first().cardLanguages)
+
+        store.edit { it[stringPreferencesKey("card_languages")] = "en,ja,ko,en" }
+
+        assertEquals(listOf("en", "ja"), local.settings.first().cardLanguages)
     }
 }

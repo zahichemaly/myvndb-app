@@ -1,8 +1,10 @@
 package com.zc.vndb.feature.profile.presentation.component.listentrycard.mapper
 
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.TitleLanguage
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelUIModel
 import com.zc.vndb.common.ui.mapper.primaryTitle
+import com.zc.vndb.common.ui.mapper.toLanguagePills
 import com.zc.vndb.common.ui.resource.PluralResource
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
@@ -27,9 +29,15 @@ private const val VOTE_SCALE = 10.0
 fun ListEntry.toCardUIModel(
     now: Instant,
     titleLanguage: TitleLanguage = TitleLanguage.Romanized,
-): ListEntryCardUIModel = toCardUIModel(now, primaryTitle(title, originalTitle, titleLanguage))
+    cardLanguages: List<LanguageOption> = emptyList(),
+): ListEntryCardUIModel =
+    toCardUIModel(now, primaryTitle(title, originalTitle, titleLanguage), cardLanguages)
 
-private fun ListEntry.toCardUIModel(now: Instant, primaryTitle: UiText) = ListEntryCardUIModel(
+private fun ListEntry.toCardUIModel(
+    now: Instant,
+    primaryTitle: UiText,
+    cardLanguages: List<LanguageOption>,
+) = ListEntryCardUIModel(
     novelId = novelId,
     title = primaryTitle,
     coverUrl = cover?.thumbnailUrl ?: cover?.url,
@@ -56,6 +64,7 @@ private fun ListEntry.toCardUIModel(now: Instant, primaryTitle: UiText) = ListEn
         .toImmutableList(),
     notes = notes?.let(UiText::StringValue),
     updatedLabel = lastModified.toUpdatedLabel(now),
+    languagePills = toLanguagePills(languages, cardLanguages),
 )
 
 /** "Updated just now", "… 5 minutes / 3 hours / 12 days ago", then the date. */

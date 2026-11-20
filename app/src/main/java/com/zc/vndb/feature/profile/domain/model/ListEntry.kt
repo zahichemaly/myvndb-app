@@ -20,6 +20,8 @@ data class ListEntry(
     /** Every label on this entry (id to name). */
     val labels: List<EntryLabel>,
     val lastModified: Instant,
+    /** Codes of every language the novel has a release in. */
+    val languages: List<String> = emptyList(),
 )
 
 data class EntryLabel(val id: Int, val name: String)

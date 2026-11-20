@@ -32,6 +32,7 @@ import com.zc.vndb.common.ui.component.chip.TagChipView
 import com.zc.vndb.common.ui.component.coverimage.CoverImageView
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelChipView
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelUIModel
+import com.zc.vndb.common.ui.component.languagepills.LanguagePillsView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
@@ -82,6 +83,7 @@ fun ListEntryCardView(
         ) {
             EntryTitles(model)
             EntryMeta(model)
+            LanguagePillsView(model.languagePills)
             model.notes?.let { NotePill(it) }
             UpdatedLine(model.updatedLabel)
         }
