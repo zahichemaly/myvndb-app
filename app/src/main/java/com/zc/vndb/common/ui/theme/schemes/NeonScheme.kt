@@ -129,7 +129,6 @@ private val NeonColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    chipLength = tinted(NeonGreen),
     releaseNew = tinted(NeonCyan),
     releaseTranslation = tinted(NeonGreen),
     releasePatch = tinted(NeonYellow),

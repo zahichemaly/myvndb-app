@@ -122,12 +122,7 @@ private fun TagsAndLength(model: BrowseNovelCardUIModel) {
         ) {
             model.tags.forEach { tag -> TagChipView(label = tag) }
         }
-        model.lengthLabel?.let { length ->
-            TagChipView(
-                label = length,
-                colors = VndbTheme.colors.chipLength,
-            )
-        }
+        model.lengthLabel?.let { length -> TagChipView(label = length) }
     }
 }
 

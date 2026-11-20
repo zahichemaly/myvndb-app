@@ -134,7 +134,6 @@ private val SayaNoUtaColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    chipLength = tinted(Teal),
     releaseNew = tinted(Tertiary),
     releaseTranslation = tinted(Teal),
     releasePatch = tinted(Amber),

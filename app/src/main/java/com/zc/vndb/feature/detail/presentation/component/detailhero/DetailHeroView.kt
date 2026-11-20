@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -186,12 +185,7 @@ private fun HeroChips(model: DetailHeroUIModel, onTagClick: (String) -> Unit) {
         verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
     ) {
         model.tags.forEach { tag ->
-            TagChipView(
-                label = tag.label,
-                modifier = Modifier
-                    .clip(MaterialTheme.shapes.small)
-                    .clickable { onTagClick(tag.id) },
-            )
+            TagChipView(label = tag.label, onClick = { onTagClick(tag.id) })
         }
         model.ageLabel?.let { age ->
             TagChipView(
@@ -250,7 +244,7 @@ private fun LengthLine(model: DetailHeroUIModel) {
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             }
-            model.lengthName?.let { TagChipView(label = it, colors = VndbTheme.colors.chipLength) }
+            model.lengthName?.let { TagChipView(label = it) }
             model.lengthVotesLabel?.let { votes ->
                 Text(
                     text = "${UiText.StringResource(
