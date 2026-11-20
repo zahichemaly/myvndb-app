@@ -60,6 +60,7 @@
     <string name="browse_filter_section_genres">Genres</string>
     <string name="browse_filter_supported_languages">Supported languages</string>
     <string name="browse_filter_chip_supported">Languages: %1$s</string>
+    <string name="browse_original_language_hint">Show novels first written in this language.</string>
     <string name="browse_supported_languages_hint">Show novels with a release in any of these languages.</string>
     <string name="browse_filters_clear_all">Clear all</string>
     <string name="browse_filters_remove">Remove %1$s filter</string>

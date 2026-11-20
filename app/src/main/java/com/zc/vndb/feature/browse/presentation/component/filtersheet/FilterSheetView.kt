@@ -3,7 +3,6 @@ package com.zc.vndb.feature.browse.presentation.component.filtersheet
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -15,11 +14,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -271,69 +267,24 @@ private fun OriginalLanguageRow(
     languages: ImmutableList<LanguageOption>,
     onSelect: (String?) -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        PickerRow(
-            label = UiText.StringResource(StringResource.browse_filter_original_language),
-            value = selected?.let(languages::nameOf),
-            onClick = { expanded = true },
-        )
-        LanguageMenu(
-            expanded = expanded,
+    var showDialog by remember { mutableStateOf(false) }
+    PickerRow(
+        label = UiText.StringResource(StringResource.browse_filter_original_language),
+        value = selected?.let(languages::nameOf),
+        onClick = { showDialog = true },
+    )
+    if (showDialog) {
+        OriginalLanguageDialogView(
+            options = languages,
             selected = selected,
-            languages = languages,
-            onSelect = {
-                expanded = false
+            onConfirm = {
+                showDialog = false
                 onSelect(it)
             },
-            onDismiss = { expanded = false },
+            onDismiss = { showDialog = false },
         )
     }
 }
-
-@Composable
-private fun LanguageMenu(
-    expanded: Boolean,
-    selected: String?,
-    languages: ImmutableList<LanguageOption>,
-    onSelect: (String?) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismiss,
-        containerColor = VndbTheme.colors.surfaceElevated,
-    ) {
-        (listOf<String?>(null) + languages.map { it.code }).forEach { code ->
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text = languageLabel(code, languages),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                },
-                trailingIcon = if (code == selected) {
-                    {
-                        Icon(
-                            Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = VndbTheme.colors.accent,
-                        )
-                    }
-                } else {
-                    null
-                },
-                onClick = { onSelect(code) },
-            )
-        }
-    }
-}
-
-/** The language's name, or "Any" when none is chosen. */
-@Composable
-private fun languageLabel(code: String?, languages: List<LanguageOption>): String =
-    code?.let(languages::nameOf)
-        ?: UiText.StringResource(StringResource.browse_filter_any).asString()
 
 /** The language's name from the fetched list, or the device's name for a code that is not in it. */
 private fun List<LanguageOption>.nameOf(code: String): String =
