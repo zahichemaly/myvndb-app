@@ -46,6 +46,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.zc.vndb.common.ui.component.apptopbar.AppTopBarView
+import com.zc.vndb.common.ui.component.confirmdialog.ConfirmDialogView
 import com.zc.vndb.common.ui.component.coverimage.CoverImageView
 import com.zc.vndb.common.ui.component.error.ErrorView
 import com.zc.vndb.common.ui.component.error.model.ErrorUIModel
@@ -60,6 +61,7 @@ import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
+import com.zc.vndb.common.ui.util.LocalShowSensitiveContent
 import com.zc.vndb.feature.detail.presentation.component.alsoknownas.AlsoKnownAsView
 import com.zc.vndb.feature.detail.presentation.component.charactercard.CharacterCardView
 import com.zc.vndb.feature.detail.presentation.component.contenttoggles.ContentTogglesView
@@ -112,6 +114,7 @@ private class DetailActions(
     val onFilterToggle: (ContentFilter) -> Unit,
     val onScreenshotClick: (Int) -> Unit,
     val onCoverClick: (Int) -> Unit,
+    val onRevealCover: (Int?) -> Unit,
 ) {
     fun needed(section: DetailSection) = onIntent(DetailIntent.SectionNeeded(section))
 
@@ -154,6 +157,15 @@ fun DetailScreen(
         ImageViewerView(
             state = viewer,
             onDismiss = { onIntent(DetailIntent.ViewerDismissed) },
+        )
+    }
+    state.coverReveal?.let {
+        ConfirmDialogView(
+            title = UiText.StringResource(StringResource.detail_reveal_cover_title),
+            body = UiText.StringResource(StringResource.detail_reveal_cover_body),
+            confirm = UiText.StringResource(StringResource.detail_reveal_cover_confirm),
+            onConfirm = { onIntent(DetailIntent.CoverRevealConfirmed) },
+            onDismiss = { onIntent(DetailIntent.CoverRevealDismissed) },
         )
     }
 }
@@ -212,6 +224,7 @@ private fun detailActions(onIntent: (DetailIntent) -> Unit) = DetailActions(
     onFilterToggle = { onIntent(DetailIntent.ContentFilterToggled(it)) },
     onScreenshotClick = { onIntent(DetailIntent.ScreenshotClicked(it)) },
     onCoverClick = { onIntent(DetailIntent.CoverClicked(it)) },
+    onRevealCover = { onIntent(DetailIntent.CoverRevealRequested(it)) },
 )
 
 @Composable
@@ -252,6 +265,8 @@ private fun LazyListScope.header(
             model = hero,
             onDeveloperClick = actions.onDeveloperClick,
             onTagClick = actions.onTagClick,
+            onRevealCoverClick = { actions.onRevealCover(null) },
+            isCoverRevealed = state.areCoversRevealed,
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -502,23 +517,43 @@ private fun LazyListScope.mediaTab(state: DetailState, actions: DetailActions, c
                 state = state.covers,
                 onLoad = { actions.needed(DetailSection.Covers) },
                 onRetry = { actions.retry(DetailSection.Covers) },
-            ) { covers -> CoverCarousel(covers, actions.onCoverClick) }
+            ) { covers ->
+                CoverCarousel(
+                    covers = covers,
+                    areRevealed = state.areCoversRevealed,
+                    onCoverClick = actions.onCoverClick,
+                    onRevealCover = actions.onRevealCover,
+                )
+            }
         }
     }
 }
 
+/** The covers; a blurred one first asks "I'm 18 or older", then opens in the viewer unblurred. */
 @Composable
-private fun CoverCarousel(covers: ImmutableList<MediaImageUIModel>, onCoverClick: (Int) -> Unit) {
+private fun CoverCarousel(
+    covers: ImmutableList<MediaImageUIModel>,
+    areRevealed: Boolean,
+    onCoverClick: (Int) -> Unit,
+    onRevealCover: (Int?) -> Unit,
+) {
+    val showsSensitive = areRevealed || LocalShowSensitiveContent.current
     LazyRow(horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
         items(items = covers, key = { it.url }) { cover ->
             CoverImageView(
                 url = cover.thumbnailUrl ?: cover.url,
-                isSensitive = cover.isSensitive,
+                isSensitive = cover.isSensitive && !areRevealed,
                 contentDescription = cover.caption,
                 modifier = Modifier
                     .width(CoverThumbWidth)
                     .aspectRatio(VndbTheme.dimens.coverAspectRatio)
-                    .clickable { onCoverClick(cover.index) },
+                    .clickable {
+                        if (cover.isSensitive && !showsSensitive) {
+                            onRevealCover(cover.index)
+                        } else {
+                            onCoverClick(cover.index)
+                        }
+                    },
             )
         }
     }

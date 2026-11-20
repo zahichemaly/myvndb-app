@@ -32,4 +32,8 @@ data class NovelDetail(
     val aliases: List<String>,
     /** How many users submitted a play time. */
     val lengthVotes: Int,
+    /** Code of the language the novel was first written in. */
+    val originalLanguage: String? = null,
+    /** Codes of every language the novel has a release in, original included. */
+    val languages: List<String> = emptyList(),
 )

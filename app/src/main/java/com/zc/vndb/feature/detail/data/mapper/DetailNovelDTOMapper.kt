@@ -40,6 +40,8 @@ fun DetailNovelDTO.toDomain(): NovelDetail = NovelDetail(
     },
     aliases = aliases.orEmpty().filter { it.isNotBlank() }.distinct(),
     lengthVotes = lengthVotes ?: 0,
+    originalLanguage = olang?.takeIf { it.isNotBlank() },
+    languages = languages.orEmpty(),
 )
 
 fun RelationDTO.toDomain(): RelatedNovel = RelatedNovel(

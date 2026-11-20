@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -32,6 +33,7 @@ import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
+import com.zc.vndb.common.ui.util.LocalShowSensitiveContent
 import com.zc.vndb.feature.detail.presentation.component.detailhero.model.DetailHeroUIModel
 import com.zc.vndb.feature.detail.presentation.component.detailhero.model.HeroDeveloperUIModel
 import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
@@ -39,7 +41,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 private val CoverWidth = 128.dp
-private val MetaLabelWidth = 84.dp
+private val MetaLabelWidth = 96.dp
 private val ScoreStarSize = 16.dp
 
 /** Centers the "Length:" label on the first line, whose height is set by the chip. */
@@ -51,18 +53,38 @@ fun DetailHeroView(
     model: DetailHeroUIModel,
     onDeveloperClick: (String) -> Unit,
     onTagClick: (String) -> Unit,
+    onRevealCoverClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isCoverRevealed: Boolean = false,
 ) {
+    // Tapping a blurred cover asks "I'm 18 or older"; Settings' "Show sensitive content" skips it.
+    val isCoverBlurred = model.isCoverSensitive && !isCoverRevealed &&
+        !LocalShowSensitiveContent.current
     SectionCardView(modifier = modifier) {
         Row(horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.md)) {
             Box(modifier = Modifier.width(CoverWidth)) {
                 CoverImageView(
                     url = model.coverUrl,
-                    isSensitive = model.isCoverSensitive,
+                    isSensitive = model.isCoverSensitive && !isCoverRevealed,
                     contentDescription = model.title,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(VndbTheme.dimens.coverAspectRatio),
+                        .aspectRatio(VndbTheme.dimens.coverAspectRatio)
+                        .then(
+                            if (isCoverBlurred) {
+                                Modifier
+                                    .clip(VndbTheme.shapes.cover)
+                                    .clickable(
+                                        onClickLabel = UiText.StringResource(
+                                            StringResource.cd_reveal_cover,
+                                        ).asString(),
+                                        role = Role.Button,
+                                        onClick = onRevealCoverClick,
+                                    )
+                            } else {
+                                Modifier
+                            },
+                        ),
                 )
             }
             Column(
@@ -87,9 +109,24 @@ fun DetailHeroView(
             }
         }
         DeveloperLine(model.developers, onDeveloperClick)
-        MetaLine(UiText.StringResource(StringResource.detail_released), model.releasedLabel)
+        ReleaseAndLanguageLines(model)
         LengthLine(model)
         ScoreLine(model)
+    }
+}
+
+/** "Released", the original "Language", and "Available in" translations. */
+@Composable
+private fun ReleaseAndLanguageLines(model: DetailHeroUIModel) {
+    Column(verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
+        MetaLine(UiText.StringResource(StringResource.detail_released), model.releasedLabel)
+        model.originalLanguage?.let {
+            MetaLine(
+                UiText.StringResource(StringResource.detail_language),
+                UiText.StringValue(it.label),
+            )
+        }
+        AvailableInLine(model)
     }
 }
 
@@ -135,6 +172,40 @@ private fun DeveloperLine(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+        }
+    }
+}
+
+/** "Available in:  🇬🇧 English  🇰🇷 Korean  +10": the first languages besides the original, then a count. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AvailableInLine(model: DetailHeroUIModel) {
+    if (model.availableLanguages.isEmpty()) return
+    Row(verticalAlignment = Alignment.Top) {
+        Text(
+            text = UiText.StringResource(StringResource.detail_available_in).asString(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(MetaLabelWidth),
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
+            model.availableLanguages.forEach { language ->
+                Text(
+                    text = language.label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            if (model.moreLanguagesCount > 0) {
+                Text(
+                    text = UiText.StringResource(
+                        StringResource.detail_more_languages,
+                        listOf(model.moreLanguagesCount),
+                    ).asString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -286,6 +357,7 @@ private fun DetailHeroViewPreview() {
                 ),
             ),
             onDeveloperClick = {},
+            onRevealCoverClick = {},
             onTagClick = {},
             modifier = Modifier.padding(VndbTheme.spacing.lg),
         )

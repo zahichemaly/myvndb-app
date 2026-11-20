@@ -3,7 +3,9 @@ package com.zc.vndb.feature.detail.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zc.vndb.common.domain.model.AppSettings
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.SpoilerPreference
+import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
 import com.zc.vndb.common.ui.component.error.mapper.toErrorUIModel
 import com.zc.vndb.common.ui.component.spoilerfilter.mapper.toSpoilerLevel
@@ -44,6 +46,7 @@ import com.zc.vndb.feature.detail.presentation.mapper.toUIModel
 import com.zc.vndb.feature.detail.presentation.mapper.toViewer
 import com.zc.vndb.feature.detail.presentation.mapper.vndbUrl
 import com.zc.vndb.feature.detail.presentation.model.ContentFilter
+import com.zc.vndb.feature.detail.presentation.model.CoverRevealRequest
 import com.zc.vndb.feature.detail.presentation.model.DetailSection
 import com.zc.vndb.feature.detail.presentation.model.DetailTab
 import com.zc.vndb.feature.detail.presentation.model.DetailTabUIModel
@@ -62,6 +65,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -85,6 +89,7 @@ class DetailViewModel(
     private val getNovelReleases: GetNovelReleasesUseCase,
     private val getNovelQuotes: GetNovelQuotesUseCase,
     private val observeSettings: ObserveSettingsUseCase,
+    private val observeLanguages: ObserveLanguagesUseCase,
     private val isNovelFinished: IsNovelFinishedUseCase,
     private val observeSession: ObserveSessionUseCase,
     private val getMyListEntry: GetMyListEntryUseCase,
@@ -109,6 +114,9 @@ class DetailViewModel(
     private var quotes: List<Quote> = emptyList()
     private var contentFilters: Set<ContentFilter> = ContentFilter.Default
     private var settings = AppSettings()
+
+    /** VNDB's language names for the hero's language rows; the built-in list until one is cached. */
+    private var languageOptions: List<LanguageOption> = emptyList()
 
     /** The page's starting state from Settings is applied once, on the first successful load. */
     private var isStartApplied = false
@@ -197,20 +205,38 @@ class DetailViewModel(
 
             is DetailIntent.ContentFilterToggled -> toggleContentFilter(intent.filter)
 
-            is DetailIntent.ScreenshotClicked ->
-                _state.update {
-                    it.copy(
-                        viewer = screenshots.toViewer(contentFilters, intent.index),
-                    )
-                }
+            is DetailIntent.ScreenshotClicked,
+            is DetailIntent.CoverClicked,
+            DetailIntent.ViewerDismissed,
+            is DetailIntent.CoverRevealRequested,
+            DetailIntent.CoverRevealConfirmed,
+            DetailIntent.CoverRevealDismissed,
+            -> onMediaIntent(intent)
+        }
+    }
+
+    /** The full-screen viewer and the "I'm 18 or older" question behind a blurred cover. */
+    private fun onMediaIntent(intent: DetailIntent) {
+        when (intent) {
+            is DetailIntent.ScreenshotClicked -> _state.update {
+                it.copy(viewer = screenshots.toViewer(contentFilters, intent.index))
+            }
 
             is DetailIntent.CoverClicked -> _state.update {
-                it.copy(
-                    viewer = covers.toViewer(intent.index),
-                )
+                it.copy(viewer = covers.toViewer(intent.index))
             }
 
             DetailIntent.ViewerDismissed -> _state.update { it.copy(viewer = null) }
+
+            is DetailIntent.CoverRevealRequested -> _state.update {
+                it.copy(coverReveal = CoverRevealRequest(intent.viewerIndex))
+            }
+
+            DetailIntent.CoverRevealConfirmed -> confirmCoverReveal()
+
+            DetailIntent.CoverRevealDismissed -> _state.update { it.copy(coverReveal = null) }
+
+            else -> Unit
         }
     }
 
@@ -219,6 +245,7 @@ class DetailViewModel(
         _state.update { it.copy(isLoading = true, error = null) }
         novelJob = viewModelScope.launch {
             settings = observeSettings.current()
+            languageOptions = observeLanguages().first()
             getNovelDetail(novelId)
                 .onSuccess { loaded ->
                     novel = loaded
@@ -226,7 +253,11 @@ class DetailViewModel(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            hero = loaded.toHeroUIModel(editions?.ageRange, settings.titleLanguage),
+                            hero = loaded.toHeroUIModel(
+                                editions?.ageRange,
+                                settings.titleLanguage,
+                                languageOptions,
+                            ),
                             links = loaded.toLinks(),
                             alsoKnownAs = loaded.toAlsoKnownAs(),
                             contentNotes = loaded.toContentNotes(),
@@ -345,7 +376,12 @@ class DetailViewModel(
         _state.update { state ->
             state.copy(
                 // The age chip pops in once the releases are known.
-                hero = novel?.toHeroUIModel(loaded.ageRange, settings.titleLanguage) ?: state.hero,
+                hero = novel?.toHeroUIModel(
+                    loaded.ageRange,
+                    settings.titleLanguage,
+                    languageOptions,
+                )
+                    ?: state.hero,
                 editions = SectionState.Loaded(
                     loaded.editions.map { it.toRowUIModel() }.toImmutableList(),
                 ),
@@ -539,6 +575,18 @@ class DetailViewModel(
 
                 else -> state
             }
+        }
+    }
+
+    /** Shows the page's blurred covers; a cover opened from the carousel goes on to the viewer. */
+    private fun confirmCoverReveal() {
+        val viewerIndex = _state.value.coverReveal?.viewerIndex
+        _state.update {
+            it.copy(
+                areCoversRevealed = true,
+                coverReveal = null,
+                viewer = viewerIndex?.let { index -> covers.toViewer(index) } ?: it.viewer,
+            )
         }
     }
 

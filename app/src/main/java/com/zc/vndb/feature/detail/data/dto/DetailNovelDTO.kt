@@ -27,4 +27,8 @@ data class DetailNovelDTO(
     @SerialName("titles") val titles: List<NovelTitleDTO>?,
     @SerialName("aliases") val aliases: List<String>?,
     @SerialName("length_votes") val lengthVotes: Int?,
+    /** The language the novel was first written in. */
+    @SerialName("olang") val olang: String?,
+    /** Every language with a release, original included. */
+    @SerialName("languages") val languages: List<String>?,
 )

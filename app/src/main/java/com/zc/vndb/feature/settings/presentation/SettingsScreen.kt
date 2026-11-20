@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +31,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
@@ -46,6 +44,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.ui.component.apptopbar.AppTopBarView
+import com.zc.vndb.common.ui.component.confirmdialog.ConfirmDialogView
 import com.zc.vndb.common.ui.component.languagesdialog.LanguagesDialogView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
@@ -396,7 +395,7 @@ private fun SettingsDialogs(state: SettingsState, onIntent: (SettingsIntent) -> 
 
         SettingsDialog.CardLanguages -> CardLanguagesDialog(state, onIntent, dismiss)
 
-        SettingsDialog.ConfirmSensitive -> ConfirmDialog(
+        SettingsDialog.ConfirmSensitive -> ConfirmDialogView(
             title = UiText.StringResource(StringResource.settings_confirm_adult_title),
             body = UiText.StringResource(StringResource.settings_confirm_adult_body),
             confirm = UiText.StringResource(StringResource.settings_confirm_adult_action),
@@ -404,7 +403,7 @@ private fun SettingsDialogs(state: SettingsState, onIntent: (SettingsIntent) -> 
             onDismiss = dismiss,
         )
 
-        SettingsDialog.ClearImageCache -> ConfirmDialog(
+        SettingsDialog.ClearImageCache -> ConfirmDialogView(
             title = UiText.StringResource(StringResource.settings_clear_cache_title),
             body = UiText.StringResource(StringResource.settings_clear_cache_body),
             confirm = UiText.StringResource(StringResource.settings_clear),
@@ -412,7 +411,7 @@ private fun SettingsDialogs(state: SettingsState, onIntent: (SettingsIntent) -> 
             onDismiss = dismiss,
         )
 
-        SettingsDialog.ConfirmLogOut -> ConfirmDialog(
+        SettingsDialog.ConfirmLogOut -> ConfirmDialogView(
             title = UiText.StringResource(StringResource.settings_log_out_title),
             body = UiText.StringResource(StringResource.settings_log_out_body),
             confirm = UiText.StringResource(StringResource.settings_log_out),
@@ -422,32 +421,6 @@ private fun SettingsDialogs(state: SettingsState, onIntent: (SettingsIntent) -> 
 
         null -> Unit
     }
-}
-
-@Composable
-private fun ConfirmDialog(
-    title: UiText,
-    body: UiText,
-    confirm: UiText,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title.asString()) },
-        text = { Text(body.asString()) },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-            ) { Text(text = confirm.asString(), color = VndbTheme.colors.accent) }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-            ) { Text(UiText.StringResource(StringResource.action_cancel).asString()) }
-        },
-        containerColor = VndbTheme.colors.surfaceCard,
-    )
 }
 
 private val previewState = SettingsState(
