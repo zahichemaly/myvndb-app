@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.zc.vndb.common.domain.model.TitleLanguage
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
 import com.zc.vndb.common.ui.component.error.mapper.toErrorUIModel
+import com.zc.vndb.feature.browse.domain.model.AdvancedFilters
 import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseFilter
 import com.zc.vndb.feature.browse.domain.model.BrowseScope
 import com.zc.vndb.feature.browse.domain.model.BrowseSort
-import com.zc.vndb.feature.browse.domain.model.Genre
 import com.zc.vndb.feature.browse.domain.model.isDescending
 import com.zc.vndb.feature.browse.domain.usecase.GetProducerUseCase
 import com.zc.vndb.feature.browse.domain.usecase.GetStaffUseCase
@@ -17,9 +17,12 @@ import com.zc.vndb.feature.browse.domain.usecase.GetTagUseCase
 import com.zc.vndb.feature.browse.domain.usecase.SearchNovelsUseCase
 import com.zc.vndb.feature.browse.presentation.component.browsenovelcard.mapper.toCardUIModel
 import com.zc.vndb.feature.browse.presentation.component.scopeheader.mapper.toHeaderUIModel
-import com.zc.vndb.feature.browse.presentation.mapper.toGenreChips
+import com.zc.vndb.feature.browse.presentation.mapper.toActiveFilters
 import com.zc.vndb.feature.browse.presentation.mapper.toResultCountLabel
 import com.zc.vndb.feature.browse.presentation.mapper.toSortOptions
+import com.zc.vndb.feature.browse.presentation.model.ActiveFilterKey
+import com.zc.vndb.feature.browse.presentation.model.FilterDraft
+import com.zc.vndb.feature.browse.presentation.model.FilterSheetUIState
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
@@ -29,6 +32,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -57,18 +62,28 @@ class BrowseViewModel(
     private var nextPage = SearchNovelsUseCase.FIRST_PAGE
     private var loadJob: Job? = null
     private var debounceJob: Job? = null
+
+    /** The age rating the list starts with; a pill appears only when the filter differs. */
+    private var defaultAgeRating = AgeRating.AllAges
     private var titleLanguage = TitleLanguage.Romanized
 
-    // The starting age rating comes from Settings ("Include 18+ titles in Browse").
+    // The age rating follows Settings ("Show 18+ titles in Browse"): the list loads with it, and
+    // every change of the setting loads the list again from the API.
     init {
         loadHeader()
         viewModelScope.launch {
-            val settings = observeSettings.current()
-            filter = filter.copy(
-                ageRating = if (settings.includeAdultInBrowse) AgeRating.Any else AgeRating.AllAges,
-            )
-            onIntent(BrowseIntent.Load)
+            observeSettings()
+                .map { it.includeAdultInBrowse }
+                .distinctUntilChanged()
+                .collect(::onIncludeAdultChanged)
         }
+    }
+
+    /** Sets the age rating the setting asks for and reloads from the API; nothing is filtered locally. */
+    private fun onIncludeAdultChanged(includeAdult: Boolean) {
+        defaultAgeRating = if (includeAdult) AgeRating.Any else AgeRating.AllAges
+        filter = filter.copy(ageRating = defaultAgeRating)
+        reload()
     }
 
     fun onIntent(intent: BrowseIntent) {
@@ -84,12 +99,6 @@ class BrowseViewModel(
             BrowseIntent.SearchSubmitted -> applyFilter(filter.withQuery(_state.value.query))
 
             BrowseIntent.QueryCleared -> clearQuery()
-
-            is BrowseIntent.AgeRatingSelected -> applyFilter(
-                filter.copy(ageRating = intent.ageRating),
-            )
-
-            is BrowseIntent.GenreToggled -> toggleGenre(intent.genre)
 
             // A newly picked sort starts in its own natural direction.
             is BrowseIntent.SortSelected -> applyFilter(
@@ -109,7 +118,62 @@ class BrowseViewModel(
             is BrowseIntent.LinkClicked,
             BrowseIntent.DescriptionToggled,
             -> onPageIntent(intent)
+
+            BrowseIntent.FiltersOpened,
+            is BrowseIntent.FilterDraftChanged,
+            BrowseIntent.FiltersReset,
+            BrowseIntent.FiltersApplied,
+            BrowseIntent.FiltersDismissed,
+            is BrowseIntent.ActiveFilterRemoved,
+            BrowseIntent.ActiveFiltersCleared,
+            -> onAdvancedFilterIntent(intent)
         }
+    }
+
+    /** The filter sheet and the pills that undo what it applied. */
+    private fun onAdvancedFilterIntent(intent: BrowseIntent) {
+        when (intent) {
+            BrowseIntent.FiltersOpened -> setDraft(FilterDraft.of(filter))
+            is BrowseIntent.FilterDraftChanged -> setDraft(intent.draft)
+            BrowseIntent.FiltersReset -> setDraft(startingFilter().let(FilterDraft::of))
+            BrowseIntent.FiltersApplied -> applyDraft()
+            BrowseIntent.FiltersDismissed -> setSheet(null)
+            is BrowseIntent.ActiveFilterRemoved -> applyFilter(filter.without(intent.key))
+            BrowseIntent.ActiveFiltersCleared -> applyFilter(startingFilter())
+            else -> Unit
+        }
+    }
+
+    /** The current filter with every sheet filter back to its starting value; query and sort stay. */
+    private fun startingFilter() = filter.copy(
+        ageRating = defaultAgeRating,
+        genres = emptySet(),
+        advanced = AdvancedFilters(),
+    )
+
+    private fun BrowseFilter.without(key: ActiveFilterKey): BrowseFilter = when (key) {
+        ActiveFilterKey.Age -> copy(ageRating = defaultAgeRating)
+        is ActiveFilterKey.GenreFilter -> copy(genres = genres - key.genre)
+        is ActiveFilterKey.Advanced -> copy(advanced = advanced.without(key.kind))
+    }
+
+    private fun setDraft(draft: FilterDraft) = setSheet(FilterSheetUIState(draft))
+
+    private fun setSheet(sheet: FilterSheetUIState?) {
+        _state.update { it.copy(filterSheet = sheet) }
+    }
+
+    /** Apply: closes the sheet and loads the list with the draft's filters; the sheet itself never calls the API. */
+    private fun applyDraft() {
+        val draft = _state.value.filterSheet?.draft ?: return
+        setSheet(null)
+        applyFilter(
+            filter.copy(
+                ageRating = draft.ageRating,
+                genres = draft.genres,
+                advanced = draft.advanced,
+            ),
+        )
     }
 
     /** Taps on the page itself: navigation, links and the description. */
@@ -131,11 +195,6 @@ class BrowseViewModel(
     private fun clearQuery() {
         _state.update { it.copy(query = "") }
         applyFilter(filter.withQuery(""))
-    }
-
-    private fun toggleGenre(genre: Genre) {
-        val genres = if (genre in filter.genres) filter.genres - genre else filter.genres + genre
-        applyFilter(filter.copy(genres = genres))
     }
 
     /** After a failed page, wait for an explicit retry instead of re-requesting on every scroll. */
@@ -178,11 +237,10 @@ class BrowseViewModel(
         nextPage = SearchNovelsUseCase.FIRST_PAGE
         _state.update {
             it.copy(
-                ageRating = filter.ageRating,
                 sort = filter.sort,
                 isSortAscending = !filter.isDescending,
                 sortOptions = filter.toSortOptions(),
-                genres = filter.toGenreChips(),
+                activeFilters = filter.toActiveFilters(defaultAgeRating),
                 results = persistentListOf(),
                 resultCountLabel = null,
                 isLoading = true,

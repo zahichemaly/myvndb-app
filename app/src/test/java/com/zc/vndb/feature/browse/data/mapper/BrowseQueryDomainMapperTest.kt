@@ -1,11 +1,14 @@
 package com.zc.vndb.feature.browse.data.mapper
 
 import com.zc.vndb.common.data.network.appJson
+import com.zc.vndb.common.domain.model.NovelLength
+import com.zc.vndb.feature.browse.domain.model.AdvancedFilters
 import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseFilter
 import com.zc.vndb.feature.browse.domain.model.BrowseScope
 import com.zc.vndb.feature.browse.domain.model.BrowseSort
 import com.zc.vndb.feature.browse.domain.model.Genre
+import com.zc.vndb.feature.browse.domain.model.ReleaseEra
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -187,5 +190,85 @@ class BrowseQueryDomainMapperTest {
             json("""["search","=","steins"]"""),
             BrowseFilter(ageRating = AgeRating.Any, query = "steins").body()["filters"],
         )
+    }
+
+    private fun advanced(advanced: AdvancedFilters) =
+        BrowseFilter(ageRating = AgeRating.Any, advanced = advanced).body()["filters"]
+
+    @Test
+    fun `supported languages become lang and the original language olang`() {
+        assertEquals(
+            json("""["lang","=","en"]"""),
+            advanced(AdvancedFilters(supportedLanguages = setOf("en"))),
+        )
+        assertEquals(
+            json("""["olang","=","ja"]"""),
+            advanced(AdvancedFilters(originalLanguage = "ja")),
+        )
+    }
+
+    @Test
+    fun `several supported languages are any-of, in the offered order`() {
+        assertEquals(
+            json("""["or",["lang","=","en"],["lang","=","ja"],["lang","=","ko"]]"""),
+            advanced(AdvancedFilters(supportedLanguages = setOf("ko", "en", "ja"))),
+        )
+    }
+
+    @Test
+    fun `lengths map to VNDB's 1 to 5 and several share one or`() {
+        assertEquals(
+            json("""["length","=",2]"""),
+            advanced(AdvancedFilters(lengths = setOf(NovelLength.Short))),
+        )
+        assertEquals(
+            json("""["or",["length","=",1],["length","=",5]]"""),
+            advanced(AdvancedFilters(lengths = setOf(NovelLength.VeryLong, NovelLength.VeryShort))),
+        )
+    }
+
+    @Test
+    fun `each era is a release date range`() {
+        assertEquals(
+            json("""["released",">=","2020"]"""),
+            advanced(AdvancedFilters(era = ReleaseEra.Since2020)),
+        )
+        assertEquals(
+            json("""["and",["released",">=","2010"],["released","<","2020"]]"""),
+            advanced(AdvancedFilters(era = ReleaseEra.In2010s)),
+        )
+        assertEquals(
+            json("""["and",["released",">=","2000"],["released","<","2010"]]"""),
+            advanced(AdvancedFilters(era = ReleaseEra.In2000s)),
+        )
+        assertEquals(
+            json("""["released","<","2000"]"""),
+            advanced(AdvancedFilters(era = ReleaseEra.Before2000)),
+        )
+    }
+
+    @Test
+    fun `advanced filters combine with age, genres and scope`() {
+        val body = BrowseFilter(
+            genres = setOf(Genre.Mystery),
+            advanced = AdvancedFilters(
+                supportedLanguages = setOf("en"),
+                era = ReleaseEra.Since2020,
+            ),
+            scope = BrowseScope.Tag("g249"),
+        ).body()
+
+        assertEquals(
+            json(
+                """["and",["release","!=",["minage",">=",18]],["tag","=","${Genre.Mystery.tagId}"],""" +
+                    """["lang","=","en"],["released",">=","2020"],["tag","=","g249"]]""",
+            ),
+            body["filters"],
+        )
+    }
+
+    @Test
+    fun `no advanced filters add nothing`() {
+        assertEquals(json("[]"), advanced(AdvancedFilters()))
     }
 }

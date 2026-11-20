@@ -3,11 +3,11 @@ package com.zc.vndb.feature.browse.presentation
 import androidx.compose.runtime.Immutable
 import com.zc.vndb.common.ui.component.error.model.ErrorUIModel
 import com.zc.vndb.common.ui.text.UiText
-import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseSort
 import com.zc.vndb.feature.browse.presentation.component.browsenovelcard.model.BrowseNovelCardUIModel
 import com.zc.vndb.feature.browse.presentation.component.scopeheader.model.ScopeHeaderUIModel
-import com.zc.vndb.feature.browse.presentation.model.GenreChipUIState
+import com.zc.vndb.feature.browse.presentation.model.ActiveFilterUIModel
+import com.zc.vndb.feature.browse.presentation.model.FilterSheetUIState
 import com.zc.vndb.feature.browse.presentation.model.SortOptionUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -20,12 +20,14 @@ data class BrowseState(
     val isDescriptionExpanded: Boolean = false,
     /** What is typed in the search field (applied after a short pause). */
     val query: String = "",
-    val ageRating: AgeRating = AgeRating.AllAges,
     val sort: BrowseSort = BrowseSort.Popularity,
     /** Up arrow on the direction button; Popularity starts with the highest, so it is descending. */
     val isSortAscending: Boolean = false,
     val sortOptions: ImmutableList<SortOptionUIModel> = persistentListOf(),
-    val genres: ImmutableList<GenreChipUIState> = persistentListOf(),
+    /** The filters that are applied, as removable pills; none means nothing is filtered. */
+    val activeFilters: ImmutableList<ActiveFilterUIModel> = persistentListOf(),
+    /** Set while the filter sheet is open. */
+    val filterSheet: FilterSheetUIState? = null,
     val results: ImmutableList<BrowseNovelCardUIModel> = persistentListOf(),
     val resultCountLabel: UiText? = null,
     /** First page in flight; results are replaced when it lands. */

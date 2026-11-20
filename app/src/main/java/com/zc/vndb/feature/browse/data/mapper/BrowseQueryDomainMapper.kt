@@ -1,10 +1,14 @@
 package com.zc.vndb.feature.browse.data.mapper
 
 import com.zc.vndb.common.data.dto.QueryDTO
+import com.zc.vndb.common.domain.model.NovelLength
+import com.zc.vndb.feature.browse.domain.model.AdvancedFilters
 import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseFilter
 import com.zc.vndb.feature.browse.domain.model.BrowseScope
 import com.zc.vndb.feature.browse.domain.model.BrowseSort
+import com.zc.vndb.feature.browse.domain.model.ReleaseEra
+import com.zc.vndb.feature.browse.domain.model.SupportedLanguageChoices
 import com.zc.vndb.feature.browse.domain.model.isDescending
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -45,6 +49,7 @@ private fun BrowseFilter.toFilters(): JsonElement {
                 predicate("tag", "=", JsonPrimitive(it.tagId)),
             )
         }
+        addAll(advanced.toPredicates())
         scope.toPredicate()?.let(::add)
     }
     // No condition at all ("Both" ages, nothing else) is an empty list: VNDB rejects ["and"].
@@ -58,6 +63,55 @@ private fun BrowseFilter.toFilters(): JsonElement {
             predicates.forEach { add(it) }
         }
     }
+}
+
+/** One condition per filter that is on; several languages or lengths share one `or`. */
+private fun AdvancedFilters.toPredicates(): List<JsonArray> = buildList {
+    addAnyOf(
+        supportedLanguages
+            .sortedBy { SupportedLanguageChoices.indexOf(it) }
+            .map { predicate("lang", "=", JsonPrimitive(it)) },
+    )
+    originalLanguage?.let { add(predicate("olang", "=", JsonPrimitive(it))) }
+    addAnyOf(
+        lengths
+            .sortedBy { it.ordinal }
+            .map { predicate("length", "=", JsonPrimitive(it.apiValue)) },
+    )
+    era?.let { add(it.toPredicate()) }
+}
+
+/** Adds [predicates] as one condition: the single one, or an `or` of several; nothing if empty. */
+private fun MutableList<JsonArray>.addAnyOf(predicates: List<JsonArray>) {
+    when (predicates.size) {
+        0 -> Unit
+
+        1 -> add(predicates.single())
+
+        else -> add(
+            buildJsonArray {
+                add("or")
+                predicates.forEach { add(it) }
+            },
+        )
+    }
+}
+
+/** VNDB's length filter counts from 1 (very short) to 5 (very long); 0 means unknown. */
+private val NovelLength.apiValue: Int get() = ordinal + 1
+
+private fun ReleaseEra.toPredicate(): JsonArray = when (this) {
+    ReleaseEra.Since2020 -> predicate("released", ">=", JsonPrimitive("2020"))
+    ReleaseEra.In2010s -> between("2010", "2020")
+    ReleaseEra.In2000s -> between("2000", "2010")
+    ReleaseEra.Before2000 -> predicate("released", "<", JsonPrimitive("2000"))
+}
+
+/** Released in [from] (inclusive) up to [until] (exclusive). */
+private fun between(from: String, until: String): JsonArray = buildJsonArray {
+    add("and")
+    add(predicate("released", ">=", JsonPrimitive(from)))
+    add(predicate("released", "<", JsonPrimitive(until)))
 }
 
 /** The condition a tag, producer or staff page adds; null for the Browse tab. */
