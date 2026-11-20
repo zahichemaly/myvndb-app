@@ -99,7 +99,7 @@ private fun MetaRow(model: BrowseNovelCardUIModel) {
         Text(
             text = model.yearLabel.asString(),
             style = MaterialTheme.typography.labelMedium,
-            color = VndbTheme.colors.accent,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

@@ -54,7 +54,7 @@ fun ReleaseNovelRowView(
             Text(
                 text = model.typeLabel.asString(),
                 style = MaterialTheme.typography.labelSmall,
-                color = if (model.isComplete) VndbTheme.colors.accent else VndbTheme.colors.score,
+                color = if (model.isComplete) MaterialTheme.colorScheme.onSurfaceVariant else VndbTheme.colors.score,
             )
             Text(
                 text = model.title.asString(),

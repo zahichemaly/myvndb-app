@@ -57,7 +57,7 @@ fun AppearanceRowView(
             Text(
                 text = model.roleLabel.asString(),
                 style = MaterialTheme.typography.labelSmall,
-                color = if (model.isMajorRole) VndbTheme.colors.accent else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (model.isMajorRole) VndbTheme.colors.score else MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = model.title.asString(),

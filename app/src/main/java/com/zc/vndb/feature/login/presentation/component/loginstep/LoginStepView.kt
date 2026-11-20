@@ -27,7 +27,7 @@ fun LoginStepView(
             Text(
                 text = number.toString(),
                 style = MaterialTheme.typography.titleMedium,
-                color = VndbTheme.colors.accent,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Column(verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs)) {
                 Text(

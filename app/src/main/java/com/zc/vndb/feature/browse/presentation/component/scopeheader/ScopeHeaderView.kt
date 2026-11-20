@@ -45,7 +45,7 @@ fun ScopeHeaderView(model: ScopeHeaderUIModel, modifier: Modifier = Modifier) {
                 Text(
                     text = count.asString(),
                     style = MaterialTheme.typography.labelMedium,
-                    color = VndbTheme.colors.accent,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
