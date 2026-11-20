@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -32,6 +33,7 @@ import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
+import com.zc.vndb.common.ui.util.LocalShowSensitiveContent
 import com.zc.vndb.feature.detail.presentation.component.detailhero.model.DetailHeroUIModel
 import com.zc.vndb.feature.detail.presentation.component.detailhero.model.HeroDeveloperUIModel
 import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
@@ -51,18 +53,38 @@ fun DetailHeroView(
     model: DetailHeroUIModel,
     onDeveloperClick: (String) -> Unit,
     onTagClick: (String) -> Unit,
+    onRevealCoverClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isCoverRevealed: Boolean = false,
 ) {
+    // Tapping a blurred cover asks "I'm 18 or older"; Settings' "Show sensitive content" skips it.
+    val isCoverBlurred = model.isCoverSensitive && !isCoverRevealed &&
+        !LocalShowSensitiveContent.current
     SectionCardView(modifier = modifier) {
         Row(horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.md)) {
             Box(modifier = Modifier.width(CoverWidth)) {
                 CoverImageView(
                     url = model.coverUrl,
-                    isSensitive = model.isCoverSensitive,
+                    isSensitive = model.isCoverSensitive && !isCoverRevealed,
                     contentDescription = model.title,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(VndbTheme.dimens.coverAspectRatio),
+                        .aspectRatio(VndbTheme.dimens.coverAspectRatio)
+                        .then(
+                            if (isCoverBlurred) {
+                                Modifier
+                                    .clip(VndbTheme.shapes.cover)
+                                    .clickable(
+                                        onClickLabel = UiText.StringResource(
+                                            StringResource.cd_reveal_cover,
+                                        ).asString(),
+                                        role = Role.Button,
+                                        onClick = onRevealCoverClick,
+                                    )
+                            } else {
+                                Modifier
+                            },
+                        ),
                 )
             }
             Column(
@@ -286,6 +308,7 @@ private fun DetailHeroViewPreview() {
                 ),
             ),
             onDeveloperClick = {},
+            onRevealCoverClick = {},
             onTagClick = {},
             modifier = Modifier.padding(VndbTheme.spacing.lg),
         )

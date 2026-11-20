@@ -13,6 +13,7 @@ import com.zc.vndb.feature.detail.presentation.component.taggroups.model.Content
 import com.zc.vndb.feature.detail.presentation.component.taggroups.model.TagGroupUIModel
 import com.zc.vndb.feature.detail.presentation.model.AlsoKnownAsUIModel
 import com.zc.vndb.feature.detail.presentation.model.CastUIModel
+import com.zc.vndb.feature.detail.presentation.model.CoverRevealRequest
 import com.zc.vndb.feature.detail.presentation.model.DetailTab
 import com.zc.vndb.feature.detail.presentation.model.DetailTabUIModel
 import com.zc.vndb.feature.detail.presentation.model.ImageViewerUIState
@@ -57,4 +58,8 @@ data class DetailState(
     val releases: SectionState<PagedListUIState<ReleaseGroupUIModel>> = SectionState.Idle,
     val quotes: SectionState<PagedListUIState<QuoteUIModel>> = SectionState.Idle,
     val viewer: ImageViewerUIState? = null,
+    /** The user confirmed they are 18 or older: this page's blurred covers are shown. */
+    val areCoversRevealed: Boolean = false,
+    /** Set while the "I'm 18 or older" question is open. */
+    val coverReveal: CoverRevealRequest? = null,
 )

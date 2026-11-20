@@ -35,5 +35,10 @@ sealed interface DetailIntent {
     data class ScreenshotClicked(val index: Int) : DetailIntent
     data class CoverClicked(val index: Int) : DetailIntent
     data object ViewerDismissed : DetailIntent
+
+    /** A blurred cover was tapped; [viewerIndex] is its place in the viewer, null for the page's cover. */
+    data class CoverRevealRequested(val viewerIndex: Int?) : DetailIntent
+    data object CoverRevealConfirmed : DetailIntent
+    data object CoverRevealDismissed : DetailIntent
     data object ReviewsClicked : DetailIntent
 }

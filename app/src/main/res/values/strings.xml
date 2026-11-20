@@ -225,6 +225,10 @@
     <string name="detail_reviews_link">Reviews</string>
     <string name="detail_reviews_hint">Reviews are not available in the app.</string>
     <string name="detail_close_viewer">Close</string>
+    <string name="detail_reveal_cover_title">Show this cover?</string>
+    <string name="detail_reveal_cover_body">This cover may show sexual or violent content. Confirm that you are 18 or older.</string>
+    <string name="detail_reveal_cover_confirm">I\'m 18 or older</string>
+    <string name="cd_reveal_cover">Show cover</string>
     <string name="detail_viewer_position">%1$d / %2$d</string>
 
     <!-- Tag -->

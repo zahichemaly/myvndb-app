@@ -44,6 +44,7 @@ import com.zc.vndb.feature.detail.presentation.mapper.toUIModel
 import com.zc.vndb.feature.detail.presentation.mapper.toViewer
 import com.zc.vndb.feature.detail.presentation.mapper.vndbUrl
 import com.zc.vndb.feature.detail.presentation.model.ContentFilter
+import com.zc.vndb.feature.detail.presentation.model.CoverRevealRequest
 import com.zc.vndb.feature.detail.presentation.model.DetailSection
 import com.zc.vndb.feature.detail.presentation.model.DetailTab
 import com.zc.vndb.feature.detail.presentation.model.DetailTabUIModel
@@ -197,20 +198,38 @@ class DetailViewModel(
 
             is DetailIntent.ContentFilterToggled -> toggleContentFilter(intent.filter)
 
-            is DetailIntent.ScreenshotClicked ->
-                _state.update {
-                    it.copy(
-                        viewer = screenshots.toViewer(contentFilters, intent.index),
-                    )
-                }
+            is DetailIntent.ScreenshotClicked,
+            is DetailIntent.CoverClicked,
+            DetailIntent.ViewerDismissed,
+            is DetailIntent.CoverRevealRequested,
+            DetailIntent.CoverRevealConfirmed,
+            DetailIntent.CoverRevealDismissed,
+            -> onMediaIntent(intent)
+        }
+    }
+
+    /** The full-screen viewer and the "I'm 18 or older" question behind a blurred cover. */
+    private fun onMediaIntent(intent: DetailIntent) {
+        when (intent) {
+            is DetailIntent.ScreenshotClicked -> _state.update {
+                it.copy(viewer = screenshots.toViewer(contentFilters, intent.index))
+            }
 
             is DetailIntent.CoverClicked -> _state.update {
-                it.copy(
-                    viewer = covers.toViewer(intent.index),
-                )
+                it.copy(viewer = covers.toViewer(intent.index))
             }
 
             DetailIntent.ViewerDismissed -> _state.update { it.copy(viewer = null) }
+
+            is DetailIntent.CoverRevealRequested -> _state.update {
+                it.copy(coverReveal = CoverRevealRequest(intent.viewerIndex))
+            }
+
+            DetailIntent.CoverRevealConfirmed -> confirmCoverReveal()
+
+            DetailIntent.CoverRevealDismissed -> _state.update { it.copy(coverReveal = null) }
+
+            else -> Unit
         }
     }
 
@@ -539,6 +558,18 @@ class DetailViewModel(
 
                 else -> state
             }
+        }
+    }
+
+    /** Shows the page's blurred covers; a cover opened from the carousel goes on to the viewer. */
+    private fun confirmCoverReveal() {
+        val viewerIndex = _state.value.coverReveal?.viewerIndex
+        _state.update {
+            it.copy(
+                areCoversRevealed = true,
+                coverReveal = null,
+                viewer = viewerIndex?.let { index -> covers.toViewer(index) } ?: it.viewer,
+            )
         }
     }
 
