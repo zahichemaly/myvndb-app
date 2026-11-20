@@ -17,6 +17,11 @@ data class BrowseState(
     /** A tag page (opened from a VN) rather than the Browse tab: shows Back and the tag header. */
     val isScopedPage: Boolean = false,
     val header: ScopeHeaderUIModel? = null,
+    /**
+     * The header is loading. Until it lands its skeleton holds the top of the page, so the header
+     * replaces it in place instead of appearing above the filters, out of view.
+     */
+    val isHeaderLoading: Boolean = false,
     val isDescriptionExpanded: Boolean = false,
     /** What is typed in the search field (applied after a short pause). */
     val query: String = "",
