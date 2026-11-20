@@ -1,7 +1,9 @@
 package com.zc.vndb.feature.detail.presentation
 
+import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSessionRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
+import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
 import com.zc.vndb.common.util.MainDispatcherRule
 import com.zc.vndb.feature.detail.domain.model.DetailSamples
@@ -41,6 +43,7 @@ class DetailCoverRevealViewModelTest {
         covers = listOf(DetailSamples.coverArt("front"), DetailSamples.coverArt("back", "r2"))
     }
     private val settings = FakeSettingsRepository()
+    private val languages = FakeLanguageRepository()
     private val sessions = FakeSessionRepository()
     private val profileRepository = FakeProfileRepository()
 
@@ -54,6 +57,7 @@ class DetailCoverRevealViewModelTest {
         getNovelReleases = GetNovelReleasesUseCase(repository),
         getNovelQuotes = GetNovelQuotesUseCase(repository),
         observeSettings = ObserveSettingsUseCase(settings),
+        observeLanguages = ObserveLanguagesUseCase(languages),
         isNovelFinished = IsNovelFinishedUseCase(sessions, profileRepository),
         observeSession = ObserveSessionUseCase(sessions),
         getMyListEntry = GetMyListEntryUseCase(sessions, profileRepository),

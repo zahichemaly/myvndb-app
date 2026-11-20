@@ -1,8 +1,13 @@
 package com.zc.vndb.feature.detail.presentation.component.detailhero.mapper
 
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.TagCategory
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.ui.component.languagepills.model.LanguagePillUIModel
 import com.zc.vndb.common.ui.component.ratingbadge.mapper.toRatingLabel
+import com.zc.vndb.common.ui.mapper.inPickerOrder
+import com.zc.vndb.common.ui.mapper.languageFlag
+import com.zc.vndb.common.ui.mapper.nameOf
 import com.zc.vndb.common.ui.mapper.primaryTitle
 import com.zc.vndb.common.ui.mapper.secondaryTitle
 import com.zc.vndb.common.ui.mapper.toIsoLabel
@@ -21,55 +26,69 @@ import kotlinx.collections.immutable.toImmutableList
 
 private const val HERO_TAGS = 2
 private const val MAX_DEVELOPERS = 2
+private const val AVAILABLE_LANGUAGES_SHOWN = 2
 private const val MINUTES_PER_HOUR = 60.0
 private const val ALL_AGES = 0
 
 fun NovelDetail.toHeroUIModel(
     ageRange: AgeRange?,
     titleLanguage: TitleLanguage = TitleLanguage.Romanized,
+    languageOptions: List<LanguageOption> = emptyList(),
 ): DetailHeroUIModel = toHeroUIModel(
     ageRange,
     primaryTitle(title, originalTitle, titleLanguage),
     secondaryTitle(title, originalTitle, titleLanguage),
+    languageOptions,
 )
 
 private fun NovelDetail.toHeroUIModel(
     ageRange: AgeRange?,
     primaryTitle: UiText,
     secondaryTitle: UiText?,
-) = DetailHeroUIModel(
-    title = primaryTitle,
-    originalTitle = secondaryTitle,
-    coverUrl = cover?.url,
-    isCoverSensitive = cover?.isSensitive ?: false,
-    developers = developers.take(MAX_DEVELOPERS)
-        .map { HeroDeveloperUIModel(id = it.id, name = it.name) }
-        .toImmutableList(),
-    releasedLabel = releaseDate.toIsoLabel(),
-    lengthName = length?.toNameLabel(),
-    lengthValueLabel = (averageHoursLabel() ?: length?.toLabel())
-        ?.let { UiText.StringResource(StringResource.detail_length_value, listOf(it)) },
-    lengthVotesLabel = lengthVotes.takeIf { it > 0 && averagePlayMinutes != null }
-        ?.let {
-            UiText.StringResource(
-                StringResource.detail_length_votes,
-                listOf("%,d".format(it)),
+    languageOptions: List<LanguageOption>,
+): DetailHeroUIModel {
+    val available = availableLanguages(languageOptions)
+    return DetailHeroUIModel(
+        title = primaryTitle,
+        originalTitle = secondaryTitle,
+        coverUrl = cover?.url,
+        isCoverSensitive = cover?.isSensitive ?: false,
+        developers = developers.take(MAX_DEVELOPERS)
+            .map { HeroDeveloperUIModel(id = it.id, name = it.name) }
+            .toImmutableList(),
+        releasedLabel = releaseDate.toIsoLabel(),
+        originalLanguage = originalLanguage?.let { it.toPill(languageOptions) },
+        availableLanguages = available.take(AVAILABLE_LANGUAGES_SHOWN).toImmutableList(),
+        moreLanguagesCount = (available.size - AVAILABLE_LANGUAGES_SHOWN).coerceAtLeast(0),
+        lengthName = length?.toNameLabel(),
+        lengthValueLabel = (averageHoursLabel() ?: length?.toLabel())
+            ?.let { UiText.StringResource(StringResource.detail_length_value, listOf(it)) },
+        lengthVotesLabel = lengthVotes.takeIf { it > 0 && averagePlayMinutes != null }
+            ?.let {
+                UiText.StringResource(
+                    StringResource.detail_length_votes,
+                    listOf("%,d".format(it)),
+                )
+            },
+        scoreLabel = rating?.let {
+            UiText.StringResource(StringResource.detail_score_value, listOf(it.toRatingLabel()))
+        },
+        scoreVotesLabel = rating?.let {
+            UiText.StringPlural(
+                PluralResource.detail_votes,
+                voteCount,
+                listOf("%,d".format(voteCount)),
             )
         },
-    scoreLabel = rating?.let {
-        UiText.StringResource(StringResource.detail_score_value, listOf(it.toRatingLabel()))
-    },
-    scoreVotesLabel = rating?.let {
-        UiText.StringPlural(PluralResource.detail_votes, voteCount, listOf("%,d".format(voteCount)))
-    },
-    ageLabel = ageRange?.toLabel(),
-    tags = tags
-        .filter { it.category == TagCategory.Content && it.spoilerLevel == 0 }
-        .sortedByDescending { it.rating }
-        .take(HERO_TAGS)
-        .map { TagChipUIModel(id = it.id, label = UiText.StringValue(it.name)) }
-        .toImmutableList(),
-)
+        ageLabel = ageRange?.toLabel(),
+        tags = tags
+            .filter { it.category == TagCategory.Content && it.spoilerLevel == 0 }
+            .sortedByDescending { it.rating }
+            .take(HERO_TAGS)
+            .map { TagChipUIModel(id = it.id, label = UiText.StringValue(it.name)) }
+            .toImmutableList(),
+    )
+}
 
 private fun NovelDetail.averageHoursLabel(): UiText? = averagePlayMinutes?.let { minutes ->
     UiText.StringResource(
@@ -85,3 +104,24 @@ fun AgeRange.toLabel(): UiText = when {
     min == ALL_AGES -> UiText.StringResource(StringResource.detail_age_range_from_all, listOf(max))
     else -> UiText.StringResource(StringResource.detail_age_range, listOf(min, max))
 }
+
+/**
+ * The languages the novel has a release in besides the original (that has its own row), most
+ * common first, then A to Z. [languageOptions] gives the common order and the names.
+ */
+private fun NovelDetail.availableLanguages(
+    languageOptions: List<LanguageOption>,
+): List<LanguagePillUIModel> {
+    val commonOrder = languageOptions.inPickerOrder().map { it.code }
+    return languages.filter { it != originalLanguage }
+        .distinct()
+        .map { it.toPill(languageOptions) }
+        .sortedWith(
+            compareBy<LanguagePillUIModel> {
+                commonOrder.indexOf(it.code).takeIf { index -> index >= 0 } ?: Int.MAX_VALUE
+            }.thenBy { it.name.lowercase() },
+        )
+}
+
+private fun String.toPill(languageOptions: List<LanguageOption>) =
+    LanguagePillUIModel(code = this, flag = languageFlag(this), name = languageOptions.nameOf(this))

@@ -17,7 +17,7 @@ private const val NOVEL_FIELDS =
         "tags.name, tags.rating, tags.spoiler, tags.category, extlinks.label, extlinks.url, " +
         "relations.id, relations.title, relations.alttitle, relations.relation, relations.relation_official, " +
         "relations.released, " +
-        "relations.rating, titles.lang, titles.title, titles.latin, titles.official, titles.main, aliases"
+        "relations.rating, titles.lang, titles.title, titles.latin, titles.official, titles.main, aliases, olang, languages"
 
 private const val CREDIT_FIELDS = "staff.id, staff.name, staff.role, staff.note, staff.eid, " +
     "editions.eid, editions.lang, editions.name, editions.official, va.character.id, va.staff.id, va.staff.name"

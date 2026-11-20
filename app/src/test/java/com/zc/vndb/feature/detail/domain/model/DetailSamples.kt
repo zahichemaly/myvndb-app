@@ -38,6 +38,8 @@ object DetailSamples {
         cover: Cover? = Cover(url = "full", thumbnailUrl = "thumb", sexual = 0.0, violence = 0.0),
         titles: List<NovelTitle> = emptyList(),
         aliases: List<String> = emptyList(),
+        originalLanguage: String? = "ja",
+        languages: List<String> = listOf("ja", "en", "ko", "zh-Hans", "es"),
     ) = NovelDetail(
         id = id,
         title = "STEINS;GATE",
@@ -61,6 +63,8 @@ object DetailSamples {
         titles = titles,
         aliases = aliases,
         lengthVotes = 1021,
+        originalLanguage = originalLanguage,
+        languages = languages,
     )
 
     fun relation(

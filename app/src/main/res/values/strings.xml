@@ -113,6 +113,9 @@
     <string name="detail_vndb_link">vndb.org</string>
     <string name="detail_dev">Developer:</string>
     <string name="detail_released">Released:</string>
+    <string name="detail_language">Language:</string>
+    <string name="detail_available_in">Available in:</string>
+    <string name="detail_more_languages">+%1$d</string>
     <string name="detail_length">Length:</string>
     <string name="detail_age_all">All Ages</string>
     <string name="detail_age_min">%1$d+</string>
@@ -454,7 +457,7 @@
     <string name="settings_confirm_adult_title">Show sensitive content?</string>
     <string name="settings_confirm_adult_body">This shows sexual and violent images and tags without blurring. Confirm that you are 18 or older.</string>
     <string name="settings_confirm_adult_action">I\'m 18 or older</string>
-    <string name="settings_card_languages">Languages on cards</string>
+    <string name="settings_card_languages">Card Languages</string>
     <string name="settings_card_languages_body">Show up to 2 languages on VN cards.</string>
     <string name="settings_card_languages_off">Off</string>
     <string name="settings_card_languages_hint">Pick up to 2. Leave empty to hide them.</string>

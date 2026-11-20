@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.detail.presentation.component.detailhero.model
 
 import androidx.compose.runtime.Immutable
+import com.zc.vndb.common.ui.component.languagepills.model.LanguagePillUIModel
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
 import kotlinx.collections.immutable.ImmutableList
@@ -25,6 +26,12 @@ data class DetailHeroUIModel(
     /** "12,409 votes" behind the score. */
     val scoreVotesLabel: UiText? = null,
     val ageLabel: UiText? = null,
+    /** The language the novel was first written in: "🇯🇵 Japanese". */
+    val originalLanguage: LanguagePillUIModel? = null,
+    /** The first few languages it is available in besides the original, common ones first. */
+    val availableLanguages: ImmutableList<LanguagePillUIModel> = persistentListOf(),
+    /** How many more languages there are than [availableLanguages] shows. */
+    val moreLanguagesCount: Int = 0,
     /** Top content tags; each opens Browse filtered by it. */
     val tags: ImmutableList<TagChipUIModel> = persistentListOf(),
 )

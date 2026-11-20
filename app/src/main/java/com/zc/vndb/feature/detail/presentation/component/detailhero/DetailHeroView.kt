@@ -41,7 +41,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 private val CoverWidth = 128.dp
-private val MetaLabelWidth = 84.dp
+private val MetaLabelWidth = 96.dp
 private val ScoreStarSize = 16.dp
 
 /** Centers the "Length:" label on the first line, whose height is set by the chip. */
@@ -109,9 +109,24 @@ fun DetailHeroView(
             }
         }
         DeveloperLine(model.developers, onDeveloperClick)
-        MetaLine(UiText.StringResource(StringResource.detail_released), model.releasedLabel)
+        ReleaseAndLanguageLines(model)
         LengthLine(model)
         ScoreLine(model)
+    }
+}
+
+/** "Released", the original "Language", and "Available in" translations. */
+@Composable
+private fun ReleaseAndLanguageLines(model: DetailHeroUIModel) {
+    Column(verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
+        MetaLine(UiText.StringResource(StringResource.detail_released), model.releasedLabel)
+        model.originalLanguage?.let {
+            MetaLine(
+                UiText.StringResource(StringResource.detail_language),
+                UiText.StringValue(it.label),
+            )
+        }
+        AvailableInLine(model)
     }
 }
 
@@ -157,6 +172,40 @@ private fun DeveloperLine(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+        }
+    }
+}
+
+/** "Available in:  🇬🇧 English  🇰🇷 Korean  +10": the first languages besides the original, then a count. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AvailableInLine(model: DetailHeroUIModel) {
+    if (model.availableLanguages.isEmpty()) return
+    Row(verticalAlignment = Alignment.Top) {
+        Text(
+            text = UiText.StringResource(StringResource.detail_available_in).asString(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(MetaLabelWidth),
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
+            model.availableLanguages.forEach { language ->
+                Text(
+                    text = language.label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            if (model.moreLanguagesCount > 0) {
+                Text(
+                    text = UiText.StringResource(
+                        StringResource.detail_more_languages,
+                        listOf(model.moreLanguagesCount),
+                    ).asString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
