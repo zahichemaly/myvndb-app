@@ -5,8 +5,11 @@ import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.TagCategory
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
+import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
+import com.zc.vndb.common.domain.usecase.RefreshLanguagesUseCase
 import com.zc.vndb.common.ui.resource.PluralResource
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
@@ -51,6 +54,7 @@ class BrowseViewModelTest {
     }
 
     private val settings = FakeSettingsRepository()
+    private val languages = FakeLanguageRepository()
 
     private fun createViewModel(scope: BrowseScope = BrowseScope.None) = BrowseViewModel(
         scope = scope,
@@ -59,6 +63,8 @@ class BrowseViewModelTest {
         getProducer = GetProducerUseCase(repository),
         getStaff = GetStaffUseCase(repository),
         observeSettings = ObserveSettingsUseCase(settings),
+        observeLanguages = ObserveLanguagesUseCase(languages),
+        refreshLanguages = RefreshLanguagesUseCase(languages),
     )
 
     /** Opens the sheet, edits the draft and taps Apply, as the user would. */

@@ -38,10 +38,4 @@ class AdvancedFiltersTest {
         assertEquals(null, all.without(AdvancedFilterKind.Era).era)
         assertEquals(3, all.without(AdvancedFilterKind.Era).activeCount)
     }
-
-    @Test
-    fun `supported languages are offered in New and Trending's order`() {
-        assertEquals("en", SupportedLanguageChoices.first())
-        assertTrue("ja" in SupportedLanguageChoices)
-    }
 }

@@ -1,9 +1,10 @@
 package com.zc.vndb.feature.settings.presentation.mapper
 
 import com.zc.vndb.common.domain.model.AppSettings
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.SpoilerPreference
 import com.zc.vndb.common.domain.model.TitleLanguage
-import com.zc.vndb.common.ui.mapper.languageName
+import com.zc.vndb.common.ui.mapper.displayName
 import com.zc.vndb.common.ui.mapper.toLabel
 import com.zc.vndb.common.ui.mapper.toLanguagesLabel
 import com.zc.vndb.common.ui.resource.StringResource
@@ -15,7 +16,10 @@ import kotlinx.collections.immutable.toImmutableList
 private const val BYTES_PER_UNIT = 1024.0
 
 /** Copies [settings] into [state]'s rows and dialog options. */
-fun SettingsState.withSettings(settings: AppSettings): SettingsState = copy(
+fun SettingsState.withSettings(
+    settings: AppSettings,
+    languages: List<LanguageOption>,
+): SettingsState = copy(
     isLoaded = true,
     themeLabel = settings.theme.toLabel(),
     titleLanguageOptions = TitleLanguage.entries.map {
@@ -29,15 +33,19 @@ fun SettingsState.withSettings(settings: AppSettings): SettingsState = copy(
     spoilIfFinished = settings.spoilIfFinished,
     showSensitiveContent = settings.showSensitiveContent,
     includeAdultInBrowse = settings.includeAdultInBrowse,
-    languageOptions = AppSettings.TRENDING_LANGUAGE_CHOICES.map {
+    languageOptions = languages.withChosen(settings.trendingLanguages).map {
         SettingOptionUIModel(
-            it,
-            UiText.StringValue(languageName(it)),
-            it in settings.trendingLanguages,
+            it.code,
+            UiText.StringValue(it.displayName()),
+            it.code in settings.trendingLanguages,
         )
     }.toImmutableList(),
     languagesLabel = settings.trendingLanguages.toLanguagesLabel(),
 )
+
+/** The listed languages, plus any saved choice that is not in the list so it can still be unticked. */
+private fun List<LanguageOption>.withChosen(chosen: List<String>): List<LanguageOption> =
+    this + chosen.filter { code -> none { it.code == code } }.map { LanguageOption(it, "") }
 
 /** "0 B", "512 KB", "142.3 MB", "1.2 GB". */
 fun Long.toSizeLabel(): UiText {

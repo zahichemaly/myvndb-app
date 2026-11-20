@@ -8,7 +8,6 @@ import com.zc.vndb.feature.browse.domain.model.BrowseFilter
 import com.zc.vndb.feature.browse.domain.model.BrowseScope
 import com.zc.vndb.feature.browse.domain.model.BrowseSort
 import com.zc.vndb.feature.browse.domain.model.ReleaseEra
-import com.zc.vndb.feature.browse.domain.model.SupportedLanguageChoices
 import com.zc.vndb.feature.browse.domain.model.isDescending
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -69,7 +68,7 @@ private fun BrowseFilter.toFilters(): JsonElement {
 private fun AdvancedFilters.toPredicates(): List<JsonArray> = buildList {
     addAnyOf(
         supportedLanguages
-            .sortedBy { SupportedLanguageChoices.indexOf(it) }
+            .sorted()
             .map { predicate("lang", "=", JsonPrimitive(it)) },
     )
     originalLanguage?.let { add(predicate("olang", "=", JsonPrimitive(it))) }

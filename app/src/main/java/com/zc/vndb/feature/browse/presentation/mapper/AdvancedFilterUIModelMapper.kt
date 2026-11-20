@@ -11,7 +11,6 @@ import com.zc.vndb.feature.browse.domain.model.AdvancedFilters
 import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseFilter
 import com.zc.vndb.feature.browse.domain.model.ReleaseEra
-import com.zc.vndb.feature.browse.domain.model.SupportedLanguageChoices
 import com.zc.vndb.feature.browse.presentation.model.ActiveFilterKey
 import com.zc.vndb.feature.browse.presentation.model.ActiveFilterUIModel
 import kotlinx.collections.immutable.ImmutableList
@@ -40,9 +39,7 @@ private fun AdvancedFilters.toActiveFilters(): List<ActiveFilterUIModel> = build
                 UiText.StringResource(
                     StringResource.browse_filter_chip_supported,
                     listOf(
-                        supportedLanguages
-                            .sortedBy { SupportedLanguageChoices.indexOf(it) }
-                            .toLanguagesLabel(),
+                        supportedLanguages.sorted().toLanguagesLabel(),
                     ),
                 ),
             ),

@@ -23,12 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import com.zc.vndb.common.ui.mapper.languageName
+import com.zc.vndb.common.domain.model.LanguageOption
+import com.zc.vndb.common.ui.mapper.displayName
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
-import com.zc.vndb.feature.browse.domain.model.SupportedLanguageChoices
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 /** Tall enough to space the options apart and give each a full-width touch target. */
 private val OptionRowMinHeight = 48.dp
@@ -39,6 +41,7 @@ private val OptionRowMinHeight = 48.dp
  */
 @Composable
 fun SupportedLanguagesDialogView(
+    options: ImmutableList<LanguageOption>,
     selected: Set<String>,
     onConfirm: (Set<String>) -> Unit,
     onDismiss: () -> Unit,
@@ -62,7 +65,7 @@ fun SupportedLanguagesDialogView(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                LanguageOptions(picks) { picks = it }
+                LanguageOptions(options, picks) { picks = it }
             }
         },
         confirmButton = {
@@ -80,9 +83,14 @@ fun SupportedLanguagesDialogView(
 }
 
 @Composable
-private fun LanguageOptions(picks: List<String>, onChange: (List<String>) -> Unit) {
+private fun LanguageOptions(
+    options: ImmutableList<LanguageOption>,
+    picks: List<String>,
+    onChange: (List<String>) -> Unit,
+) {
     Column(Modifier.verticalScroll(rememberScrollState())) {
-        SupportedLanguageChoices.forEach { code ->
+        options.forEach { option ->
+            val code = option.code
             val isChecked = code in picks
             Row(
                 modifier = Modifier
@@ -103,7 +111,7 @@ private fun LanguageOptions(picks: List<String>, onChange: (List<String>) -> Uni
                     onCheckedChange = null,
                     colors = CheckboxDefaults.colors(checkedColor = VndbTheme.colors.accent),
                 )
-                Text(languageName(code))
+                Text(option.displayName())
             }
         }
     }
@@ -114,6 +122,11 @@ private fun LanguageOptions(picks: List<String>, onChange: (List<String>) -> Uni
 private fun SupportedLanguagesDialogViewPreview() {
     VndbTheme {
         SupportedLanguagesDialogView(
+            options = persistentListOf(
+                LanguageOption("en", "English"),
+                LanguageOption("ja", "Japanese"),
+                LanguageOption("ko", "Korean"),
+            ),
             selected = setOf("en", "ja"),
             onConfirm = {},
             onDismiss = {},

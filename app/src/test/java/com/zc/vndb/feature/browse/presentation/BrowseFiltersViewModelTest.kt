@@ -1,9 +1,16 @@
 package com.zc.vndb.feature.browse.presentation
 
 import com.zc.vndb.common.domain.model.AppSettings
+import com.zc.vndb.common.domain.model.BuiltInLanguages
+import com.zc.vndb.common.domain.model.DomainError
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.NovelLength
+import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
+import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
+import com.zc.vndb.common.domain.usecase.RefreshLanguagesUseCase
+import com.zc.vndb.common.ui.mapper.inPickerOrder
 import com.zc.vndb.common.util.MainDispatcherRule
 import com.zc.vndb.feature.browse.domain.model.AdvancedFilterKind
 import com.zc.vndb.feature.browse.domain.model.AdvancedFilters
@@ -40,6 +47,7 @@ class BrowseFiltersViewModelTest {
     }
 
     private val settings = FakeSettingsRepository()
+    private val languages = FakeLanguageRepository()
 
     private fun createViewModel() = BrowseViewModel(
         scope = BrowseScope.None,
@@ -48,6 +56,8 @@ class BrowseFiltersViewModelTest {
         getProducer = GetProducerUseCase(repository),
         getStaff = GetStaffUseCase(repository),
         observeSettings = ObserveSettingsUseCase(settings),
+        observeLanguages = ObserveLanguagesUseCase(languages),
+        refreshLanguages = RefreshLanguagesUseCase(languages),
     )
 
     /** Opens the sheet, edits the draft and taps Apply, as the user would. */
@@ -353,5 +363,54 @@ class BrowseFiltersViewModelTest {
         assertEquals("fate", filter.query)
         assertEquals(setOf(Genre.Fantasy), filter.genres)
         assertEquals(AgeRating.Any, filter.ageRating)
+    }
+
+    @Test
+    fun `the sheet offers the built-in languages until a list is fetched`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(BuiltInLanguages.inPickerOrder(), viewModel.state.value.languages)
+        assertEquals(0, languages.refreshCalls)
+    }
+
+    @Test
+    fun `a fetched list reaches the sheet, common languages first`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        languages.current.value = listOf(
+            LanguageOption("ar", "Arabic"),
+            LanguageOption("ko", "Korean"),
+            LanguageOption("en", "English"),
+        )
+        advanceUntilIdle()
+
+        assertEquals(listOf("en", "ko", "ar"), viewModel.state.value.languages.map { it.code })
+    }
+
+    @Test
+    fun `opening the sheet refreshes the list in the background`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onIntent(BrowseIntent.FiltersOpened)
+        advanceUntilIdle()
+
+        assertEquals(1, languages.refreshCalls)
+        assertNotNull(viewModel.state.value.filterSheet)
+    }
+
+    @Test
+    fun `a failed refresh still opens the sheet with the languages it has`() = runTest {
+        languages.refreshError = DomainError.Network
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onIntent(BrowseIntent.FiltersOpened)
+        advanceUntilIdle()
+
+        assertNotNull(viewModel.state.value.filterSheet)
+        assertTrue(viewModel.state.value.languages.isNotEmpty())
     }
 }

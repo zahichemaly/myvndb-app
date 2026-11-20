@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.browse.presentation
 
 import androidx.compose.runtime.Immutable
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.ui.component.error.model.ErrorUIModel
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.browse.domain.model.BrowseSort
@@ -26,6 +27,8 @@ data class BrowseState(
     val sortOptions: ImmutableList<SortOptionUIModel> = persistentListOf(),
     /** The filters that are applied, as removable pills; none means nothing is filtered. */
     val activeFilters: ImmutableList<ActiveFilterUIModel> = persistentListOf(),
+    /** The languages the sheet's pickers offer, in the order they are listed. */
+    val languages: ImmutableList<LanguageOption> = persistentListOf(),
     /** Set while the filter sheet is open. */
     val filterSheet: FilterSheetUIState? = null,
     val results: ImmutableList<BrowseNovelCardUIModel> = persistentListOf(),

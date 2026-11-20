@@ -1,13 +1,19 @@
 package com.zc.vndb.feature.settings.presentation
 
 import app.cash.turbine.test
+import com.zc.vndb.common.domain.model.AppSettings
+import com.zc.vndb.common.domain.model.DomainError
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.Session
 import com.zc.vndb.common.domain.model.SpoilerPreference
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSessionRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
 import com.zc.vndb.common.domain.repository.ImageCacheRepository
+import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
+import com.zc.vndb.common.domain.usecase.RefreshLanguagesUseCase
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.util.MainDispatcherRule
@@ -47,10 +53,13 @@ class SettingsViewModelTest {
     }
 
     private val cache = FakeImageCache(bytes = 149_000_000)
+    private val languages = FakeLanguageRepository()
 
     private fun createViewModel() = SettingsViewModel(
         observeSettings = ObserveSettingsUseCase(settings),
         observeSession = ObserveSessionUseCase(sessions),
+        observeLanguages = ObserveLanguagesUseCase(languages),
+        refreshLanguages = RefreshLanguagesUseCase(languages),
         updateSettings = UpdateSettingsUseCase(settings),
         getImageCacheSize = GetImageCacheSizeUseCase(cache),
         clearImageCache = ClearImageCacheUseCase(cache),
@@ -223,5 +232,67 @@ class SettingsViewModelTest {
             viewModel.onIntent(SettingsIntent.ThemeClicked)
             assertEquals(SettingsEffect.OpenTheme, awaitItem())
         }
+    }
+
+    @Test
+    fun `the language dialog lists the fetched languages, common ones first, with the saved ones ticked`() =
+        runTest {
+            languages.current.value = listOf(
+                LanguageOption("ar", "Arabic"),
+                LanguageOption("ja", "Japanese"),
+                LanguageOption("en", "English"),
+                LanguageOption("eu", "Basque"),
+            )
+            val viewModel = createViewModel()
+            collect(viewModel.state)
+            advanceUntilIdle()
+
+            val options = viewModel.state.value.languageOptions
+            assertEquals(listOf("en", "ja", "ar", "eu"), options.map { it.key })
+            assertEquals(listOf(true, true, false, false), options.map { it.isSelected })
+            assertEquals(UiText.StringValue("English"), options.first().label)
+        }
+
+    @Test
+    fun `a saved language that is not in the list can still be unticked`() = runTest {
+        settings.current.value = AppSettings(trendingLanguages = listOf("en", "xx"))
+        languages.current.value = listOf(LanguageOption("en", "English"))
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
+
+        val options = viewModel.state.value.languageOptions
+        assertEquals(listOf("en", "xx"), options.map { it.key })
+        assertTrue(options.all { it.isSelected })
+    }
+
+    @Test
+    fun `opening the language dialog refreshes the list, other dialogs do not`() = runTest {
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
+        assertEquals(0, languages.refreshCalls)
+
+        viewModel.onIntent(SettingsIntent.DialogOpened(SettingsDialog.TitleLanguage))
+        advanceUntilIdle()
+        assertEquals(0, languages.refreshCalls)
+
+        viewModel.onIntent(SettingsIntent.DialogOpened(SettingsDialog.TrendingLanguages))
+        advanceUntilIdle()
+        assertEquals(1, languages.refreshCalls)
+        assertEquals(SettingsDialog.TrendingLanguages, viewModel.state.value.dialog)
+    }
+
+    @Test
+    fun `a failed refresh still opens the language dialog with what it has`() = runTest {
+        languages.refreshError = DomainError.Network
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+
+        viewModel.onIntent(SettingsIntent.DialogOpened(SettingsDialog.TrendingLanguages))
+        advanceUntilIdle()
+
+        assertEquals(SettingsDialog.TrendingLanguages, viewModel.state.value.dialog)
+        assertTrue(viewModel.state.value.languageOptions.isNotEmpty())
     }
 }

@@ -147,6 +147,7 @@ fun BrowseScreen(
     state.filterSheet?.let { sheet ->
         FilterSheetView(
             sheet = sheet,
+            languages = state.languages,
             onDraftChange = actions.onDraftChange,
             onReset = actions.onFiltersReset,
             onApply = actions.onFiltersApply,

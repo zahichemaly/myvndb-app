@@ -3,8 +3,11 @@ package com.zc.vndb.feature.browse.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
+import com.zc.vndb.common.domain.usecase.RefreshLanguagesUseCase
 import com.zc.vndb.common.ui.component.error.mapper.toErrorUIModel
+import com.zc.vndb.common.ui.mapper.inPickerOrder
 import com.zc.vndb.feature.browse.domain.model.AdvancedFilters
 import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseFilter
@@ -49,6 +52,8 @@ class BrowseViewModel(
     private val getProducer: GetProducerUseCase,
     private val getStaff: GetStaffUseCase,
     private val observeSettings: ObserveSettingsUseCase,
+    private val observeLanguages: ObserveLanguagesUseCase,
+    private val refreshLanguages: RefreshLanguagesUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BrowseState(isScopedPage = scope != BrowseScope.None))
@@ -71,6 +76,11 @@ class BrowseViewModel(
     // every change of the setting loads the list again from the API.
     init {
         loadHeader()
+        viewModelScope.launch {
+            observeLanguages().collect { languages ->
+                _state.update { it.copy(languages = languages.inPickerOrder().toImmutableList()) }
+            }
+        }
         viewModelScope.launch {
             observeSettings()
                 .map { it.includeAdultInBrowse }
@@ -133,7 +143,7 @@ class BrowseViewModel(
     /** The filter sheet and the pills that undo what it applied. */
     private fun onAdvancedFilterIntent(intent: BrowseIntent) {
         when (intent) {
-            BrowseIntent.FiltersOpened -> setDraft(FilterDraft.of(filter))
+            BrowseIntent.FiltersOpened -> openFilterSheet()
             is BrowseIntent.FilterDraftChanged -> setDraft(intent.draft)
             BrowseIntent.FiltersReset -> setDraft(startingFilter().let(FilterDraft::of))
             BrowseIntent.FiltersApplied -> applyDraft()
@@ -142,6 +152,12 @@ class BrowseViewModel(
             BrowseIntent.ActiveFiltersCleared -> applyFilter(startingFilter())
             else -> Unit
         }
+    }
+
+    /** Opens the sheet at once; the language list refreshes in the background if it is stale. */
+    private fun openFilterSheet() {
+        setDraft(FilterDraft.of(filter))
+        viewModelScope.launch { refreshLanguages() }
     }
 
     /** The current filter with every sheet filter back to its starting value; query and sort stay. */

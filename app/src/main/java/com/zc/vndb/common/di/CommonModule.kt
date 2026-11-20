@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import coil3.disk.DiskCache
 import com.zc.vndb.BuildConfig
+import com.zc.vndb.common.data.local.LanguageLocalDataSource
 import com.zc.vndb.common.data.local.SessionLocalDataSource
 import com.zc.vndb.common.data.local.SettingsLocalDataSource
 import com.zc.vndb.common.data.network.LogcatHttpLogger
@@ -51,6 +52,16 @@ class CommonModule {
         PreferenceDataStoreFactory.create {
             context.preferencesDataStoreFile(
                 SettingsLocalDataSource.SETTINGS_DATASTORE,
+            )
+        }
+
+    // VNDB's language list, fetched when a picker needs it and kept for a month.
+    @Single
+    @Named(LanguageLocalDataSource.LANGUAGE_DATASTORE)
+    fun languageDataStore(context: Context): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create {
+            context.preferencesDataStoreFile(
+                LanguageLocalDataSource.LANGUAGE_DATASTORE,
             )
         }
 

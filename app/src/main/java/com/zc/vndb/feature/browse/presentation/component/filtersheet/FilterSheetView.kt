@@ -35,8 +35,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.NovelLength
 import com.zc.vndb.common.ui.component.selectablechip.SelectableChipView
+import com.zc.vndb.common.ui.mapper.displayName
 import com.zc.vndb.common.ui.mapper.languageName
 import com.zc.vndb.common.ui.mapper.toLanguagesLabel
 import com.zc.vndb.common.ui.mapper.toNameLabel
@@ -48,12 +50,12 @@ import com.zc.vndb.common.ui.util.AdaptivePreviews
 import com.zc.vndb.feature.browse.domain.model.AdvancedFilters
 import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.Genre
-import com.zc.vndb.feature.browse.domain.model.OriginalLanguageChoices
 import com.zc.vndb.feature.browse.domain.model.ReleaseEra
-import com.zc.vndb.feature.browse.domain.model.SupportedLanguageChoices
 import com.zc.vndb.feature.browse.presentation.mapper.toLabel
 import com.zc.vndb.feature.browse.presentation.model.FilterDraft
 import com.zc.vndb.feature.browse.presentation.model.FilterSheetUIState
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 /**
  * The bottom sheet behind the filter icon: age rating, genres, languages, length and release era.
@@ -63,6 +65,7 @@ import com.zc.vndb.feature.browse.presentation.model.FilterSheetUIState
 @Composable
 fun FilterSheetView(
     sheet: FilterSheetUIState,
+    languages: ImmutableList<LanguageOption>,
     onDraftChange: (FilterDraft) -> Unit,
     onReset: () -> Unit,
     onApply: () -> Unit,
@@ -77,6 +80,7 @@ fun FilterSheetView(
     ) {
         FilterSheetContent(
             draft = sheet.draft,
+            languages = languages,
             onDraftChange = onDraftChange,
             onReset = onReset,
             onApply = onApply,
@@ -87,6 +91,7 @@ fun FilterSheetView(
 @Composable
 private fun FilterSheetContent(
     draft: FilterDraft,
+    languages: ImmutableList<LanguageOption>,
     onDraftChange: (FilterDraft) -> Unit,
     onReset: () -> Unit,
     onApply: () -> Unit,
@@ -120,7 +125,7 @@ private fun FilterSheetContent(
         ) {
             AgeSection(draft, onDraftChange)
             GenreSection(draft, onDraftChange)
-            LanguageSection(draft, onDraftChange)
+            LanguageSection(draft, languages, onDraftChange)
             LengthSection(draft, onDraftChange)
             EraSection(draft, onDraftChange)
         }
@@ -189,7 +194,11 @@ private fun GenreSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> Uni
 }
 
 @Composable
-private fun LanguageSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> Unit) {
+private fun LanguageSection(
+    draft: FilterDraft,
+    languages: ImmutableList<LanguageOption>,
+    onDraftChange: (FilterDraft) -> Unit,
+) {
     val advanced = draft.advanced
     fun change(new: AdvancedFilters) = onDraftChange(draft.copy(advanced = new))
     var showDialog by remember { mutableStateOf(false) }
@@ -199,18 +208,20 @@ private fun LanguageSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> 
             label = UiText.StringResource(StringResource.browse_filter_supported_languages),
             value = advanced.supportedLanguages
                 .takeIf { it.isNotEmpty() }
-                ?.sortedBy { SupportedLanguageChoices.indexOf(it) }
-                ?.toLanguagesLabel()
+                ?.sorted()
+                ?.toLanguagesLabel(languages::nameOf)
                 ?.asString(),
             onClick = { showDialog = true },
         )
         OriginalLanguageRow(
             selected = advanced.originalLanguage,
+            languages = languages,
             onSelect = { change(advanced.copy(originalLanguage = it)) },
         )
     }
     if (showDialog) {
         SupportedLanguagesDialogView(
+            options = languages,
             selected = advanced.supportedLanguages,
             onConfirm = {
                 showDialog = false
@@ -255,17 +266,22 @@ private fun PickerRow(label: UiText, value: String?, onClick: () -> Unit) {
 }
 
 @Composable
-private fun OriginalLanguageRow(selected: String?, onSelect: (String?) -> Unit) {
+private fun OriginalLanguageRow(
+    selected: String?,
+    languages: ImmutableList<LanguageOption>,
+    onSelect: (String?) -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         PickerRow(
             label = UiText.StringResource(StringResource.browse_filter_original_language),
-            value = selected?.let(::languageName),
+            value = selected?.let(languages::nameOf),
             onClick = { expanded = true },
         )
         LanguageMenu(
             expanded = expanded,
             selected = selected,
+            languages = languages,
             onSelect = {
                 expanded = false
                 onSelect(it)
@@ -279,6 +295,7 @@ private fun OriginalLanguageRow(selected: String?, onSelect: (String?) -> Unit) 
 private fun LanguageMenu(
     expanded: Boolean,
     selected: String?,
+    languages: ImmutableList<LanguageOption>,
     onSelect: (String?) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -287,10 +304,13 @@ private fun LanguageMenu(
         onDismissRequest = onDismiss,
         containerColor = VndbTheme.colors.surfaceElevated,
     ) {
-        (listOf<String?>(null) + OriginalLanguageChoices).forEach { code ->
+        (listOf<String?>(null) + languages.map { it.code }).forEach { code ->
             DropdownMenuItem(
                 text = {
-                    Text(text = languageLabel(code), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = languageLabel(code, languages),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
                 },
                 trailingIcon = if (code == selected) {
                     {
@@ -311,8 +331,13 @@ private fun LanguageMenu(
 
 /** The language's name, or "Any" when none is chosen. */
 @Composable
-private fun languageLabel(code: String?): String = code?.let(::languageName)
-    ?: UiText.StringResource(StringResource.browse_filter_any).asString()
+private fun languageLabel(code: String?, languages: List<LanguageOption>): String =
+    code?.let(languages::nameOf)
+        ?: UiText.StringResource(StringResource.browse_filter_any).asString()
+
+/** The language's name from the fetched list, or the device's name for a code that is not in it. */
+private fun List<LanguageOption>.nameOf(code: String): String =
+    firstOrNull { it.code == code }?.displayName() ?: languageName(code)
 
 @Composable
 private fun LengthSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> Unit) {
@@ -390,6 +415,7 @@ private fun SelectedColors() = TintedColors(
 private fun FilterSheetContentPreview() {
     VndbTheme {
         FilterSheetContent(
+            languages = persistentListOf(LanguageOption("en", "English")),
             draft = FilterDraft(
                 ageRating = AgeRating.AllAges,
                 genres = setOf(Genre.Mystery),

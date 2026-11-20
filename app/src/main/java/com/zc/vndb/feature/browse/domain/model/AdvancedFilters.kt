@@ -1,6 +1,5 @@
 package com.zc.vndb.feature.browse.domain.model
 
-import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.NovelLength
 
 /**
@@ -41,9 +40,3 @@ enum class AdvancedFilterKind { SupportedLanguages, OriginalLanguage, Length, Er
 
 /** When a novel was first released. */
 enum class ReleaseEra { Since2020, In2010s, In2000s, Before2000 }
-
-/** Languages a novel can originally be written in, most common first. */
-val OriginalLanguageChoices = listOf("ja", "en", "zh-Hans", "zh-Hant", "ko", "ru", "es", "fr", "de")
-
-/** Languages a novel can have a release in, in display order: the ones New & Trending offers. */
-val SupportedLanguageChoices: List<String> = AppSettings.TRENDING_LANGUAGE_CHOICES

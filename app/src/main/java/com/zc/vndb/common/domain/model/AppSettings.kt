@@ -23,7 +23,7 @@ data class AppSettings(
     companion object {
         val DEFAULT_TRENDING_LANGUAGES = listOf("en", "ja")
 
-        /** Release languages offered for New & Trending, in display order. */
+        /** The most-used release languages, in display order: the pickers' common and built-in list. */
         val TRENDING_LANGUAGE_CHOICES = listOf(
             "en", "ja", "zh-Hans", "zh-Hant", "ko", "es", "de", "fr", "ru", "pt-br", "it", "pl", "vi", "id", "th",
         )
