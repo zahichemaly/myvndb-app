@@ -282,12 +282,31 @@ class BrowseViewModelTest {
     }
 
     @Test
+    fun `a tag page holds the header's place until the tag loads`() = runTest {
+        repository.tags["g249"] = TagInfo(
+            id = "g249",
+            name = "Time Travel",
+            aliases = emptyList(),
+            description = null,
+            category = TagCategory.Content,
+            novelCount = 1067,
+        )
+        val viewModel = createViewModel(BrowseScope.Tag("g249"))
+
+        assertTrue(viewModel.state.value.isHeaderLoading)
+        advanceUntilIdle()
+        assertFalse(viewModel.state.value.isHeaderLoading)
+        assertEquals(UiText.StringValue("Time Travel"), viewModel.state.value.header?.name)
+    }
+
+    @Test
     fun `a failed tag lookup still lists the tag's novels`() = runTest {
         val viewModel = createViewModel(BrowseScope.Tag("g-missing"))
         advanceUntilIdle()
 
         val state = viewModel.state.value
         assertEquals(null, state.header)
+        assertFalse(state.isHeaderLoading)
         assertEquals(20, state.results.size)
         assertEquals(BrowseScope.Tag("g-missing"), repository.requests.single().filter.scope)
     }
@@ -298,6 +317,7 @@ class BrowseViewModelTest {
         advanceUntilIdle()
 
         assertFalse(viewModel.state.value.isScopedPage)
+        assertFalse(viewModel.state.value.isHeaderLoading)
         assertEquals(BrowseScope.None, repository.requests.single().filter.scope)
     }
 

@@ -2,6 +2,7 @@ package com.zc.vndb.feature.detail.presentation.component.detailhero.model
 
 import androidx.compose.runtime.Immutable
 import com.zc.vndb.common.ui.text.UiText
+import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -24,5 +25,6 @@ data class DetailHeroUIModel(
     /** "12,409 votes" behind the score. */
     val scoreVotesLabel: UiText? = null,
     val ageLabel: UiText? = null,
-    val tags: ImmutableList<UiText> = persistentListOf(),
+    /** Top content tags; each opens Browse filtered by it. */
+    val tags: ImmutableList<TagChipUIModel> = persistentListOf(),
 )

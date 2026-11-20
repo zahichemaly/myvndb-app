@@ -136,7 +136,6 @@ private val TsukihimeColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    chipLength = tinted(MoonBlue),
     releaseNew = tinted(Tertiary),
     releaseTranslation = tinted(MoonBlue),
     releasePatch = tinted(Amber),

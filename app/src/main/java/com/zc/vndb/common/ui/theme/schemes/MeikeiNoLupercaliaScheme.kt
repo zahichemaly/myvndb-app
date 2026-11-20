@@ -136,7 +136,6 @@ private val MeikeiNoLupercaliaColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    chipLength = tinted(Sky),
     releaseNew = tinted(Tertiary),
     releaseTranslation = tinted(Sky),
     releasePatch = tinted(Amber),

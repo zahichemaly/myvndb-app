@@ -15,6 +15,7 @@ import com.zc.vndb.feature.detail.domain.model.AgeRange
 import com.zc.vndb.feature.detail.domain.model.NovelDetail
 import com.zc.vndb.feature.detail.presentation.component.detailhero.model.DetailHeroUIModel
 import com.zc.vndb.feature.detail.presentation.component.detailhero.model.HeroDeveloperUIModel
+import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
 import kotlin.math.roundToInt
 import kotlinx.collections.immutable.toImmutableList
 
@@ -66,7 +67,7 @@ private fun NovelDetail.toHeroUIModel(
         .filter { it.category == TagCategory.Content && it.spoilerLevel == 0 }
         .sortedByDescending { it.rating }
         .take(HERO_TAGS)
-        .map { UiText.StringValue(it.name) }
+        .map { TagChipUIModel(id = it.id, label = UiText.StringValue(it.name)) }
         .toImmutableList(),
 )
 

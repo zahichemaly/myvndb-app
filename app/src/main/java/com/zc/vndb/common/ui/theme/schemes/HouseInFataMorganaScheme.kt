@@ -142,7 +142,6 @@ private val HouseInFataMorganaColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    chipLength = tinted(Gold),
     releaseNew = tinted(Tertiary),
     releaseTranslation = tinted(Gold),
     releasePatch = tinted(Orange),
