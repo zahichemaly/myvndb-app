@@ -9,8 +9,8 @@ import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.detail.domain.model.NovelDetail
 import com.zc.vndb.feature.detail.presentation.component.taggroups.model.ContentNoteTone
 import com.zc.vndb.feature.detail.presentation.component.taggroups.model.ContentNoteUIModel
-import com.zc.vndb.feature.detail.presentation.component.taggroups.model.TagChipUIModel
 import com.zc.vndb.feature.detail.presentation.component.taggroups.model.TagGroupUIModel
+import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
