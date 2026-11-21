@@ -15,6 +15,7 @@ import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.profile.domain.model.ListCursor
 import com.zc.vndb.feature.profile.domain.model.ListEntry
+import com.zc.vndb.feature.profile.domain.model.ListFilter
 import com.zc.vndb.feature.profile.domain.model.ListLabel
 import com.zc.vndb.feature.profile.domain.model.UserProfile
 import com.zc.vndb.feature.profile.domain.usecase.GetListEntriesUseCase
@@ -32,6 +33,7 @@ import kotlin.time.Clock
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -48,8 +50,9 @@ import org.koin.core.annotation.KoinViewModel
 
 /**
  * Follows the stored session: a guest sees the log-in prompt, a signed-in user their labels and
- * the entries of the selected one. Each label's entries load the first time it is selected and are
- * kept; a token VNDB rejects signs the user out (the repository clears it) with a message.
+ * the entries matching the selected ones and the search. Entries load the first time a selection
+ * is shown and are kept; a token VNDB rejects signs the user out (the repository clears it) with a
+ * message.
  */
 @KoinViewModel
 class ProfileViewModel(
@@ -82,8 +85,15 @@ class ProfileViewModel(
     private var isSessionRead = false
     private var user: UserProfile? = null
     private var labels: List<ListLabel> = emptyList()
-    private var selectedLabelId: Int? = null
-    private val entriesByLabel = mutableMapOf<Int, LabelEntries>()
+
+    /** Null until the labels load and Playing is picked; empty shows the whole list. */
+    private var selectedLabelIds: Set<Int>? = null
+    private var isMultiSelect = false
+
+    /** What the shown entries are searched by: the typed text, once typing paused. */
+    private var search = ""
+    private val entriesByFilter = mutableMapOf<ListFilter, LoadedEntries>()
+    private var searchJob: Job? = null
     private var titleLanguage = TitleLanguage.Romanized
 
     /** The languages the user chose to flag on cards (Settings), with their names. */
@@ -102,7 +112,7 @@ class ProfileViewModel(
             ) { codes, options -> options.resolve(codes) }
                 .collect { resolved ->
                     cardLanguages = resolved
-                    selectedLabelId?.let(::render)
+                    currentFilter()?.let(::render)
                 }
         }
         // An entry edited in the list editor can move between labels: reload what is shown.
@@ -130,11 +140,26 @@ class ProfileViewModel(
 
             is ProfileIntent.LabelSelected -> selectLabel(intent.id)
 
+            ProfileIntent.MultiSelectToggled -> toggleMultiSelect()
+
+            is ProfileIntent.QueryChanged -> onQueryChanged(intent.query)
+
+            ProfileIntent.SearchSubmitted -> {
+                searchJob?.cancel()
+                applySearch(_state.value.query)
+            }
+
+            ProfileIntent.QueryCleared -> {
+                searchJob?.cancel()
+                _state.update { it.copy(query = "") }
+                applySearch("")
+            }
+
             ProfileIntent.EndReached -> if (!_state.value.entries.loadMoreFailed) loadNextPage()
 
             ProfileIntent.LoadMoreRetried -> loadNextPage()
 
-            ProfileIntent.EntriesRetried -> selectedLabelId?.let {
+            ProfileIntent.EntriesRetried -> currentFilter()?.let {
                 loadFirstPage(
                     it,
                     isRefresh = false,
@@ -146,7 +171,7 @@ class ProfileViewModel(
             )
 
             is ProfileIntent.EntryEditClicked -> {
-                val title = entriesByLabel.values.asSequence().flatMap { it.entries }
+                val title = entriesByFilter.values.asSequence().flatMap { it.entries }
                     .firstOrNull { it.novelId == intent.novelId }?.title ?: intent.novelId
                 sendEffect(ProfileEffect.OpenListEditor(intent.novelId, title))
             }
@@ -164,10 +189,13 @@ class ProfileViewModel(
         session = newSession
         overviewJob?.cancel()
         entriesJob?.cancel()
+        searchJob?.cancel()
         user = null
         labels = emptyList()
-        selectedLabelId = null
-        entriesByLabel.clear()
+        selectedLabelIds = null
+        isMultiSelect = false
+        search = ""
+        entriesByFilter.clear()
         _state.value = ProfileState(
             isSessionKnown = true,
             header = newSession?.toHeaderUIModel(),
@@ -183,7 +211,7 @@ class ProfileViewModel(
         loadOverview(isRefresh = true)
     }
 
-    /** Labels and profile; then the selected label's first page. */
+    /** Labels and profile; then the first page of what is selected. */
     private fun loadOverview(isRefresh: Boolean) {
         val current = session ?: return
         overviewJob?.cancel()
@@ -199,18 +227,18 @@ class ProfileViewModel(
                 .onSuccess { overview ->
                     user = overview.user
                     labels = overview.labels
-                    entriesByLabel.clear()
-                    selectedLabelId = labels.pickSelected(selectedLabelId)
+                    entriesByFilter.clear()
+                    selectedLabelIds = labels.pickSelected(selectedLabelIds)
+                    renderChips()
                     _state.update {
                         it.copy(
                             header = current.toHeaderUIModel(user),
                             isLoading = false,
-                            labels = labels.toChips(selectedLabelId),
                         )
                     }
-                    val selected = selectedLabelId
-                    if (selected != null) {
-                        loadFirstPage(selected, isRefresh)
+                    val filter = currentFilter()
+                    if (filter != null && labels.isNotEmpty()) {
+                        loadFirstPage(filter, isRefresh)
                     } else {
                         _state.update { it.copy(isRefreshing = false, entries = EntriesUIState()) }
                     }
@@ -234,27 +262,83 @@ class ProfileViewModel(
         }
     }
 
+    /** Single-select: that chip alone, or none when it was the one on. Multi-select: toggles it. */
     private fun selectLabel(id: Int) {
-        if (id == selectedLabelId || labels.none { it.id == id }) return
-        entriesJob?.cancel()
-        selectedLabelId = id
-        _state.update { it.copy(labels = labels.toChips(id)) }
-        if (id in entriesByLabel) render(id) else loadFirstPage(id, isRefresh = false)
+        if (labels.none { it.id == id }) return
+        val current = selectedLabelIds.orEmpty()
+        selectedLabelIds = when {
+            isMultiSelect && id in current -> current - id
+            isMultiSelect -> current + id
+            id in current -> emptySet()
+            else -> setOf(id)
+        }
+        showSelection()
     }
 
+    /** Back to single-select keeps only the chip picked last. */
+    private fun toggleMultiSelect() {
+        isMultiSelect = !isMultiSelect
+        val current = selectedLabelIds
+        if (!isMultiSelect && current != null && current.size > 1) {
+            selectedLabelIds = setOf(current.last())
+            showSelection()
+        } else {
+            renderChips()
+        }
+    }
+
+    private fun onQueryChanged(query: String) {
+        _state.update { it.copy(query = query) }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_MILLIS)
+            applySearch(query)
+        }
+    }
+
+    /** Shows what matches [query]; pages of other searches are dropped, unsearched ones kept. */
+    private fun applySearch(query: String) {
+        val trimmed = query.trim()
+        if (trimmed == search) return
+        search = trimmed
+        entriesByFilter.keys.retainAll { it.search.isEmpty() || it.search == trimmed }
+        showSelection()
+    }
+
+    /** The chips, then the matching entries: from memory when loaded already, else the first page. */
+    private fun showSelection() {
+        renderChips()
+        val filter = currentFilter() ?: return
+        entriesJob?.cancel()
+        if (filter in entriesByFilter) render(filter) else loadFirstPage(filter, isRefresh = false)
+    }
+
+    private fun renderChips() {
+        val selected = selectedLabelIds.orEmpty()
+        _state.update {
+            it.copy(
+                labels = labels.toChips(selected),
+                isMultiSelect = isMultiSelect,
+            )
+        }
+    }
+
+    /** What the list shows: the selected labels and the search; null before the labels load. */
+    private fun currentFilter(): ListFilter? = selectedLabelIds?.let { ListFilter(it, search) }
+
     /** On refresh the current entries stay on screen until the new page lands. */
-    private fun loadFirstPage(labelId: Int, isRefresh: Boolean) {
+    private fun loadFirstPage(filter: ListFilter, isRefresh: Boolean) {
         val current = session ?: return
         entriesJob?.cancel()
         if (!isRefresh) _state.update { it.copy(entries = EntriesUIState(isLoading = true)) }
         entriesJob = viewModelScope.launch {
-            getListEntries(current.userId, labelId, listSort, isSortReversed)
+            getListEntries(current.userId, filter, listSort, isSortReversed)
                 .onSuccess { batch ->
-                    entriesByLabel[labelId] = LabelEntries(
+                    entriesByFilter[filter] = LoadedEntries(
                         entries = batch.entries,
                         next = batch.next,
                     )
-                    render(labelId)
+                    render(filter)
                     _state.update { it.copy(isRefreshing = false) }
                 }
                 .onFailure { error ->
@@ -269,22 +353,22 @@ class ProfileViewModel(
         }
     }
 
-    /** Next page of the selected label; a failure keeps what is shown and offers a retry. */
+    /** Next page of what is shown; a failure keeps it on screen and offers a retry. */
     private fun loadNextPage() {
-        val (userId, labelId, loaded) = nextPageTarget() ?: return
+        val (userId, filter, loaded) = nextPageTarget() ?: return
         _state.update {
             it.copy(
                 entries = it.entries.copy(isLoadingMore = true, loadMoreFailed = false),
             )
         }
         entriesJob = viewModelScope.launch {
-            getListEntries(userId, labelId, listSort, isSortReversed, loaded.next)
+            getListEntries(userId, filter, listSort, isSortReversed, loaded.next)
                 .onSuccess { batch ->
-                    entriesByLabel[labelId] = LabelEntries(
+                    entriesByFilter[filter] = LoadedEntries(
                         entries = (loaded.entries + batch.entries).distinctBy { it.novelId },
                         next = batch.next,
                     )
-                    render(labelId)
+                    render(filter)
                 }
                 .onFailure { error ->
                     if (onUnauthorized(error)) return@onFailure
@@ -297,17 +381,17 @@ class ProfileViewModel(
         }
     }
 
-    /** Who, which label and what is loaded, when the selected label has another page to fetch. */
-    private fun nextPageTarget(): Triple<String, Int, LabelEntries>? {
+    /** Who, which filter and what is loaded, when what is shown has another page to fetch. */
+    private fun nextPageTarget(): Triple<String, ListFilter, LoadedEntries>? {
         val userId = session?.userId
-        val labelId = selectedLabelId
-        val loaded = labelId?.let(
-            entriesByLabel::get,
+        val filter = currentFilter()
+        val loaded = filter?.let(
+            entriesByFilter::get,
         )?.takeIf { it.hasMore && entriesJob?.isActive != true }
-        return if (userId != null && labelId != null && loaded != null) {
+        return if (userId != null && filter != null && loaded != null) {
             Triple(
                 userId,
-                labelId,
+                filter,
                 loaded,
             )
         } else {
@@ -315,9 +399,9 @@ class ProfileViewModel(
         }
     }
 
-    private fun render(labelId: Int) {
-        if (labelId != selectedLabelId) return
-        val loaded = entriesByLabel[labelId] ?: return
+    private fun render(filter: ListFilter) {
+        if (filter != currentFilter()) return
+        val loaded = entriesByFilter[filter] ?: return
         val now = clock.now()
         _state.update {
             it.copy(
@@ -346,19 +430,19 @@ class ProfileViewModel(
         viewModelScope.launch { _effect.send(effect) }
     }
 
-    /** Choosing a sort saves it (in its natural direction) and reloads the selected label. */
+    /** Choosing a sort saves it (in its natural direction) and reloads what is shown. */
     private fun selectSort(sort: ListSort) {
         if (sort == listSort) return
         applySort(sort, reversed = false)
     }
 
-    /** Flips the current sort's direction, saves it and reloads the selected label. */
+    /** Flips the current sort's direction, saves it and reloads what is shown. */
     private fun toggleSortDirection() = applySort(listSort, reversed = !isSortReversed)
 
     private fun applySort(sort: ListSort, reversed: Boolean) {
         listSort = sort
         isSortReversed = reversed
-        entriesByLabel.clear()
+        entriesByFilter.clear()
         renderSort()
         viewModelScope.launch {
             updateSettings {
@@ -368,7 +452,7 @@ class ProfileViewModel(
                 )
             }
         }
-        selectedLabelId?.let { loadFirstPage(it, isRefresh = false) }
+        currentFilter()?.let { loadFirstPage(it, isRefresh = false) }
     }
 
     private fun renderSort() {
@@ -381,11 +465,14 @@ class ProfileViewModel(
         }
     }
 
-    private data class LabelEntries(val entries: List<ListEntry>, val next: ListCursor?) {
+    private data class LoadedEntries(val entries: List<ListEntry>, val next: ListCursor?) {
         val hasMore: Boolean get() = next != null
     }
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L
+
+        /** How long typing must pause before the list is searched. */
+        const val SEARCH_DEBOUNCE_MILLIS = 400L
     }
 }

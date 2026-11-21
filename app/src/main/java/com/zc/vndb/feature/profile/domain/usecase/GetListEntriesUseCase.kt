@@ -4,13 +4,13 @@ import com.zc.vndb.common.domain.model.ListSort
 import com.zc.vndb.feature.profile.domain.model.EntryBatch
 import com.zc.vndb.feature.profile.domain.model.EntryOrder
 import com.zc.vndb.feature.profile.domain.model.ListCursor
-import com.zc.vndb.feature.profile.domain.model.ListLabel
+import com.zc.vndb.feature.profile.domain.model.ListFilter
 import com.zc.vndb.feature.profile.domain.model.ListPhase
 import com.zc.vndb.feature.profile.domain.repository.ProfileRepository
 import org.koin.core.annotation.Factory
 
 /**
- * Entries of one label in [ListSort] order, a page at a time. Natural directions: title A to Z,
+ * Entries matching a [ListFilter] in [ListSort] order, a page at a time. Natural directions: title A to Z,
  * most recently updated first, highest vote first; `reversed` flips them.
  *
  * Sorting by vote pages through the voted entries first and then the unvoted ones (by title, A to
@@ -22,16 +22,16 @@ class GetListEntriesUseCase(private val repository: ProfileRepository) {
 
     suspend operator fun invoke(
         userId: String,
-        labelId: Int,
+        filter: ListFilter,
         sort: ListSort,
         reversed: Boolean = false,
         cursor: ListCursor? = null,
     ): Result<EntryBatch> {
-        val start = cursor ?: firstCursor(labelId, sort)
+        val start = cursor ?: firstCursor(filter, sort)
         val order = orderFor(sort, start.phase)
         val page = repository.getEntries(
             userId = userId,
-            labelId = labelId,
+            filter = filter,
             page = start.page,
             pageSize = PAGE_SIZE,
             order = order,
@@ -58,7 +58,7 @@ class GetListEntriesUseCase(private val repository: ProfileRepository) {
             // Last voted page: top it up with the first unvoted one.
             else -> invoke(
                 userId,
-                labelId,
+                filter,
                 sort,
                 reversed,
                 ListCursor(FIRST_PAGE, ListPhase.Unvoted),
@@ -67,12 +67,10 @@ class GetListEntriesUseCase(private val repository: ProfileRepository) {
         }
     }
 
-    private fun firstCursor(labelId: Int, sort: ListSort): ListCursor = ListCursor(
+    private fun firstCursor(filter: ListFilter, sort: ListSort): ListCursor = ListCursor(
         page = FIRST_PAGE,
         // Every entry of the Voted label has a vote, so it needs no unvoted phase.
-        phase = if (sort == ListSort.Vote &&
-            labelId != ListLabel.VOTED
-        ) {
+        phase = if (sort == ListSort.Vote && !filter.isVotedOnly) {
             ListPhase.Voted
         } else {
             ListPhase.All

@@ -3,9 +3,11 @@ package com.zc.vndb.feature.profile.presentation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -14,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -41,6 +44,7 @@ import com.zc.vndb.common.ui.component.entrylabel.EntryLabelMark
 import com.zc.vndb.common.ui.component.error.ErrorView
 import com.zc.vndb.common.ui.component.error.model.ErrorUIModel
 import com.zc.vndb.common.ui.component.pulltorefresh.PullToRefreshView
+import com.zc.vndb.common.ui.component.searchfield.SearchFieldView
 import com.zc.vndb.common.ui.component.selectablechip.SelectableChipView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
@@ -58,6 +62,7 @@ import com.zc.vndb.feature.profile.presentation.model.LabelChipUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
+private val MultiSelectIconSize = 16.dp
 private val MaxContentWidth = 720.dp
 private const val LOAD_MORE_THRESHOLD = 4
 
@@ -155,30 +160,71 @@ private fun SignedInContent(state: ProfileState, onIntent: (ProfileIntent) -> Un
                 }
 
                 else -> {
-                    item(key = "labels", contentType = "labels") {
-                        LabelChips(state.labels) { onIntent(ProfileIntent.LabelSelected(it)) }
-                    }
-                    if (state.sortOptions.isNotEmpty()) {
-                        item(key = "sort", contentType = "sort") {
-                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                                ListSortMenuView(
-                                    options = state.sortOptions,
-                                    isAscending = state.isSortAscending,
-                                    onSelect = { onIntent(ProfileIntent.SortSelected(it)) },
-                                    onDirectionToggle = {
-                                        onIntent(
-                                            ProfileIntent.SortDirectionToggled,
-                                        )
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    entries(state.entries, state.canEditList, onIntent)
+                    filters(state, onIntent)
+                    entries(state.entries, state.query, state.canEditList, onIntent)
                 }
             }
         }
     }
+}
+
+/** The search field, the label chips, then the selection mode beside the sort, on the right. */
+private fun LazyListScope.filters(state: ProfileState, onIntent: (ProfileIntent) -> Unit) {
+    item(key = "search", contentType = "search") {
+        SearchFieldView(
+            value = state.query,
+            placeholder = UiText.StringResource(StringResource.profile_search_hint),
+            onValueChange = { onIntent(ProfileIntent.QueryChanged(it)) },
+            onSearch = { onIntent(ProfileIntent.SearchSubmitted) },
+            onClear = { onIntent(ProfileIntent.QueryCleared) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+    item(key = "labels", contentType = "labels") {
+        LabelChips(state.labels) { onIntent(ProfileIntent.LabelSelected(it)) }
+    }
+    item(key = "controls", contentType = "controls") {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MultiSelectChip(
+                isSelected = state.isMultiSelect,
+                onClick = { onIntent(ProfileIntent.MultiSelectToggled) },
+            )
+            if (state.sortOptions.isNotEmpty()) {
+                ListSortMenuView(
+                    options = state.sortOptions,
+                    isAscending = state.isSortAscending,
+                    onSelect = { onIntent(ProfileIntent.SortSelected(it)) },
+                    onDirectionToggle = { onIntent(ProfileIntent.SortDirectionToggled) },
+                )
+            }
+        }
+    }
+}
+
+/** Turns multi-select on and off; on, it is filled like a selected filter. */
+@Composable
+private fun MultiSelectChip(isSelected: Boolean, onClick: () -> Unit) {
+    SelectableChipView(
+        label = UiText.StringResource(StringResource.profile_multi_select),
+        isSelected = isSelected,
+        onClick = onClick,
+        leading = {
+            Icon(
+                imageVector = Icons.Outlined.Checklist,
+                contentDescription = null,
+                tint = if (isSelected) {
+                    VndbTheme.colors.chipActiveContent
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier.size(MultiSelectIconSize),
+            )
+        },
+    )
 }
 
 @Composable
@@ -197,6 +243,7 @@ private fun LabelChips(labels: ImmutableList<LabelChipUIModel>, onSelect: (Int) 
 
 private fun LazyListScope.entries(
     entries: EntriesUIState,
+    query: String,
     canEdit: Boolean,
     onIntent: (ProfileIntent) -> Unit,
 ) {
@@ -211,7 +258,13 @@ private fun LazyListScope.entries(
         }
 
         entries.items.isEmpty() -> item(key = "entries-empty", contentType = "note") {
-            MutedNote(UiText.StringResource(StringResource.profile_no_entries))
+            MutedNote(
+                if (query.isBlank()) {
+                    UiText.StringResource(StringResource.profile_no_entries)
+                } else {
+                    UiText.StringResource(StringResource.profile_no_matches, listOf(query.trim()))
+                },
+            )
         }
 
         else -> {
@@ -304,6 +357,7 @@ private val previewSignedIn = ProfileState(
     labels = persistentListOf(
         LabelChipUIModel(1, UiText.StringValue("Playing (1)"), isSelected = true),
         LabelChipUIModel(2, UiText.StringValue("Finished (112)"), isSelected = false),
+        LabelChipUIModel(10, UiText.StringValue("Ready to play (44)"), isSelected = false),
     ),
     entries = EntriesUIState(
         items = persistentListOf(

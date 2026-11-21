@@ -20,13 +20,12 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.zc.vndb.common.ui.component.searchfield.SearchFieldHeight
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
 
-/** Same height as the search field it sits beside. */
-private val ButtonSize = 56.dp
 private val BadgeSize = 16.dp
 
 /** The filter icon next to the search field; with filters on it turns accent and shows how many. */
@@ -37,7 +36,7 @@ fun FilterButtonView(activeCount: Int, onClick: () -> Unit, modifier: Modifier =
     val isActive = activeCount > 0
     Box(
         modifier = modifier
-            .size(ButtonSize)
+            .size(SearchFieldHeight)
             .clip(shape)
             .background(VndbTheme.colors.surfaceInset)
             .border(

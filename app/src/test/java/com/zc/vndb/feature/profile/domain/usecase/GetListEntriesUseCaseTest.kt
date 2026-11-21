@@ -2,6 +2,7 @@ package com.zc.vndb.feature.profile.domain.usecase
 
 import com.zc.vndb.common.domain.model.ListSort
 import com.zc.vndb.feature.profile.domain.model.EntryOrder
+import com.zc.vndb.feature.profile.domain.model.ListFilter
 import com.zc.vndb.feature.profile.domain.model.ListLabel
 import com.zc.vndb.feature.profile.domain.model.ListPhase
 import com.zc.vndb.feature.profile.domain.model.ProfileSamples
@@ -23,14 +24,14 @@ class GetListEntriesUseCaseTest {
             ProfileSamples.entry("v2").copy(title = "Air"),
         )
 
-        val byTitle = useCase("u2", ListLabel.PLAYING, ListSort.Title).getOrThrow()
+        val byTitle = useCase("u2", PLAYING, ListSort.Title).getOrThrow()
 
         assertEquals(listOf("Air", "Clannad"), byTitle.entries.map { it.title })
         assertNull(byTitle.next)
         assertEquals(EntryOrder.Title, repository.requests.single().order)
         assertEquals(true, repository.requests.single().ascending)
 
-        useCase("u2", ListLabel.PLAYING, ListSort.Updated)
+        useCase("u2", PLAYING, ListSort.Updated)
         assertEquals(EntryOrder.Updated, repository.requests.last().order)
         assertEquals(false, repository.requests.last().ascending)
     }
@@ -44,7 +45,7 @@ class GetListEntriesUseCaseTest {
             ProfileSamples.entry("v4").copy(title = "A"),
         )
 
-        val batch = useCase("u2", ListLabel.FINISHED, ListSort.Vote).getOrThrow()
+        val batch = useCase("u2", ListFilter(setOf(ListLabel.FINISHED)), ListSort.Vote).getOrThrow()
 
         assertEquals(listOf("v3", "v1", "v4", "v2"), batch.entries.map { it.novelId })
         assertEquals(listOf(true, false), repository.requests.map { it.voted })
@@ -57,13 +58,13 @@ class GetListEntriesUseCaseTest {
             (1..30).map { ProfileSamples.entry("v$it", vote = 100 - it) } +
             (31..33).map { ProfileSamples.entry("v$it") }
 
-        val first = useCase("u2", ListLabel.FINISHED, ListSort.Vote).getOrThrow()
+        val first = useCase("u2", ListFilter(setOf(ListLabel.FINISHED)), ListSort.Vote).getOrThrow()
         assertEquals(25, first.entries.size)
         assertEquals(ListPhase.Voted, first.next?.phase)
 
         val second = useCase(
             "u2",
-            ListLabel.FINISHED,
+            ListFilter(setOf(ListLabel.FINISHED)),
             ListSort.Vote,
             cursor = first.next,
         ).getOrThrow()
@@ -75,7 +76,7 @@ class GetListEntriesUseCaseTest {
     fun `the Voted label needs no unvoted phase`() = runTest {
         repository.entries[ListLabel.VOTED] = listOf(ProfileSamples.entry("v1", vote = 80))
 
-        useCase("u2", ListLabel.VOTED, ListSort.Vote).getOrThrow()
+        useCase("u2", ListFilter(setOf(ListLabel.VOTED)), ListSort.Vote).getOrThrow()
 
         assertEquals(listOf<Boolean?>(null), repository.requests.map { it.voted })
         assertEquals(EntryOrder.Vote, repository.requests.single().order)
@@ -88,10 +89,10 @@ class GetListEntriesUseCaseTest {
             ProfileSamples.entry("v2").copy(title = "Clannad"),
         )
 
-        val zToA = useCase("u2", ListLabel.PLAYING, ListSort.Title, reversed = true).getOrThrow()
+        val zToA = useCase("u2", PLAYING, ListSort.Title, reversed = true).getOrThrow()
         assertEquals(listOf("Clannad", "Air"), zToA.entries.map { it.title })
 
-        useCase("u2", ListLabel.PLAYING, ListSort.Updated, reversed = true)
+        useCase("u2", PLAYING, ListSort.Updated, reversed = true)
         assertEquals(true, repository.requests.last().ascending)
     }
 
@@ -107,7 +108,7 @@ class GetListEntriesUseCaseTest {
 
             val batch = useCase(
                 "u2",
-                ListLabel.FINISHED,
+                ListFilter(setOf(ListLabel.FINISHED)),
                 ListSort.Vote,
                 reversed = true,
             ).getOrThrow()
@@ -115,4 +116,8 @@ class GetListEntriesUseCaseTest {
             assertEquals(listOf("v1", "v3", "v4", "v2"), batch.entries.map { it.novelId })
             assertEquals(listOf(true, true), repository.requests.map { it.ascending })
         }
+
+    private companion object {
+        val PLAYING = ListFilter(setOf(ListLabel.PLAYING))
+    }
 }

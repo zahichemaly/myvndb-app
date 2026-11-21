@@ -17,7 +17,9 @@ import com.zc.vndb.common.ui.component.skeleton.loadingSemantics
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
 
-private val AvatarSize = 56.dp
+/** Matches ProfileHeaderView's slim card. */
+private val AvatarSize = 36.dp
+private val UsernameHeight = 16.dp
 private val ChipWidth = 80.dp
 private val ChipHeight = 28.dp
 private const val ENTRY_COUNT = 4
@@ -43,9 +45,9 @@ fun ProfileSkeletonView(modifier: Modifier = Modifier, showHeader: Boolean = fal
                 SkeletonBoxView(modifier = Modifier.size(AvatarSize), shape = CircleShape)
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
                 ) {
-                    SkeletonLineView(widthFraction = USERNAME_WIDTH, height = 20.dp)
+                    SkeletonLineView(widthFraction = USERNAME_WIDTH, height = UsernameHeight)
                     SkeletonLineView(widthFraction = STATS_WIDTH)
                 }
             }

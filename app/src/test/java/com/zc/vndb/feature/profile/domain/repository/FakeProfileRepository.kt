@@ -4,6 +4,7 @@ import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.feature.profile.domain.model.EntryOrder
 import com.zc.vndb.feature.profile.domain.model.EntryPage
 import com.zc.vndb.feature.profile.domain.model.ListEntry
+import com.zc.vndb.feature.profile.domain.model.ListFilter
 import com.zc.vndb.feature.profile.domain.model.ListLabel
 import com.zc.vndb.feature.profile.domain.model.MyListEntry
 import com.zc.vndb.feature.profile.domain.model.UserProfile
@@ -55,11 +56,11 @@ class FakeProfileRepository : ProfileRepository {
         return Result.success(Unit)
     }
 
-    /** "labels", "user", "entries:<label>:<page>". */
+    /** "labels", "user", "entries:<label ids>:<page>" (then ":<search>" when there is one). */
     val calls = mutableListOf<String>()
 
     data class EntriesRequest(
-        val labelId: Int,
+        val filter: ListFilter,
         val page: Int,
         val order: EntryOrder,
         val ascending: Boolean,
@@ -80,17 +81,23 @@ class FakeProfileRepository : ProfileRepository {
 
     override suspend fun getEntries(
         userId: String,
-        labelId: Int,
+        filter: ListFilter,
         page: Int,
         pageSize: Int,
         order: EntryOrder,
         ascending: Boolean,
         voted: Boolean?,
     ): Result<EntryPage> {
-        calls += "entries:$labelId:$page"
-        requests += EntriesRequest(labelId, page, order, ascending, voted)
+        val search = filter.search.trim()
+        calls += "entries:${filter.labelIds.sorted().joinToString(",")}:$page" +
+            if (search.isEmpty()) "" else ":$search"
+        requests += EntriesRequest(filter, page, order, ascending, voted)
         entriesError?.let { return Result.failure(it) }
-        val all = entries[labelId].orEmpty()
+        // Any of the selected labels (all entries when none is); good enough for the tests.
+        val selected = if (filter.labelIds.isEmpty()) entries.keys else filter.labelIds
+        val all = selected.flatMap { entries[it].orEmpty() }
+            .distinctBy { it.novelId }
+            .filter { search.isEmpty() || it.title.contains(search, ignoreCase = true) }
             .filter { voted == null || (it.vote != null) == voted }
             .let { list ->
                 val ascendingList = when (order) {

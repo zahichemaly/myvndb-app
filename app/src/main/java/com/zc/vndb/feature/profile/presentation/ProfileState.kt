@@ -20,7 +20,12 @@ data class ProfileState(
     val isRefreshing: Boolean = false,
     /** Labels failed to load. */
     val error: ErrorUIModel? = null,
+    /** VNDB's statuses, then the user's labels, then Voted and No label. */
     val labels: ImmutableList<LabelChipUIModel> = persistentListOf(),
+    /** Several chips can be on: any of them within a row, and both rows together. */
+    val isMultiSelect: Boolean = false,
+    /** What is typed in the search field; it is searched once typing pauses. */
+    val query: String = "",
     /** Title / Recently updated / My vote, the chosen one selected. */
     val sortOptions: ImmutableList<SortOptionUIModel> = persistentListOf(),
     /** A to Z / oldest / lowest vote first (the direction button shows an up arrow). */
@@ -32,5 +37,6 @@ data class ProfileState(
     val isSignedIn: Boolean get() = header != null
 
     /** Signed in, labels loaded, and none has entries. */
-    val isListEmpty: Boolean get() = isSignedIn && !isLoading && error == null && labels.isEmpty()
+    val isListEmpty: Boolean
+        get() = isSignedIn && !isLoading && error == null && labels.isEmpty()
 }

@@ -2,6 +2,7 @@ package com.zc.vndb.feature.profile.domain.repository
 
 import com.zc.vndb.feature.profile.domain.model.EntryOrder
 import com.zc.vndb.feature.profile.domain.model.EntryPage
+import com.zc.vndb.feature.profile.domain.model.ListFilter
 import com.zc.vndb.feature.profile.domain.model.ListLabel
 import com.zc.vndb.feature.profile.domain.model.MyListEntry
 import com.zc.vndb.feature.profile.domain.model.UserProfile
@@ -37,12 +38,12 @@ interface ProfileRepository {
     suspend fun getEntryLabelIds(userId: String, novelId: String): Result<List<Int>>
 
     /**
-     * One page (1-based) of the entries with [labelId] in [order], [ascending] or not. [voted] keeps
-     * only the entries the user voted on (true) or did not (false); null keeps all.
+     * One page (1-based) of the entries matching [filter] in [order], [ascending] or not. [voted]
+     * keeps only the entries the user voted on (true) or did not (false); null keeps all.
      */
     suspend fun getEntries(
         userId: String,
-        labelId: Int,
+        filter: ListFilter,
         page: Int,
         pageSize: Int,
         order: EntryOrder = EntryOrder.Updated,

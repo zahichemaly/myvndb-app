@@ -50,7 +50,7 @@
 
     <!-- Browse -->
     <string name="browse_search_hint">Search visual novels…</string>
-    <string name="browse_clear_search">Clear search</string>
+    <string name="search_clear">Clear search</string>
     <string name="browse_age_all">All Ages</string>
     <string name="browse_age_adult">18+</string>
     <string name="browse_age_any">Any Age</string>
@@ -370,6 +370,9 @@
     <string name="cd_sort_ascending">Ascending order. Tap to reverse.</string>
     <string name="cd_sort_descending">Descending order. Tap to reverse.</string>
     <string name="profile_no_entries">Nothing here yet.</string>
+    <string name="profile_no_matches">Nothing on your list matches “%1$s”.</string>
+    <string name="profile_search_hint">Search your list…</string>
+    <string name="profile_multi_select">Multi-select</string>
     <string name="profile_session_expired">Your token is no longer valid. Log in again to see your lists.</string>
     <string name="profile_started">Started %1$s</string>
     <string name="profile_finished">Finished %1$s</string>

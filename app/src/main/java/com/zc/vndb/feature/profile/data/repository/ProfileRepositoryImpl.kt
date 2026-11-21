@@ -11,6 +11,7 @@ import com.zc.vndb.feature.profile.data.mapper.toPatchBody
 import com.zc.vndb.feature.profile.data.remote.ProfileService
 import com.zc.vndb.feature.profile.domain.model.EntryOrder
 import com.zc.vndb.feature.profile.domain.model.EntryPage
+import com.zc.vndb.feature.profile.domain.model.ListFilter
 import com.zc.vndb.feature.profile.domain.model.ListLabel
 import com.zc.vndb.feature.profile.domain.model.MyListEntry
 import com.zc.vndb.feature.profile.domain.model.UserProfile
@@ -39,7 +40,7 @@ class ProfileRepositoryImpl(
 
     override suspend fun getEntries(
         userId: String,
-        labelId: Int,
+        filter: ListFilter,
         page: Int,
         pageSize: Int,
         order: EntryOrder,
@@ -47,7 +48,7 @@ class ProfileRepositoryImpl(
         voted: Boolean?,
     ): Result<EntryPage> = authorized { token ->
         val result = service.entries(
-            entriesQuery(userId, labelId, page, pageSize, order, ascending, voted),
+            entriesQuery(userId, filter, page, pageSize, order, ascending, voted),
             token,
         )
         EntryPage(entries = result.results.map { it.toDomain() }, hasMore = result.more)

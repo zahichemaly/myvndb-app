@@ -46,6 +46,7 @@ import com.zc.vndb.common.ui.component.error.model.ErrorUIModel
 import com.zc.vndb.common.ui.component.expandabletext.ExpandableTextView
 import com.zc.vndb.common.ui.component.linksrow.LinksRowView
 import com.zc.vndb.common.ui.component.pulltorefresh.PullToRefreshView
+import com.zc.vndb.common.ui.component.searchfield.SearchFieldView
 import com.zc.vndb.common.ui.component.skeleton.SkeletonRowView
 import com.zc.vndb.common.ui.component.skeleton.loadingSemantics
 import com.zc.vndb.common.ui.resource.StringResource
@@ -62,7 +63,6 @@ import com.zc.vndb.feature.browse.presentation.component.filterbar.SortRowView
 import com.zc.vndb.feature.browse.presentation.component.filtersheet.FilterSheetView
 import com.zc.vndb.feature.browse.presentation.component.scopeheader.ScopeHeaderSkeletonView
 import com.zc.vndb.feature.browse.presentation.component.scopeheader.ScopeHeaderView
-import com.zc.vndb.feature.browse.presentation.component.searchfield.SearchFieldView
 import com.zc.vndb.feature.browse.presentation.model.ActiveFilterKey
 import com.zc.vndb.feature.browse.presentation.model.ActiveFilterUIModel
 import com.zc.vndb.feature.browse.presentation.model.FilterDraft
@@ -230,6 +230,7 @@ private fun LazyGridScope.filters(state: BrowseState, actions: BrowseActions) {
         ) {
             SearchFieldView(
                 value = state.query,
+                placeholder = UiText.StringResource(StringResource.browse_search_hint),
                 onValueChange = actions.onQueryChange,
                 onSearch = actions.onSearch,
                 onClear = actions.onClear,

@@ -28,19 +28,32 @@ class ProfilePresentationMapperTest {
     private val now = Instant.parse("2026-11-16T12:00:00Z")
 
     @Test
-    fun `picks the current label, else Playing, else the first`() {
+    fun `keeps the selected labels that still exist, else starts on Playing or the first`() {
         val labels = listOf(ProfileSamples.label(2), ProfileSamples.label(ListLabel.PLAYING))
-        assertEquals(2, labels.pickSelected(current = 2))
-        assertEquals(ListLabel.PLAYING, labels.pickSelected(current = 99))
-        assertEquals(2, listOf(ProfileSamples.label(2)).pickSelected(current = null))
-        assertNull(emptyList<ListLabel>().pickSelected(current = 1))
+        assertEquals(setOf(2), labels.pickSelected(current = setOf(2, 99)))
+        assertEquals(emptySet(), labels.pickSelected(current = setOf(99)))
+        assertEquals(setOf(ListLabel.PLAYING), labels.pickSelected(current = null))
+        assertEquals(setOf(2), listOf(ProfileSamples.label(2)).pickSelected(current = null))
+        assertEquals(emptySet(), emptyList<ListLabel>().pickSelected(current = null))
+    }
+
+    @Test
+    fun `chips keep the labels' order and mark every selected one`() {
+        val chips = listOf(
+            ProfileSamples.label(ListLabel.PLAYING),
+            ProfileSamples.label(12),
+            ProfileSamples.label(ListLabel.VOTED),
+        ).toChips(setOf(12, ListLabel.VOTED))
+
+        assertEquals(listOf(ListLabel.PLAYING, 12, ListLabel.VOTED), chips.map { it.id })
+        assertEquals(listOf(false, true, true), chips.map { it.isSelected })
     }
 
     @Test
     fun `chips show counts and the selection`() {
         val chips = listOf(
             ProfileSamples.label(1, count = 1200, name = "Playing"),
-        ).toChips(selectedId = 1)
+        ).toChips(selectedIds = setOf(1))
 
         assertEquals(
             UiText.StringResource(

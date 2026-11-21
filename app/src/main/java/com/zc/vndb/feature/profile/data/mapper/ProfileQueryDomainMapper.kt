@@ -2,7 +2,9 @@ package com.zc.vndb.feature.profile.data.mapper
 
 import com.zc.vndb.feature.profile.data.dto.ListQueryDTO
 import com.zc.vndb.feature.profile.domain.model.EntryOrder
+import com.zc.vndb.feature.profile.domain.model.ListFilter
 import com.zc.vndb.feature.profile.domain.model.MyListEntry
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -20,12 +22,13 @@ private const val ENTRY_FIELDS =
 private const val VOTED_LABEL = 7
 
 /**
- * A page of [userId]'s entries with [labelId] in [order], [ascending] or not. With [voted], only
- * entries that also have (true) or lack (false) the Voted label.
+ * A page of [userId]'s entries matching [filter] in [order], [ascending] or not: any of its
+ * statuses and any of its user labels, and its search. With [voted], only entries that also have
+ * (true) or lack (false) the Voted label.
  */
 fun entriesQuery(
     userId: String,
-    labelId: Int,
+    filter: ListFilter,
     page: Int,
     pageSize: Int,
     order: EntryOrder = EntryOrder.Updated,
@@ -33,15 +36,14 @@ fun entriesQuery(
     voted: Boolean? = null,
 ) = ListQueryDTO(
     user = userId,
-    filters = if (voted == null) {
-        labelFilter("=", labelId)
-    } else {
-        buildJsonArray {
-            add("and")
-            add(labelFilter("=", labelId))
-            add(labelFilter(if (voted) "=" else "!=", VOTED_LABEL))
-        }
-    },
+    filters = allOf(
+        listOfNotNull(
+            anyLabel(filter.statusIds),
+            anyLabel(filter.userLabelIds),
+            voted?.let { labelFilter(if (it) "=" else "!=", VOTED_LABEL) },
+            filter.search.trim().takeIf { it.isNotEmpty() }?.let(::searchFilter),
+        ),
+    ),
     fields = ENTRY_FIELDS,
     sort = when (order) {
         EntryOrder.Title -> "title"
@@ -57,6 +59,37 @@ private fun labelFilter(operator: String, labelId: Int) = buildJsonArray {
     add("label")
     add(operator)
     add(labelId)
+}
+
+/** Entries with any of [labelIds]; null when there are none (the group does not filter). */
+private fun anyLabel(labelIds: Set<Int>): JsonArray? = when (labelIds.size) {
+    0 -> null
+
+    1 -> labelFilter("=", labelIds.single())
+
+    else -> buildJsonArray {
+        add("or")
+        labelIds.forEach { add(labelFilter("=", it)) }
+    }
+}
+
+/** VNDB's title search: titles, aliases and release titles, as on the site. */
+private fun searchFilter(text: String) = buildJsonArray {
+    add("search")
+    add("=")
+    add(text)
+}
+
+/** Every predicate must hold: none is an empty filter, one stands alone, more are joined by "and". */
+private fun allOf(predicates: List<JsonArray>): JsonArray = when (predicates.size) {
+    0 -> buildJsonArray {}
+
+    1 -> predicates.single()
+
+    else -> buildJsonArray {
+        add("and")
+        predicates.forEach { add(it) }
+    }
 }
 
 /** The labels [userId] gave [novelId] (no results when it is not on their list). */

@@ -7,6 +7,7 @@ import com.zc.vndb.common.data.network.appJson
 import com.zc.vndb.common.data.network.createHttpClient
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.feature.profile.data.remote.ProfileService
+import com.zc.vndb.feature.profile.domain.model.ListFilter
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.toByteArray
@@ -63,7 +64,8 @@ class ProfileRepositoryImplTest {
         val (profile, _) = setUp()
 
         val listLabels = profile.getLabels("u3").getOrThrow()
-        val page = profile.getEntries("u3", labelId = 1, page = 2, pageSize = 25).getOrThrow()
+        val page = profile.getEntries("u3", ListFilter(setOf(1)), page = 2, pageSize = 25)
+            .getOrThrow()
 
         assertEquals(listOf(1, 7, 10), listLabels.map { it.id })
         assertTrue(listLabels.single { it.id == 10 }.isPrivate)

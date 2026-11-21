@@ -105,9 +105,96 @@ class ProfileViewModelTest {
         assertEquals(UiText.StringValue("Yorhel"), state.header?.username)
         assertEquals(listOf(ListLabel.PLAYING, ListLabel.FINISHED), state.labels.map { it.id })
         assertEquals(ListLabel.PLAYING, state.labels.single { it.isSelected }.id)
+        assertFalse(state.isMultiSelect)
         assertEquals(25, state.entries.items.size)
         assertTrue(state.entries.hasMore)
         assertTrue("entries:1:1" in profile.calls)
+    }
+
+    @Test
+    fun `the user's labels sit between the statuses and Voted`() = runTest {
+        profile.labels = profile.labels +
+            ProfileSamples.label(ListLabel.VOTED) +
+            ProfileSamples.label(12, name = "Ready to play")
+        sessions.current.value = ProfileSamples.session()
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf(ListLabel.PLAYING, ListLabel.FINISHED, 12, ListLabel.VOTED),
+            viewModel.state.value.labels.map { it.id },
+        )
+    }
+
+    @Test
+    fun `single-select picks one chip, and tapping it again shows the whole list`() = runTest {
+        sessions.current.value = ProfileSamples.session()
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
+
+        viewModel.onIntent(ProfileIntent.LabelSelected(ListLabel.FINISHED))
+        advanceUntilIdle()
+        assertEquals(
+            listOf(ListLabel.FINISHED),
+            viewModel.state.value.labels.filter { it.isSelected }.map { it.id },
+        )
+
+        viewModel.onIntent(ProfileIntent.LabelSelected(ListLabel.FINISHED))
+        advanceUntilIdle()
+        assertTrue(viewModel.state.value.labels.none { it.isSelected })
+        assertEquals("entries::1", profile.calls.last())
+        assertEquals(25, viewModel.state.value.entries.items.size)
+    }
+
+    @Test
+    fun `multi-select combines chips, and going back keeps the one picked last`() = runTest {
+        sessions.current.value = ProfileSamples.session()
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
+
+        viewModel.onIntent(ProfileIntent.MultiSelectToggled)
+        viewModel.onIntent(ProfileIntent.LabelSelected(ListLabel.FINISHED))
+        advanceUntilIdle()
+        with(viewModel.state.value) {
+            assertTrue(isMultiSelect)
+            assertEquals(2, labels.count { it.isSelected })
+        }
+        assertEquals("entries:1,2:1", profile.calls.last())
+
+        viewModel.onIntent(ProfileIntent.MultiSelectToggled)
+        advanceUntilIdle()
+        with(viewModel.state.value) {
+            assertFalse(isMultiSelect)
+            assertEquals(ListLabel.FINISHED, labels.single { it.isSelected }.id)
+            assertEquals(listOf("v100", "v101"), entries.items.map { it.novelId })
+        }
+    }
+
+    @Test
+    fun `typing searches the list once it pauses, and clearing goes back`() = runTest {
+        sessions.current.value = ProfileSamples.session()
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
+
+        viewModel.onIntent(ProfileIntent.QueryChanged("v1"))
+        viewModel.onIntent(ProfileIntent.QueryChanged("v12"))
+        advanceUntilIdle()
+        assertEquals("v12", viewModel.state.value.query)
+        assertEquals(
+            listOf("entries:1:1", "entries:1:1:v12"),
+            profile.calls.filter { it.startsWith("entries") },
+        )
+        assertEquals(listOf("v12"), viewModel.state.value.entries.items.map { it.novelId })
+
+        viewModel.onIntent(ProfileIntent.QueryCleared)
+        advanceUntilIdle()
+        assertEquals("", viewModel.state.value.query)
+        assertEquals(25, viewModel.state.value.entries.items.size)
+        assertEquals(2, profile.calls.count { it.startsWith("entries") })
     }
 
     @Test
