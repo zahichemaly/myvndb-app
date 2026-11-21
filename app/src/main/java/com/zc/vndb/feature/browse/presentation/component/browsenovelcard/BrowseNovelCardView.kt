@@ -34,7 +34,10 @@ import kotlinx.collections.immutable.persistentListOf
 private val CoverWidth = 92.dp
 private const val TITLE_MAX_LINES = 2
 
-/** A Browse result: cover with score, developers and year, titles, tags and play time. */
+/**
+ * A Browse result: cover with score, developers and year, title, up to two tags and the play time
+ * pill, then the language pills when enabled.
+ */
 @Composable
 fun BrowseNovelCardView(
     model: BrowseNovelCardUIModel,
@@ -106,23 +109,30 @@ private fun MetaRow(model: BrowseNovelCardUIModel) {
     }
 }
 
-/** Tags that fit on one line, then the length pill ("Very Long (>50h)") pinned to the end. */
+/**
+ * One line: the tags, then the length pill ("Very Long (>50h)") right after them. The length always
+ * shows; a tag that does not fit beside it is left out.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TagsAndLength(model: BrowseNovelCardUIModel) {
+    if (model.tags.isEmpty() && model.lengthLabel == null) return
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = VndbTheme.spacing.xs),
-        horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        FlowRow(
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
-            maxLines = 1,
-        ) {
-            model.tags.forEach { tag -> TagChipView(label = tag) }
+        if (model.tags.isNotEmpty()) {
+            // Only as wide as the tags that fit, so the length pill sits right after them.
+            FlowRow(
+                modifier = Modifier.weight(1f, fill = false),
+                horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
+                maxLines = 1,
+            ) {
+                model.tags.forEach { tag -> TagChipView(label = tag) }
+            }
         }
         model.lengthLabel?.let { length -> TagChipView(label = length) }
     }

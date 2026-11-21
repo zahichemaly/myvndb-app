@@ -13,6 +13,9 @@ import com.zc.vndb.feature.browse.domain.model.BrowseNovel
 import com.zc.vndb.feature.browse.presentation.component.browsenovelcard.model.BrowseNovelCardUIModel
 import kotlinx.collections.immutable.toImmutableList
 
+/** Genre chips on a card; the rest are on the novel's page. */
+private const val MAX_CARD_TAGS = 2
+
 fun BrowseNovel.toCardUIModel(
     titleLanguage: TitleLanguage = TitleLanguage.Romanized,
     cardLanguages: List<LanguageOption> = emptyList(),
@@ -29,7 +32,7 @@ private fun BrowseNovel.toCardUIModel(primaryTitle: UiText, cardLanguages: List<
         lengthLabel = length?.toNameWithRangeLabel(),
         coverUrl = cover?.thumbnailUrl ?: cover?.url,
         isCoverSensitive = cover?.isSensitive ?: false,
-        tags = tags.map { UiText.StringValue(it.name) }.toImmutableList(),
+        tags = tags.take(MAX_CARD_TAGS).map { UiText.StringValue(it.name) }.toImmutableList(),
         languageCodes = languages.toImmutableList(),
         languagePills = toLanguagePills(languages, cardLanguages),
     )

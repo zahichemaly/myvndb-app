@@ -34,6 +34,18 @@ class BrowseNovelCardUIModelMapperTest {
     }
 
     @Test
+    fun `a card shows at most two tags`() {
+        val card = novel.copy(
+            tags = listOf("Mystery", "Time Travel", "Sci-Fi").map { BrowseSamples.tag(it) },
+        ).toCardUIModel()
+
+        assertEquals(
+            listOf<UiText>(UiText.StringValue("Mystery"), UiText.StringValue("Time Travel")),
+            card.tags,
+        )
+    }
+
+    @Test
     fun `credits show the first two developers`() {
         val card = novel.copy(developerNames = listOf("5pb.", "Nitroplus", "Third")).toCardUIModel()
 
