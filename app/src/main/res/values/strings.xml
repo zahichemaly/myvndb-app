@@ -33,10 +33,10 @@
     <string name="discover_top_rated">Top Rated</string>
     <string name="discover_see_all">See all</string>
     <string name="discover_new_and_trending">Trending</string>
-    <string name="discover_release_new">NEW RELEASE</string>
-    <string name="discover_release_translation">NEW TRANSLATION</string>
-    <string name="discover_release_patch">RECENT PATCH</string>
-    <string name="discover_release_rerelease">RE-RELEASE</string>
+    <string name="discover_release_new">New release</string>
+    <string name="discover_release_translation">Translation</string>
+    <string name="discover_release_patch">Patch</string>
+    <string name="discover_release_rerelease">Re-release</string>
     <string name="discover_quote_title">Quote of the Day</string>
     <string name="discover_quote_attribution_character">— %1$s, %2$s</string>
     <string name="discover_quote_attribution_novel">— %1$s</string>
@@ -457,7 +457,7 @@
     <string name="settings_confirm_adult_title">Show sensitive content?</string>
     <string name="settings_confirm_adult_body">This shows sexual and violent images and tags without blurring. Confirm that you are 18 or older.</string>
     <string name="settings_confirm_adult_action">I\'m 18 or older</string>
-    <string name="settings_card_languages">Card Languages</string>
+    <string name="settings_card_languages">Cards</string>
     <string name="settings_card_languages_body">Show up to 2 languages on VN cards.</string>
     <string name="settings_card_languages_off">Off</string>
     <string name="settings_card_languages_hint">Pick up to 2. Leave empty to hide them.</string>

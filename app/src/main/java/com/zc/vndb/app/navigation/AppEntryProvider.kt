@@ -35,6 +35,7 @@ import com.zc.vndb.feature.theme.presentation.navigation.themeEntry
 internal fun appEntryProvider(navigator: Navigator): (NavKey) -> NavEntry<NavKey> = entryProvider {
     discoverEntry(
         onOpenNovel = navigator::navigateToDetail,
+        onOpenRelease = navigator::navigateToRelease,
         onOpenBrowse = navigator::navigateToBrowse,
     )
     browseEntry(onOpenNovel = navigator::navigateToDetail)

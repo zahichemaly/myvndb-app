@@ -2,6 +2,7 @@ package com.zc.vndb.feature.detail.data.mapper
 
 import com.zc.vndb.common.data.mapper.toReleaseDate
 import com.zc.vndb.common.domain.model.Cover
+import com.zc.vndb.common.domain.model.PlatformFamily
 import com.zc.vndb.common.domain.model.VoiceActor
 import com.zc.vndb.feature.detail.data.dto.CoverReleaseDTO
 import com.zc.vndb.feature.detail.data.dto.NovelCreditsDTO
@@ -11,7 +12,6 @@ import com.zc.vndb.feature.detail.data.dto.ScreenshotDTO
 import com.zc.vndb.feature.detail.data.dto.StaffCreditDTO
 import com.zc.vndb.feature.detail.domain.model.CoverArt
 import com.zc.vndb.feature.detail.domain.model.NovelCredits
-import com.zc.vndb.feature.detail.domain.model.PlatformFamily
 import com.zc.vndb.feature.detail.domain.model.Quote
 import com.zc.vndb.feature.detail.domain.model.ReleaseSummary
 import com.zc.vndb.feature.detail.domain.model.Screenshot

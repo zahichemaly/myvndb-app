@@ -71,6 +71,12 @@ private val SurfaceElevated = Color(0xFF1E2A4A)
 private val SurfaceInset = Color(0xFF0F1528)
 private val BorderSubtle = Color(0xFF263253)
 
+// Release-type pills on Discover's Trending list:
+// teal, violet and orange stay clear of the crimson accent and gold score.
+private val ReleaseNewColor = Color(0xFF2DD4BF)
+private val ReleaseTranslationColor = Color(0xFFA78BFA)
+private val ReleasePatchColor = Color(0xFFFB923C)
+
 private val TsukihimeColorScheme = darkColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
@@ -136,10 +142,9 @@ private val TsukihimeColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    releaseNew = tinted(Tertiary),
-    releaseTranslation = tinted(MoonBlue),
-    releasePatch = tinted(Amber),
-    releaseRerelease = tinted(Mint),
+    releaseNew = tinted(ReleaseNewColor),
+    releaseTranslation = tinted(ReleaseTranslationColor),
+    releasePatch = tinted(ReleasePatchColor),
     statusPlaying = tinted(MoonBlue),
     statusFinished = tinted(Mint),
     statusStalled = tinted(Amber),

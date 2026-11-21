@@ -5,8 +5,8 @@ import com.zc.vndb.common.data.network.createHttpClient
 import com.zc.vndb.common.domain.model.CharacterRole
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.NovelLength
+import com.zc.vndb.common.domain.model.PlatformFamily
 import com.zc.vndb.feature.detail.data.remote.DetailService
-import com.zc.vndb.feature.detail.domain.model.PlatformFamily
 import com.zc.vndb.feature.detail.domain.model.RelationType
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond

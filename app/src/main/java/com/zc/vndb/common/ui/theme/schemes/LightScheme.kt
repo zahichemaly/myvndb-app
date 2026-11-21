@@ -68,6 +68,12 @@ private val Rose = Color(0xFFE11D48)
 private val Slate = Color(0xFF64748B)
 private val Violet = Color(0xFF6D28D9)
 
+// Release-type pills on Discover's Trending list:
+// dark enough to read on light cards; clear of the sky accent and amber score.
+private val ReleaseNewColor = Color(0xFF0F766E)
+private val ReleaseTranslationColor = Color(0xFF6D28D9)
+private val ReleasePatchColor = Color(0xFFC2410C)
+
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
@@ -133,10 +139,9 @@ private val LightColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    releaseNew = tinted(Tertiary),
-    releaseTranslation = tinted(Sky),
-    releasePatch = tinted(Amber),
-    releaseRerelease = tinted(Emerald),
+    releaseNew = tinted(ReleaseNewColor),
+    releaseTranslation = tinted(ReleaseTranslationColor),
+    releasePatch = tinted(ReleasePatchColor),
     statusPlaying = tinted(Sky),
     statusFinished = tinted(Emerald),
     statusStalled = tinted(Amber),

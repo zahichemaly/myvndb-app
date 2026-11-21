@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.detail.presentation.component.editionrow.model
+package com.zc.vndb.common.ui.component.platformicon.model
 
 /** Icon for a platform: a brand logo where there is one, else its family's generic icon. */
 enum class PlatformIcon {

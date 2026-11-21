@@ -17,7 +17,7 @@ class GetTrendingReleasesUseCase(private val repository: DiscoverRepository) {
         repository.getRecentReleases(languages, FETCH_LIMIT).map { releases ->
             releases
                 .filterNot { it.isMachineTranslatedOnly }
-                .mapNotNull { it.toTrendingOrNull() }
+                .mapNotNull { it.toTrendingOrNull(languages) }
                 .distinctBy { it.novelId }
                 .take(RESULT_LIMIT)
         }
@@ -25,19 +25,36 @@ class GetTrendingReleasesUseCase(private val repository: DiscoverRepository) {
     private val Release.isMachineTranslatedOnly: Boolean
         get() = languages.isNotEmpty() && languages.all { it.isMachineTranslated }
 
-    private fun Release.toTrendingOrNull(): TrendingRelease? {
+    private fun Release.toTrendingOrNull(userLanguages: List<String>): TrendingRelease? {
         val novel = novels.firstOrNull() ?: return null
+        val kind = kindFor(novel)
         return TrendingRelease(
             releaseId = id,
             novelId = novel.id,
             title = novel.title,
             originalTitle = novel.originalTitle,
-            kind = kindFor(novel),
+            kind = kind,
             releaseDate = releaseDate,
             platforms = platforms,
             rating = novel.rating,
             cover = novel.cover,
+            translationLanguage = if (kind == ReleaseKind.NewTranslation) {
+                translationLanguage(novel, userLanguages)
+            } else {
+                null
+            },
         )
+    }
+
+    /** The language of a human translation: one the user reads if there is one, in their order. */
+    private fun Release.translationLanguage(
+        novel: ReleaseNovel,
+        userLanguages: List<String>,
+    ): String? {
+        val translated = languages
+            .filter { !it.isMachineTranslated && it.code != novel.originalLanguage }
+            .map { it.code }
+        return userLanguages.firstOrNull { it in translated } ?: translated.firstOrNull()
     }
 
     private fun Release.kindFor(novel: ReleaseNovel): ReleaseKind = when {

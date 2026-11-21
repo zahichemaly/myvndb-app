@@ -1,6 +1,6 @@
-package com.zc.vndb.feature.detail.domain.model
+package com.zc.vndb.common.domain.model
 
-/** Rough grouping of VNDB platform codes, for the edition icon and badge. */
+/** Rough grouping of VNDB platform codes: the generic icon for platforms without a logo. */
 enum class PlatformFamily {
     Pc,
     Console,

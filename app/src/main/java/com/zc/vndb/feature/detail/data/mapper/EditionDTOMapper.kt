@@ -1,9 +1,9 @@
 package com.zc.vndb.feature.detail.data.mapper
 
 import com.zc.vndb.common.data.mapper.toReleaseDate
+import com.zc.vndb.common.domain.model.PlatformFamily
 import com.zc.vndb.feature.detail.data.dto.EditionDTO
 import com.zc.vndb.feature.detail.domain.model.Edition
-import com.zc.vndb.feature.detail.domain.model.PlatformFamily
 
 /** One edition per platform of the release. */
 fun EditionDTO.toDomain(): List<Edition> = platforms.orEmpty().ifEmpty {

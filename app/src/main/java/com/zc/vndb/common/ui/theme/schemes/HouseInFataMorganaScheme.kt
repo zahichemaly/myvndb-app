@@ -68,6 +68,12 @@ private val SurfaceElevated = Color(0xFF322A24)
 private val SurfaceInset = Color(0xFF1E1916)
 private val BorderSubtle = Color(0xFF3F352E)
 
+// Release-type pills on Discover's Trending list:
+// sky for patches, since orange sits too close to the gold accent.
+private val ReleaseNewColor = Color(0xFF2DD4BF)
+private val ReleaseTranslationColor = Color(0xFFA78BFA)
+private val ReleasePatchColor = Color(0xFF7DD3FC)
+
 private const val WINE_CONTAINER_ALPHA = 0.3f
 
 /** The warning chip: wine fill and border with coral text, so danger reads as this theme's red. */
@@ -142,10 +148,9 @@ private val HouseInFataMorganaColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    releaseNew = tinted(Tertiary),
-    releaseTranslation = tinted(Gold),
-    releasePatch = tinted(Orange),
-    releaseRerelease = tinted(Sage),
+    releaseNew = tinted(ReleaseNewColor),
+    releaseTranslation = tinted(ReleaseTranslationColor),
+    releasePatch = tinted(ReleasePatchColor),
     statusPlaying = tinted(Gold),
     statusFinished = tinted(Sage),
     statusStalled = tinted(Orange),

@@ -1,11 +1,11 @@
 package com.zc.vndb.feature.detail.data.mapper
 
 import com.zc.vndb.common.domain.model.CharacterRole
+import com.zc.vndb.common.domain.model.PlatformFamily
 import com.zc.vndb.feature.detail.data.dto.CharacterDTO
 import com.zc.vndb.feature.detail.data.dto.CharacterNovelDTO
 import com.zc.vndb.feature.detail.data.dto.EditionDTO
 import com.zc.vndb.feature.detail.data.dto.RelationDTO
-import com.zc.vndb.feature.detail.domain.model.PlatformFamily
 import com.zc.vndb.feature.detail.domain.model.RelationType
 import kotlin.test.Test
 import kotlin.test.assertEquals

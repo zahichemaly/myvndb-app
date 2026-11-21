@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.discover.presentation
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.outlined.Casino
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -34,19 +36,21 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.zc.vndb.common.ui.component.apptopbar.AppTopBarView
-import com.zc.vndb.common.ui.component.chip.TagChipView
 import com.zc.vndb.common.ui.component.error.ErrorView
 import com.zc.vndb.common.ui.component.error.model.ErrorUIModel
+import com.zc.vndb.common.ui.component.platformicon.model.PlatformIcon
 import com.zc.vndb.common.ui.component.pulltorefresh.PullToRefreshView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
+import com.zc.vndb.common.ui.theme.cardBackground
 import com.zc.vndb.common.ui.util.AdaptivePreviews
 import com.zc.vndb.feature.discover.presentation.component.discoverskeleton.DiscoverSkeletonView
 import com.zc.vndb.feature.discover.presentation.component.featurednovel.FeaturedNovelView
@@ -69,6 +73,7 @@ private val RollProgressSize = 16.dp
 @Immutable
 private class DiscoverActions(
     val onNovelClick: (String) -> Unit,
+    val onReleaseClick: (String) -> Unit,
     val onSeeAllClick: () -> Unit,
     val onStatsClick: () -> Unit,
     val onRollClick: () -> Unit,
@@ -86,6 +91,7 @@ fun DiscoverScreen(
     val actions = remember(onIntent) {
         DiscoverActions(
             onNovelClick = { id -> onIntent(DiscoverIntent.NovelClicked(id)) },
+            onReleaseClick = { id -> onIntent(DiscoverIntent.ReleaseClicked(id)) },
             onSeeAllClick = { onIntent(DiscoverIntent.SeeAllTopRatedClicked) },
             onStatsClick = { onIntent(DiscoverIntent.StatsClicked) },
             onRollClick = { onIntent(DiscoverIntent.RandomRollClicked) },
@@ -192,12 +198,8 @@ private fun LazyListScope.compactSections(state: DiscoverState, actions: Discove
             key = "trending-header",
             contentType = "section-header",
         ) { TrendingHeader(state.trendingLanguagesLabel) }
-        items(items = state.trending, key = { it.releaseId }, contentType = { "trending" }) { row ->
-            TrendingReleaseView(
-                model = row,
-                onClick = { actions.onNovelClick(row.novelId) },
-                modifier = Modifier.fillMaxWidth(),
-            )
+        item(key = "trending", contentType = "trending") {
+            TrendingList(state.trending, actions, Modifier.fillMaxWidth())
         }
     }
 }
@@ -216,13 +218,9 @@ private fun LazyListScope.expandedSections(state: DiscoverState, actions: Discov
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.md),
             ) {
-                if (state.trending.isNotEmpty()) TrendingHeader(state.trendingLanguagesLabel)
-                state.trending.forEach { row ->
-                    TrendingReleaseView(
-                        model = row,
-                        onClick = { actions.onNovelClick(row.novelId) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                if (state.trending.isNotEmpty()) {
+                    TrendingHeader(state.trendingLanguagesLabel)
+                    TrendingList(state.trending, actions, Modifier.fillMaxWidth())
                 }
             }
         }
@@ -268,8 +266,52 @@ private fun TrendingHeader(languagesLabel: UiText?) {
         title = UiText.StringResource(StringResource.discover_new_and_trending),
         icon = Icons.Outlined.Bolt,
         modifier = Modifier.padding(top = VndbTheme.spacing.md),
-        action = languagesLabel?.let { label -> { TagChipView(label = label) } },
+        action = languagesLabel?.let { label ->
+            {
+                Text(
+                    text = label.asString(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
     )
+}
+
+/** The trending rows in one card, with a divider between rows. */
+@Composable
+private fun TrendingList(
+    rows: ImmutableList<TrendingReleaseUIModel>,
+    actions: DiscoverActions,
+    modifier: Modifier = Modifier,
+) {
+    val shape = MaterialTheme.shapes.medium
+    Column(
+        modifier = modifier
+            .clip(shape)
+            .cardBackground()
+            .border(VndbTheme.dimens.borderWidth, VndbTheme.colors.borderSubtle, shape),
+    ) {
+        rows.forEachIndexed { index, row ->
+            if (index > 0) {
+                HorizontalDivider(
+                    thickness = VndbTheme.dimens.borderWidth,
+                    color = VndbTheme.colors.borderSubtle,
+                )
+            }
+            TrendingReleaseView(
+                model = row,
+                onClick = {
+                    if (row.opensRelease) {
+                        actions.onReleaseClick(row.releaseId)
+                    } else {
+                        actions.onNovelClick(row.novelId)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
 }
 
 @Composable
@@ -349,13 +391,19 @@ private val previewTrending = ReleaseKindTone.entries.mapIndexed { index, tone -
         releaseId = "r$index",
         novelId = "v$index",
         title = UiText.StringValue("Release $index"),
-        kindLabel = UiText.StringValue(tone.name.uppercase()),
+        kindLabel = UiText.StringValue(tone.name),
         kindTone = tone,
-        dateLabel = UiText.StringValue("Oct 2024"),
+        languageLabel = if (tone == ReleaseKindTone.Translation) {
+            UiText.StringValue("English")
+        } else {
+            null
+        },
+        dateLabel = UiText.StringValue("Nov 1$index"),
         ratingLabel = UiText.StringValue("8.1$index"),
         thumbnailUrl = null,
         isCoverSensitive = false,
-        platforms = persistentListOf(UiText.StringValue("Windows")),
+        platformIcons = persistentListOf(PlatformIcon.Windows),
+        platformsLabel = UiText.StringValue("Windows"),
     )
 }.toImmutableList()
 

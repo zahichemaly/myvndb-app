@@ -71,6 +71,12 @@ private val SurfaceElevated = Color(0xFF221E33)
 private val SurfaceInset = Color(0xFF120F1C)
 private val BorderSubtle = Color(0xFF2E2942)
 
+// Release-type pills on Discover's Trending list:
+// periwinkle for patches, since orange sits too close to the gold accent.
+private val ReleaseNewColor = Color(0xFF2DD4BF)
+private val ReleaseTranslationColor = Color(0xFFA78BFA)
+private val ReleasePatchColor = Color(0xFF8FA8F0)
+
 private val MeikeiNoLupercaliaColorScheme = darkColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
@@ -136,10 +142,9 @@ private val MeikeiNoLupercaliaColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    releaseNew = tinted(Tertiary),
-    releaseTranslation = tinted(Sky),
-    releasePatch = tinted(Amber),
-    releaseRerelease = tinted(Mint),
+    releaseNew = tinted(ReleaseNewColor),
+    releaseTranslation = tinted(ReleaseTranslationColor),
+    releasePatch = tinted(ReleasePatchColor),
     statusPlaying = tinted(Sky),
     statusFinished = tinted(Mint),
     statusStalled = tinted(Amber),

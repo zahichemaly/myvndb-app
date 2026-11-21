@@ -5,6 +5,7 @@ import com.zc.vndb.common.domain.model.Cover
 import com.zc.vndb.common.domain.model.ExternalLink
 import com.zc.vndb.common.domain.model.NovelLength
 import com.zc.vndb.common.domain.model.NovelTag
+import com.zc.vndb.common.domain.model.PlatformFamily
 import com.zc.vndb.common.domain.model.ReleaseDate
 import com.zc.vndb.common.domain.model.TagCategory
 import com.zc.vndb.common.domain.model.VoiceActor

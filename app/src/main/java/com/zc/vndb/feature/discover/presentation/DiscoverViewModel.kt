@@ -68,6 +68,10 @@ class DiscoverViewModel(
 
             is DiscoverIntent.NovelClicked -> sendEffect(DiscoverEffect.NavigateToNovel(intent.id))
 
+            is DiscoverIntent.ReleaseClicked -> sendEffect(
+                DiscoverEffect.NavigateToRelease(intent.id),
+            )
+
             DiscoverIntent.SeeAllTopRatedClicked,
             DiscoverIntent.StatsClicked,
             -> sendEffect(DiscoverEffect.NavigateToBrowse)

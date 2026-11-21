@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.discover.presentation.component.trendingrelease.mapper
 
 import com.zc.vndb.common.domain.model.ReleaseDate
+import com.zc.vndb.common.ui.component.platformicon.model.PlatformIcon
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.discover.domain.model.Platform
@@ -9,6 +10,7 @@ import com.zc.vndb.feature.discover.domain.model.TrendingRelease
 import com.zc.vndb.feature.discover.presentation.component.trendingrelease.model.ReleaseKindTone
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.YearMonth
 
@@ -23,10 +25,11 @@ class TrendingReleaseUIModelMapperTest {
         platforms = listOf(Platform("win"), Platform("swi"), Platform("ps4")),
         rating = 81.2,
         cover = null,
+        translationLanguage = "en",
     )
 
     @Test
-    fun `maps label, tone, date, rating and the first two platforms`() {
+    fun `maps label, tone, language, day date, rating and platform logos`() {
         val model = release.toUIModel()
 
         assertEquals(
@@ -34,11 +37,27 @@ class TrendingReleaseUIModelMapperTest {
             model.kindLabel,
         )
         assertEquals(ReleaseKindTone.Translation, model.kindTone)
-        assertEquals(UiText.StringValue("Oct 2024"), model.dateLabel)
+        assertEquals(UiText.StringValue("English"), model.languageLabel)
+        assertEquals(UiText.StringValue("Oct 5"), model.dateLabel)
         assertEquals(UiText.StringValue("8.12"), model.ratingLabel)
         assertEquals(
-            listOf<UiText>(UiText.StringValue("Windows"), UiText.StringValue("Switch")),
-            model.platforms,
+            listOf(PlatformIcon.Windows, PlatformIcon.Nintendo, PlatformIcon.PlayStation),
+            model.platformIcons,
+        )
+        assertEquals(UiText.StringValue("Windows, Switch, PS4"), model.platformsLabel)
+        assertNull(release.copy(translationLanguage = null).toUIModel().languageLabel)
+    }
+
+    @Test
+    fun `translations and patches open the release, the others the novel`() {
+        assertEquals(
+            listOf(false, true, true, false),
+            listOf(
+                ReleaseKind.NewRelease,
+                ReleaseKind.NewTranslation,
+                ReleaseKind.RecentPatch,
+                ReleaseKind.ReRelease,
+            ).map { release.copy(kind = it).toUIModel().opensRelease },
         )
     }
 
@@ -71,10 +90,10 @@ class TrendingReleaseUIModelMapperTest {
     }
 
     @Test
-    fun `unknown platform codes are shown upper-cased`() {
-        assertEquals(
-            listOf<UiText>(UiText.StringValue("FMT")),
-            release.copy(platforms = listOf(Platform("fmt"))).toUIModel().platforms,
-        )
+    fun `unknown platform codes are named upper-cased, with their family's icon`() {
+        val model = release.copy(platforms = listOf(Platform("fmt"))).toUIModel()
+
+        assertEquals(UiText.StringValue("FMT"), model.platformsLabel)
+        assertEquals(listOf(PlatformIcon.Pc), model.platformIcons)
     }
 }

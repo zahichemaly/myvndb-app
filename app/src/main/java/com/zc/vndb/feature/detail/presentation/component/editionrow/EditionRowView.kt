@@ -16,21 +16,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.zc.vndb.common.domain.model.PlatformFamily
+import com.zc.vndb.common.ui.component.platformicon.PlatformIconsView
+import com.zc.vndb.common.ui.component.platformicon.mapper.toImageVector
+import com.zc.vndb.common.ui.component.platformicon.mapper.toPlatformIcon
+import com.zc.vndb.common.ui.component.platformicon.model.PlatformIcon
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.theme.cardBackground
 import com.zc.vndb.common.ui.util.AdaptivePreviews
-import com.zc.vndb.feature.detail.domain.model.PlatformFamily
 import com.zc.vndb.feature.detail.presentation.component.editionrow.mapper.toColors
-import com.zc.vndb.feature.detail.presentation.component.editionrow.mapper.toImageVector
-import com.zc.vndb.feature.detail.presentation.component.editionrow.mapper.toPlatformIcon
 import com.zc.vndb.feature.detail.presentation.component.editionrow.model.EditionRowUIModel
-import com.zc.vndb.feature.detail.presentation.component.editionrow.model.PlatformIcon
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 private val IconBoxSize = 36.dp
@@ -78,34 +77,7 @@ fun EditionRowView(model: EditionRowUIModel, onClick: () -> Unit, modifier: Modi
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        PlatformIcons(icons = model.platformIcons, moreLabel = model.morePlatformsLabel)
-    }
-}
-
-/** Platform logos; decorative, since the details line already names the platforms. */
-@Composable
-private fun PlatformIcons(icons: ImmutableList<PlatformIcon>, moreLabel: UiText?) {
-    if (icons.isEmpty()) return
-    Row(
-        modifier = Modifier.clearAndSetSemantics {},
-        horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        icons.forEach { icon ->
-            Icon(
-                imageVector = icon.toImageVector(),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(PlatformIconSize),
-            )
-        }
-        moreLabel?.let {
-            Text(
-                text = it.asString(),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        PlatformIconsView(icons = model.platformIcons, moreLabel = model.morePlatformsLabel)
     }
 }
 

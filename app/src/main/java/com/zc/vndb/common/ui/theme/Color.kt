@@ -68,11 +68,10 @@ data class VndbColors(
     // Neutral metadata chips (tags, platforms, length); tappable chips use the accent instead
     val chipNeutral: TintedColors,
 
-    // Release labels (Discover "New & Trending")
+    // Release-type pills on Discover's Trending list; a re-release uses chipNeutral
     val releaseNew: TintedColors,
     val releaseTranslation: TintedColors,
     val releasePatch: TintedColors,
-    val releaseRerelease: TintedColors,
 
     // Tracking status badges
     val statusPlaying: TintedColors,

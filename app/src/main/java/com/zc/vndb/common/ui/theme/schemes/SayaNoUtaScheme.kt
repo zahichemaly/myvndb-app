@@ -69,6 +69,12 @@ private val SurfaceElevated = Color(0xFF382529)
 private val SurfaceInset = Color(0xFF1F1316)
 private val BorderSubtle = Color(0xFF4A3236)
 
+// Release-type pills on Discover's Trending list:
+// sky for new releases, since teal is this theme's accent.
+private val ReleaseNewColor = Color(0xFF7DD3FC)
+private val ReleaseTranslationColor = Color(0xFFA78BFA)
+private val ReleasePatchColor = Color(0xFFFB923C)
+
 private val SayaNoUtaColorScheme = darkColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
@@ -134,10 +140,9 @@ private val SayaNoUtaColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    releaseNew = tinted(Tertiary),
-    releaseTranslation = tinted(Teal),
-    releasePatch = tinted(Amber),
-    releaseRerelease = tinted(Leaf),
+    releaseNew = tinted(ReleaseNewColor),
+    releaseTranslation = tinted(ReleaseTranslationColor),
+    releasePatch = tinted(ReleasePatchColor),
     statusPlaying = tinted(Teal),
     statusFinished = tinted(Leaf),
     statusStalled = tinted(Amber),

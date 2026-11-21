@@ -168,6 +168,8 @@ class DiscoverViewModelTest {
         viewModel.effect.test {
             viewModel.onIntent(DiscoverIntent.NovelClicked("v7"))
             assertEquals(DiscoverEffect.NavigateToNovel("v7"), awaitItem())
+            viewModel.onIntent(DiscoverIntent.ReleaseClicked("r7"))
+            assertEquals(DiscoverEffect.NavigateToRelease("r7"), awaitItem())
             viewModel.onIntent(DiscoverIntent.SeeAllTopRatedClicked)
             assertEquals(DiscoverEffect.NavigateToBrowse, awaitItem())
             viewModel.onIntent(DiscoverIntent.StatsClicked)

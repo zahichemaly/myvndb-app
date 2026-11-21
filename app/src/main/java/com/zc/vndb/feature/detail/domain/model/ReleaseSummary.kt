@@ -1,5 +1,6 @@
 package com.zc.vndb.feature.detail.domain.model
 
+import com.zc.vndb.common.domain.model.PlatformFamily
 import com.zc.vndb.common.domain.model.ReleaseDate
 
 /** A release in the Releases tab. */

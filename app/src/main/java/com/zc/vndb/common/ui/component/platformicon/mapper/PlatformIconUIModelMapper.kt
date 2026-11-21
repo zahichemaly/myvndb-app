@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.detail.presentation.component.editionrow.mapper
+package com.zc.vndb.common.ui.component.platformicon.mapper
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Computer
@@ -9,10 +9,10 @@ import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import com.zc.vndb.common.domain.model.PlatformFamily
+import com.zc.vndb.common.ui.component.platformicon.model.PlatformIcon
 import com.zc.vndb.common.ui.resource.DrawableResource
 import com.zc.vndb.common.ui.text.UiText
-import com.zc.vndb.feature.detail.domain.model.PlatformFamily
-import com.zc.vndb.feature.detail.presentation.component.editionrow.model.PlatformIcon
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
@@ -66,4 +66,13 @@ fun PlatformIcon.toImageVector(): ImageVector = when (this) {
     PlatformIcon.Console -> Icons.Outlined.SportsEsports
     PlatformIcon.Mobile -> Icons.Outlined.PhoneAndroid
     PlatformIcon.Other -> Icons.Outlined.Devices
+}
+
+/** Generic icon of a platform family, for platforms without a logo of their own. */
+fun PlatformFamily.toPlatformIcon(): PlatformIcon = when (this) {
+    PlatformFamily.Pc -> PlatformIcon.Pc
+    PlatformFamily.Console -> PlatformIcon.Console
+    PlatformFamily.Mobile -> PlatformIcon.Mobile
+    PlatformFamily.Web -> PlatformIcon.Web
+    PlatformFamily.Other -> PlatformIcon.Other
 }

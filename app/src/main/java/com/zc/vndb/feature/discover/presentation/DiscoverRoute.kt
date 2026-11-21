@@ -13,6 +13,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun DiscoverRoute(
     onOpenNovel: (String) -> Unit,
+    onOpenRelease: (String) -> Unit,
     onOpenBrowse: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DiscoverViewModel = koinViewModel(),
@@ -24,6 +25,8 @@ fun DiscoverRoute(
     ObserveAsEvents(viewModel.effect) { effect ->
         when (effect) {
             is DiscoverEffect.NavigateToNovel -> onOpenNovel(effect.id)
+
+            is DiscoverEffect.NavigateToRelease -> onOpenRelease(effect.id)
 
             DiscoverEffect.NavigateToBrowse -> onOpenBrowse()
 

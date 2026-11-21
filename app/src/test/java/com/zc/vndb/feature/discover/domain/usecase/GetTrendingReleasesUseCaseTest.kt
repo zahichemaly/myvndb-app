@@ -63,6 +63,31 @@ class GetTrendingReleasesUseCaseTest {
     }
 
     @Test
+    fun `a new translation names its language, preferring the user's`() = runTest {
+        val chinese = ReleaseLanguage("zh-Hans", isMachineTranslated = false)
+        repository.releases = listOf(
+            release(
+                "r1",
+                novelId = "v1",
+                novelReleased = date(2020, 1, 1),
+                languages = listOf(chinese, english),
+            ),
+            release(
+                "r2",
+                novelId = "v2",
+                novelReleased = date(2020, 1, 1),
+                languages = listOf(chinese, englishMtl),
+            ),
+            release("r3", novelId = "v3", isPatch = true, languages = listOf(english)),
+        )
+
+        assertEquals(
+            listOf("en", "zh-Hans", null),
+            useCase(LANGUAGES).getOrThrow().map { it.translationLanguage },
+        )
+    }
+
+    @Test
     fun `machine translation does not count as a new translation`() = runTest {
         repository.releases = listOf(
             release(

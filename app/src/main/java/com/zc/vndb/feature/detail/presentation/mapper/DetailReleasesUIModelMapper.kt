@@ -1,12 +1,12 @@
 package com.zc.vndb.feature.detail.presentation.mapper
 
+import com.zc.vndb.common.ui.component.platformicon.mapper.toMorePlatformsLabel
+import com.zc.vndb.common.ui.component.platformicon.mapper.toPlatformIcons
 import com.zc.vndb.common.ui.mapper.languageFlag
 import com.zc.vndb.common.ui.mapper.platformName
 import com.zc.vndb.common.ui.mapper.toIsoLabel
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.detail.domain.model.ReleaseSummary
-import com.zc.vndb.feature.detail.presentation.component.editionrow.mapper.toMorePlatformsLabel
-import com.zc.vndb.feature.detail.presentation.component.editionrow.mapper.toPlatformIcons
 import com.zc.vndb.feature.detail.presentation.component.editionrow.model.EditionRowUIModel
 import com.zc.vndb.feature.detail.presentation.model.ReleaseGroupUIModel
 import java.util.Locale

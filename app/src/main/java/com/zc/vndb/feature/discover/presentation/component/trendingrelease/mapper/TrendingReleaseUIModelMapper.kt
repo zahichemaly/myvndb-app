@@ -2,24 +2,29 @@ package com.zc.vndb.feature.discover.presentation.component.trendingrelease.mapp
 
 import com.zc.vndb.common.domain.model.ReleaseDate
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.ui.component.platformicon.mapper.toMorePlatformsLabel
+import com.zc.vndb.common.ui.component.platformicon.mapper.toPlatformIcons
 import com.zc.vndb.common.ui.component.ratingbadge.mapper.toRatingLabel
-import com.zc.vndb.common.ui.mapper.platformLabel
+import com.zc.vndb.common.ui.mapper.languageName
+import com.zc.vndb.common.ui.mapper.platformName
 import com.zc.vndb.common.ui.mapper.primaryTitle
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
-import com.zc.vndb.feature.discover.domain.model.Platform
 import com.zc.vndb.feature.discover.domain.model.ReleaseKind
 import com.zc.vndb.feature.discover.domain.model.TrendingRelease
 import com.zc.vndb.feature.discover.presentation.component.trendingrelease.model.ReleaseKindTone
 import com.zc.vndb.feature.discover.presentation.component.trendingrelease.model.TrendingReleaseUIModel
-import kotlinx.collections.immutable.toImmutableList
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
-import kotlinx.datetime.yearMonth
 
-/** Rows have room for this many platform chips. */
-private const val MAX_PLATFORMS = 2
+private val dayFormat = LocalDate.Format {
+    monthName(MonthNames.ENGLISH_ABBREVIATED)
+    char(' ')
+    day(Padding.NONE)
+}
 
 private val monthYearFormat = YearMonth.Format {
     monthName(MonthNames.ENGLISH_ABBREVIATED)
@@ -39,18 +44,22 @@ fun TrendingRelease.toUIModel(
     ratingLabel = rating?.toRatingLabel(),
     thumbnailUrl = cover?.thumbnailUrl ?: cover?.url,
     isCoverSensitive = cover?.isSensitive ?: false,
-    platforms = platforms.take(MAX_PLATFORMS).map { it.toLabel() }.toImmutableList(),
+    languageLabel = translationLanguage?.let { UiText.StringValue(languageName(it)) },
+    platformIcons = platforms.map { it.code }.toPlatformIcons(),
+    morePlatformsLabel = platforms.map { it.code }.toMorePlatformsLabel(),
+    platformsLabel = platforms.takeIf { it.isNotEmpty() }?.let { list ->
+        UiText.StringValue(list.joinToString(", ") { platformName(it.code) })
+    },
+    opensRelease = kind == ReleaseKind.NewTranslation || kind == ReleaseKind.RecentPatch,
 )
 
-/** "Oct 2024" for full and month dates, "2024" for a year, "TBA" otherwise. */
+/** "Nov 18" for a full date (trending releases are recent), "Oct 2024", "2024" or "TBA" otherwise. */
 fun ReleaseDate.toLabel(): UiText = when (this) {
-    is ReleaseDate.Full -> UiText.StringValue(monthYearFormat.format(date.yearMonth))
+    is ReleaseDate.Full -> UiText.StringValue(dayFormat.format(date))
     is ReleaseDate.Month -> UiText.StringValue(monthYearFormat.format(yearMonth))
     is ReleaseDate.Year -> UiText.StringValue(year.toString())
     ReleaseDate.Tba -> UiText.StringResource(StringResource.release_tba)
 }
-
-private fun Platform.toLabel(): UiText = platformLabel(code)
 
 private fun ReleaseKind.toLabel(): UiText = UiText.StringResource(
     when (this) {

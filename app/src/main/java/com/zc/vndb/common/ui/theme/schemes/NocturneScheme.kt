@@ -64,6 +64,12 @@ private val Rose = Color(0xFFF43F5E)
 private val Slate = Color(0xFF64748B)
 private val Violet = Color(0xFFA78BFA)
 
+// Release-type pills on Discover's Trending list:
+// teal, violet and orange stay clear of the sky-blue accent, amber score and emerald notes.
+private val ReleaseNewColor = Color(0xFF2DD4BF)
+private val ReleaseTranslationColor = Color(0xFFA78BFA)
+private val ReleasePatchColor = Color(0xFFFB923C)
+
 private val NocturneColorScheme = darkColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
@@ -129,10 +135,9 @@ private val NocturneColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    releaseNew = tinted(Tertiary),
-    releaseTranslation = tinted(SkyBlue),
-    releasePatch = tinted(Amber),
-    releaseRerelease = tinted(Emerald),
+    releaseNew = tinted(ReleaseNewColor),
+    releaseTranslation = tinted(ReleaseTranslationColor),
+    releasePatch = tinted(ReleasePatchColor),
     statusPlaying = tinted(SkyBlue),
     statusFinished = tinted(Emerald),
     statusStalled = tinted(Amber),

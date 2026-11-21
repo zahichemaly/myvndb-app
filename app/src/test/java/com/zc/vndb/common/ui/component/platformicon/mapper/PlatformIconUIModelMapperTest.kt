@@ -1,7 +1,7 @@
-package com.zc.vndb.feature.detail.presentation.component.editionrow.mapper
+package com.zc.vndb.common.ui.component.platformicon.mapper
 
+import com.zc.vndb.common.ui.component.platformicon.model.PlatformIcon
 import com.zc.vndb.common.ui.text.UiText
-import com.zc.vndb.feature.detail.presentation.component.editionrow.model.PlatformIcon
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

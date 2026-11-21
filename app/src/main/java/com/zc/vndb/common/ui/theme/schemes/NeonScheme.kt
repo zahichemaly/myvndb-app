@@ -64,6 +64,12 @@ private val SurfaceInset = Color(0xFF040A04)
 private val BorderSubtle = Color(0xFF1E4A1C)
 private val DimGreen = Color(0xFF4E8A4A)
 
+// Release-type pills on Discover's Trending list:
+// neon cyan, violet and orange beside the neon green accent and yellow score.
+private val ReleaseNewColor = Color(0xFF00F0FF)
+private val ReleaseTranslationColor = Color(0xFFB967FF)
+private val ReleasePatchColor = Color(0xFFFF9F1C)
+
 private val NeonColorScheme = darkColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
@@ -129,10 +135,9 @@ private val NeonColors = VndbColors(
         content = OnSurfaceVariant,
         border = BorderSubtle,
     ),
-    releaseNew = tinted(NeonCyan),
-    releaseTranslation = tinted(NeonGreen),
-    releasePatch = tinted(NeonYellow),
-    releaseRerelease = tinted(NeonMagenta),
+    releaseNew = tinted(ReleaseNewColor),
+    releaseTranslation = tinted(ReleaseTranslationColor),
+    releasePatch = tinted(ReleasePatchColor),
     statusPlaying = tinted(NeonCyan),
     statusFinished = tinted(NeonGreen),
     statusStalled = tinted(NeonYellow),
