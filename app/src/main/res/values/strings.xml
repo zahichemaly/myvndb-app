@@ -1,5 +1,8 @@
 <resources>
-    <string name="app_name">MyVNDB</string>
+    <!-- The app's name: the only place it is written. Other texts take it as an argument. -->
+    <string name="app_name" translatable="false">MyVNDB</string>
+    <!-- Launcher name; the development flavor overrides it to tell its install apart. -->
+    <string name="app_label" translatable="false">@string/app_name</string>
 
     <!-- Errors (common/ui/component/error) -->
     <string name="error_network">Can\'t reach VNDB. Check your connection and try again.</string>
@@ -11,7 +14,6 @@
     <string name="action_retry">Retry</string>
 
     <!-- Shared labels -->
-    <string name="app_wordmark">MyVNDB</string>
     <string name="rating_out_of_ten">%1$s / 10</string>
     <string name="release_tba">TBA</string>
     <string name="separator_dot">·</string>
@@ -393,14 +395,14 @@
     <!-- Login -->
     <string name="login_title">Connect your VNDB account</string>
     <string name="login_intro_title">Sync with VNDB</string>
-    <string name="login_intro_body">MyVNDB uses an API token to read your visual novel lists. You create the token on vndb.org; you never enter your password here.</string>
+    <string name="login_intro_body">%1$s uses an API token to read your visual novel lists. You create the token on vndb.org; you never enter your password here.</string>
     <string name="login_how_to">How to connect</string>
     <string name="login_steps_count">3 simple steps</string>
     <string name="login_step1_title">Create a token on vndb.org</string>
     <string name="login_step1_body">Log in on vndb.org, then open My Profile → Applications. The button below takes you straight there.</string>
     <string name="login_step1_action">Open VNDB tokens page</string>
     <string name="login_step2_title">Give it access to your list</string>
-    <string name="login_step2_body">Name it (for example “MyVNDB”) and tick the permission to access your list, so private lists show here too. MyVNDB only reads your lists; it never changes them.</string>
+    <string name="login_step2_body">Name it (for example “%1$s”) and tick the permission to access your list, so private lists show here too. %1$s only reads your lists; it never changes them.</string>
     <string name="login_step3_title">Copy the token and paste it below</string>
     <string name="login_step3_body">It looks like %1$s. Dashes and spaces don\'t matter.</string>
     <string name="login_token_example">xxxx-xxxxx-xxxxx-xxxx-xxxxx-xxxxx-xxxx</string>
@@ -477,7 +479,7 @@
     <string name="settings_size_gb">%1$s GB</string>
     <string name="settings_about_source">Source code</string>
     <string name="settings_about_privacy">Privacy</string>
-    <string name="settings_version">MyVNDB %1$s (%2$s)</string>
+    <string name="settings_version">%1$s %2$s (%3$s)</string>
     <string name="action_ok">OK</string>
 
     <!-- Content descriptions -->

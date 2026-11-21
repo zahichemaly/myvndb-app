@@ -49,7 +49,11 @@ class SettingsViewModel(
         SettingsState(
             versionLabel = UiText.StringResource(
                 StringResource.settings_version,
-                listOf(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
+                listOf(
+                    UiText.StringResource(StringResource.app_name),
+                    BuildConfig.VERSION_NAME,
+                    BuildConfig.VERSION_CODE,
+                ),
             ),
         ),
     )

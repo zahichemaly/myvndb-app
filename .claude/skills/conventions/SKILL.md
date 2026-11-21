@@ -235,7 +235,7 @@ Everything the app shows as text is a `UiText` (`common/ui/text/UiText.kt`), and
 
 ```kotlin
 // common/ui/resource/ResourceTypes.kt
-typealias StringResource = com.zc.vndb.R.string    // StringResource.app_wordmark
+typealias StringResource = com.zc.vndb.R.string    // StringResource.app_name
 typealias PluralResource = com.zc.vndb.R.plurals   // PluralResource.detail_votes
 
 // common/ui/text/UiText.kt

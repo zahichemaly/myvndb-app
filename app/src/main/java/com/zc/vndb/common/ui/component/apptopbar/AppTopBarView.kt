@@ -46,7 +46,7 @@ fun AppTopBarView(
         actions = actions,
         title = {
             Text(
-                text = UiText.StringResource(StringResource.app_wordmark).asString(),
+                text = UiText.StringResource(StringResource.app_name).asString(),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )

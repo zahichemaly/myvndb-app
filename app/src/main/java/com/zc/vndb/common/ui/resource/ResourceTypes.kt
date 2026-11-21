@@ -1,9 +1,9 @@
 package com.zc.vndb.common.ui.resource
 
 /**
- * The app's string resources. Code refers to them as `StringResource.app_wordmark` (never through
+ * The app's string resources. Code refers to them as `StringResource.app_name` (never through
  * `R` directly) and shows them through `UiText`:
- * `UiText.StringResource(StringResource.app_wordmark).asString()`.
+ * `UiText.StringResource(StringResource.app_name).asString()`.
  */
 typealias StringResource = com.zc.vndb.R.string
 

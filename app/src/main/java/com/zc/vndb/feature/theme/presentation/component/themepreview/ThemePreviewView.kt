@@ -158,7 +158,7 @@ private fun PhoneMock(model: ThemeUIModel, modifier: Modifier = Modifier) {
                     verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm),
                 ) {
                     Text(
-                        text = UiText.StringResource(StringResource.app_wordmark).asString(),
+                        text = UiText.StringResource(StringResource.app_name).asString(),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                     )

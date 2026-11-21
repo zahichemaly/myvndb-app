@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Launcher name of the development flavor, so it is told apart from production. -->
-    <string name="app_name">MyVNDB Dev</string>
+    <!--
+        Launcher name of the development flavor, so it is told apart from production. Android
+        resources cannot append to another string, so this is the one other place the name appears.
+    -->
+    <string name="app_label" translatable="false">MyVNDB Dev</string>
 </resources>

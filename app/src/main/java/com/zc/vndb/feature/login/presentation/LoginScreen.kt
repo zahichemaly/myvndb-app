@@ -108,7 +108,10 @@ private fun IntroCard() {
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = UiText.StringResource(StringResource.login_intro_body).asString(),
+                    text = UiText.StringResource(
+                        StringResource.login_intro_body,
+                        listOf(UiText.StringResource(StringResource.app_name)),
+                    ).asString(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -164,7 +167,10 @@ private fun StepCards(onIntent: (LoginIntent) -> Unit) {
         LoginStepView(
             number = 2,
             title = UiText.StringResource(StringResource.login_step2_title),
-            body = UiText.StringResource(StringResource.login_step2_body),
+            body = UiText.StringResource(
+                StringResource.login_step2_body,
+                listOf(UiText.StringResource(StringResource.app_name)),
+            ),
             modifier = Modifier.fillMaxWidth(),
         )
         LoginStepView(

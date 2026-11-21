@@ -431,7 +431,10 @@ private val previewState = SettingsState(
     accountLabel = UiText.StringValue("Yorhel"),
     languagesLabel = UiText.StringValue("English, Japanese"),
     imageCacheLabel = UiText.StringValue("142 MB"),
-    versionLabel = UiText.StringValue("MyVNDB 1.0.0 (1)"),
+    versionLabel = UiText.StringResource(
+        StringResource.settings_version,
+        listOf(UiText.StringResource(StringResource.app_name), "1.0.0", 1),
+    ),
     titleLanguageOptions = persistentListOf(
         SettingOptionUIModel("Romanized", UiText.StringValue("Romanized"), isSelected = true),
         SettingOptionUIModel("Original", UiText.StringValue("Japanese"), isSelected = false),
