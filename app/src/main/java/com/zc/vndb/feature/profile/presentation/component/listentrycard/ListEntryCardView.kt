@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.zc.vndb.common.domain.model.ListLabel
 import com.zc.vndb.common.ui.component.chip.TagChipView
 import com.zc.vndb.common.ui.component.coverimage.CoverImageView
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelChipView
@@ -38,7 +39,6 @@ import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.theme.cardBackground
 import com.zc.vndb.common.ui.util.AdaptivePreviews
-import com.zc.vndb.feature.profile.domain.model.ListLabel
 import com.zc.vndb.feature.profile.presentation.component.listentrycard.model.ListEntryCardUIModel
 import kotlinx.collections.immutable.persistentListOf
 

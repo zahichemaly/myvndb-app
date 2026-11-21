@@ -19,7 +19,7 @@ Rules marked **MUST** / **NEVER** are non-negotiable. If existing code violates 
 
 ## 1. Clean Architecture (single module)
 
-There is one Gradle module (`:app`). Layers are enforced by **packages** (see `structure`), not modules, so the compiler won't catch violations. These rules have to.
+There is one Gradle module (`:app`). Layers are enforced by **packages** (see `structure`), not modules, so the compiler won't catch violations. `app/src/test/java/com/zc/vndb/app/ArchitectureTest.kt` does: it checks the rules below on every unit-test run, so `./gradlew testDevelopmentDebugUnitTest` fails on a violation.
 
 ```text
 presentation ──▶ domain ◀── data
@@ -31,10 +31,18 @@ presentation ──▶ domain ◀── data
 
 | Layer | MAY import | MUST NEVER import |
 |---|---|---|
-| `domain` | Kotlin stdlib, `kotlinx.coroutines` core, kotlinx-datetime, Koin annotations (`org.koin.core.annotation.*` only), `common/domain`, other features' `domain` | `presentation`, `data`, `di`, `android.*`, `androidx.*`, Compose, Ktor, `kotlinx.serialization`, DataStore, Koin beyond `org.koin.core.annotation.*`, `javax.inject` |
-| `data` | own feature's `domain`, `common/domain`, `common/data`, Ktor, kotlinx.serialization, DataStore, Koin annotations, Android framework where needed | `presentation`, `common/ui`, Compose |
-| `presentation` | own feature's `domain`, other features' `domain` (models + use cases), `common/domain`, `common/ui`, Android, Compose, Lifecycle, Coil | any `data` package, DTOs, Ktor, DataStore, repository implementations |
+| `domain` | Kotlin stdlib, `kotlinx.coroutines` core, kotlinx-datetime, Koin annotations (`org.koin.core.annotation.*` only), `common/domain`, other features' `domain/model` and `domain/usecase` (see below) | `presentation`, `data`, `di`, `android.*`, `androidx.*`, Compose, Ktor, `kotlinx.serialization`, DataStore, Koin beyond `org.koin.core.annotation.*`, `javax.inject`, other features' repository interfaces |
+| `data` | own feature's `domain`, `common/domain`, `common/data`, Ktor, kotlinx.serialization, DataStore, Koin annotations, Android framework where needed | `presentation`, `common/ui`, Compose, any other feature |
+| `presentation` | own feature's `domain`, other features' `domain/model` and `domain/usecase` (see below), `common/domain`, `common/ui`, Android, Compose, Lifecycle, Coil | any `data` package, DTOs, Ktor, DataStore, repository interfaces or implementations |
 | `di` | everything in its own feature, `common`, Koin | — |
+
+### Dependencies between features
+
+A feature may use another feature's **domain models and use cases**, and nothing else of it (no repository interfaces, data, presentation, navigation or DI). Each such link is a deliberate edge:
+
+- The edge must be listed in `ALLOWED_FEATURE_DEPENDENCIES` in `ArchitectureTest.kt` (today: `detail -> userlist`, `profile -> userlist`). Adding one is a design decision; say why in the change.
+- The feature graph **MUST** stay acyclic, so any feature can later become its own Gradle module. If two features need each other, the shared part belongs in `common/` (see `structure` §3).
+- Code that wraps a `common` repository (session, settings, languages) is not owned by any feature: its use cases live in `common/domain/usecase/`.
 
 ### Domain purity
 
@@ -45,15 +53,13 @@ presentation ──▶ domain ◀── data
 - Persistence: `androidx.datastore.*`
 - DI: `org.koin.*` except the annotations in `org.koin.core.annotation.*`, and `javax.inject.*`. Domain classes use plain constructors; the only Koin touch is an annotation on the class (`@Factory` on use cases, `@Single` on `DefaultDispatcherProvider`).
 
-Both commands must print nothing:
+`ArchitectureTest` checks domain purity, the layer table above, the feature edges, and that no ViewModel imports a repository. Run it alone with:
 
 ```bash
-grep -rnE "import (android\.|androidx\.|io\.ktor\.|kotlinx\.serialization\.|org\.koin\.(android|compose|core\.(context|module|parameter|scope))|javax\.inject\.)" app/src/main/java/com/zc/vndb/feature/*/domain app/src/main/java/com/zc/vndb/common/domain
+./gradlew testDevelopmentDebugUnitTest --tests 'com.zc.vndb.app.ArchitectureTest'
 ```
 
-```bash
-grep -rnE "import com\.zc\.vndb\.feature\.[a-z]+\.data\." app/src/main/java/com/zc/vndb/feature/*/presentation
-```
+When a rule changes, change it in this skill, in `structure` and in `ArchitectureTest.kt` together.
 
 ---
 
@@ -162,6 +168,7 @@ class VisualNovelRepositoryImpl(
 ### State
 - Exactly **one** `StateFlow<[Name]State>` per screen. No other public flows, `LiveData` or `mutableStateOf` on the ViewModel. Reactive sources are folded in with `combine(_state, …).stateIn(viewModelScope, WhileSubscribed(5_000), …)`.
 - Derived values are computed properties on `State` or reduced into it. Composables don't recompute business logic.
+- A screen with several parts that load on their own (tabs, lazily loaded sections) gives each part a **state holder**: a plain class that owns that part's `Job`, the domain data it loaded and its paging, and calls back when it changes. The ViewModel keeps the one `StateFlow` and maps each holder's state into it. Example: Detail's `SectionLoader` / `PagedSectionLoader`, behind `LazySection`. Holders take the `viewModelScope` and use case calls as constructor arguments; they are not Koin-injected and expose no flows.
 
 ### Intent
 - Every user interaction **and** lifecycle trigger (initial load, retry, refresh) is an `Intent`, routed through one public `onIntent`.
@@ -189,6 +196,8 @@ File templates for State, Intent, Effect, ViewModel, Route and Screen are in `co
 - [ ] Files are placed per `structure`.
 - [ ] `domain` (feature and common) has no Android, Compose, Ktor, serialization, DataStore or DI imports.
 - [ ] `presentation` imports nothing from any `data` package.
+- [ ] Another feature is used only through its `domain/model` and `domain/usecase`, along an edge listed in `ArchitectureTest.kt`, and the feature graph has no cycle.
+- [ ] `./gradlew testDevelopmentDebugUnitTest` passes, `ArchitectureTest` included.
 - [ ] ViewModels depend only on use cases, navigation arguments and presentation mappers.
 - [ ] Navigation: keys and entry functions live in the feature; cross-feature navigation goes through lambdas wired in `AppEntryProvider.kt`.
 - [ ] Repository interfaces are in `domain`, implementations in `data`, and the implementation is annotated (`@Single`) so `@ComponentScan` binds it to its interface automatically.

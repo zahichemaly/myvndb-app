@@ -28,12 +28,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.zc.vndb.common.domain.model.ListLabel
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.TintedColors
 import com.zc.vndb.common.ui.theme.VndbColors
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
-import com.zc.vndb.feature.profile.domain.model.ListLabel
 
 private val IconSize = 12.dp
 private val HorizontalPadding = 8.dp

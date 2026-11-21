@@ -14,3 +14,11 @@ sealed interface SectionState<out T> {
 
 val <T> SectionState<T>.dataOrNull: T?
     get() = (this as? SectionState.Loaded<T>)?.data
+
+/** The same state with its data mapped, e.g. a section's domain data into its UI model. */
+inline fun <T, R> SectionState<T>.map(transform: (T) -> R): SectionState<R> = when (this) {
+    SectionState.Idle -> SectionState.Idle
+    SectionState.Loading -> SectionState.Loading
+    is SectionState.Failed -> this
+    is SectionState.Loaded -> SectionState.Loaded(transform(data))
+}

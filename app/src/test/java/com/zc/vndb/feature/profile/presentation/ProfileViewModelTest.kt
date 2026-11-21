@@ -3,26 +3,29 @@ package com.zc.vndb.feature.profile.presentation
 import app.cash.turbine.test
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.DomainError
+import com.zc.vndb.common.domain.model.ListLabel
 import com.zc.vndb.common.domain.model.ListSort
+import com.zc.vndb.common.domain.model.SessionSamples
 import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSessionRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
+import com.zc.vndb.common.domain.usecase.ObserveSessionUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
+import com.zc.vndb.common.domain.usecase.UpdateSettingsUseCase
 import com.zc.vndb.common.domain.util.FixedClock
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.util.MainDispatcherRule
-import com.zc.vndb.feature.profile.domain.model.EntryOrder
-import com.zc.vndb.feature.profile.domain.model.ListLabel
-import com.zc.vndb.feature.profile.domain.model.MyListEntry
-import com.zc.vndb.feature.profile.domain.model.ProfileSamples
 import com.zc.vndb.feature.profile.domain.repository.FakeProfileRepository
-import com.zc.vndb.feature.profile.domain.usecase.GetListEntriesUseCase
 import com.zc.vndb.feature.profile.domain.usecase.GetProfileUseCase
-import com.zc.vndb.feature.profile.domain.usecase.ObserveListChangesUseCase
-import com.zc.vndb.feature.profile.domain.usecase.ObserveSessionUseCase
-import com.zc.vndb.feature.settings.domain.usecase.UpdateSettingsUseCase
+import com.zc.vndb.feature.userlist.domain.model.EntryOrder
+import com.zc.vndb.feature.userlist.domain.model.MyListEntry
+import com.zc.vndb.feature.userlist.domain.model.UserListSamples
+import com.zc.vndb.feature.userlist.domain.repository.FakeUserListRepository
+import com.zc.vndb.feature.userlist.domain.usecase.GetListEntriesUseCase
+import com.zc.vndb.feature.userlist.domain.usecase.GetListLabelsUseCase
+import com.zc.vndb.feature.userlist.domain.usecase.ObserveListChangesUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -43,30 +46,32 @@ class ProfileViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val sessions = FakeSessionRepository()
-    private val profile = FakeProfileRepository().apply {
+    private val userList = FakeUserListRepository().apply {
         labels = listOf(
-            ProfileSamples.label(ListLabel.FINISHED, count = 2),
-            ProfileSamples.label(ListLabel.PLAYING, count = 30),
+            UserListSamples.label(ListLabel.FINISHED, count = 2),
+            UserListSamples.label(ListLabel.PLAYING, count = 30),
         )
-        entries[ListLabel.PLAYING] = (1..30).map { ProfileSamples.entry("v$it") }
+        entries[ListLabel.PLAYING] = (1..30).map { UserListSamples.entry("v$it") }
         entries[ListLabel.FINISHED] = listOf(
-            ProfileSamples.entry("v100"),
-            ProfileSamples.entry("v101"),
+            UserListSamples.entry("v100"),
+            UserListSamples.entry("v101"),
         )
     }
+
+    private val profile = FakeProfileRepository(userList.calls)
 
     private val settings = FakeSettingsRepository()
     private val languages = FakeLanguageRepository()
 
     private fun createViewModel() = ProfileViewModel(
         observeSession = ObserveSessionUseCase(sessions),
-        getProfile = GetProfileUseCase(profile),
-        getListEntries = GetListEntriesUseCase(profile),
+        getProfile = GetProfileUseCase(profile, GetListLabelsUseCase(userList)),
+        getListEntries = GetListEntriesUseCase(userList),
         clock = FixedClock(Instant.parse("2026-11-16T00:00:00Z")),
         observeSettings = ObserveSettingsUseCase(settings),
         observeLanguages = ObserveLanguagesUseCase(languages),
         updateSettings = UpdateSettingsUseCase(settings),
-        observeListChanges = ObserveListChangesUseCase(profile),
+        observeListChanges = ObserveListChangesUseCase(userList),
     )
 
     /** `state` only runs while collected, as on screen. */
@@ -84,7 +89,7 @@ class ProfileViewModelTest {
             assertTrue(isSessionKnown)
             assertFalse(isSignedIn)
         }
-        assertTrue(profile.calls.isEmpty())
+        assertTrue(userList.calls.isEmpty())
 
         viewModel.effect.test {
             viewModel.onIntent(ProfileIntent.LogInClicked)
@@ -98,7 +103,7 @@ class ProfileViewModelTest {
         collect(viewModel.state)
         advanceUntilIdle()
 
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         advanceUntilIdle()
 
         val state = viewModel.state.value
@@ -108,15 +113,15 @@ class ProfileViewModelTest {
         assertFalse(state.isMultiSelect)
         assertEquals(25, state.entries.items.size)
         assertTrue(state.entries.hasMore)
-        assertTrue("entries:1:1" in profile.calls)
+        assertTrue("entries:1:1" in userList.calls)
     }
 
     @Test
     fun `the user's labels sit between the statuses and Voted`() = runTest {
-        profile.labels = profile.labels +
-            ProfileSamples.label(ListLabel.VOTED) +
-            ProfileSamples.label(12, name = "Ready to play")
-        sessions.current.value = ProfileSamples.session()
+        userList.labels = userList.labels +
+            UserListSamples.label(ListLabel.VOTED) +
+            UserListSamples.label(12, name = "Ready to play")
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
@@ -129,7 +134,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `single-select picks one chip, and tapping it again shows the whole list`() = runTest {
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
@@ -144,13 +149,13 @@ class ProfileViewModelTest {
         viewModel.onIntent(ProfileIntent.LabelSelected(ListLabel.FINISHED))
         advanceUntilIdle()
         assertTrue(viewModel.state.value.labels.none { it.isSelected })
-        assertEquals("entries::1", profile.calls.last())
+        assertEquals("entries::1", userList.calls.last())
         assertEquals(25, viewModel.state.value.entries.items.size)
     }
 
     @Test
     fun `multi-select combines chips, and going back keeps the one picked last`() = runTest {
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
@@ -162,7 +167,7 @@ class ProfileViewModelTest {
             assertTrue(isMultiSelect)
             assertEquals(2, labels.count { it.isSelected })
         }
-        assertEquals("entries:1,2:1", profile.calls.last())
+        assertEquals("entries:1,2:1", userList.calls.last())
 
         viewModel.onIntent(ProfileIntent.MultiSelectToggled)
         advanceUntilIdle()
@@ -175,7 +180,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `typing searches the list once it pauses, and clearing goes back`() = runTest {
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
@@ -186,7 +191,7 @@ class ProfileViewModelTest {
         assertEquals("v12", viewModel.state.value.query)
         assertEquals(
             listOf("entries:1:1", "entries:1:1:v12"),
-            profile.calls.filter { it.startsWith("entries") },
+            userList.calls.filter { it.startsWith("entries") },
         )
         assertEquals(listOf("v12"), viewModel.state.value.entries.items.map { it.novelId })
 
@@ -194,12 +199,12 @@ class ProfileViewModelTest {
         advanceUntilIdle()
         assertEquals("", viewModel.state.value.query)
         assertEquals(25, viewModel.state.value.entries.items.size)
-        assertEquals(2, profile.calls.count { it.startsWith("entries") })
+        assertEquals(2, userList.calls.count { it.startsWith("entries") })
     }
 
     @Test
     fun `labels load once and are kept, more entries load at the end`() = runTest {
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
@@ -216,20 +221,20 @@ class ProfileViewModelTest {
         assertFalse(viewModel.state.value.entries.hasMore)
         assertEquals(
             listOf("entries:1:1", "entries:2:1", "entries:1:2"),
-            profile.calls.filter { it.startsWith("entries") },
+            userList.calls.filter { it.startsWith("entries") },
         )
     }
 
     @Test
     fun `a failed overview is a retryable error`() = runTest {
-        sessions.current.value = ProfileSamples.session()
-        profile.labelsError = DomainError.Network
+        sessions.current.value = SessionSamples.session()
+        userList.labelsError = DomainError.Network
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
         assertNotNull(viewModel.state.value.error)
 
-        profile.labelsError = null
+        userList.labelsError = null
         viewModel.onIntent(ProfileIntent.Retry)
         advanceUntilIdle()
         assertNull(viewModel.state.value.error)
@@ -238,8 +243,8 @@ class ProfileViewModelTest {
 
     @Test
     fun `a rejected token signs out with a message`() = runTest {
-        sessions.current.value = ProfileSamples.session()
-        profile.labelsError = DomainError.Unauthorized
+        sessions.current.value = SessionSamples.session()
+        userList.labelsError = DomainError.Unauthorized
         val viewModel = createViewModel()
         collect(viewModel.state)
 
@@ -260,7 +265,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `a sign-out elsewhere (Settings) turns the profile into the guest prompt`() = runTest {
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
@@ -273,24 +278,24 @@ class ProfileViewModelTest {
 
     @Test
     fun `pull to refresh reloads labels and the selected label`() = runTest {
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
-        profile.calls.clear()
+        userList.calls.clear()
 
         viewModel.onIntent(ProfileIntent.Refresh)
         advanceUntilIdle()
 
         assertFalse(viewModel.state.value.isRefreshing)
         assertEquals(25, viewModel.state.value.entries.items.size)
-        assertTrue(profile.calls.containsAll(listOf("labels", "user", "entries:1:1")))
+        assertTrue(userList.calls.containsAll(listOf("labels", "user", "entries:1:1")))
     }
 
     @Test
     fun `entries show pills for the chosen languages`() = runTest {
         settings.current.value = AppSettings(cardLanguages = listOf("en"))
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
@@ -302,11 +307,11 @@ class ProfileViewModelTest {
 
     @Test
     fun `changing the setting redraws the pills without asking the API again`() = runTest {
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
-        val calls = profile.calls.size
+        val calls = userList.calls.size
         assertTrue(viewModel.state.value.entries.items.all { it.languagePills.isEmpty() })
 
         settings.current.value = AppSettings(cardLanguages = listOf("ko", "ja"))
@@ -317,16 +322,16 @@ class ProfileViewModelTest {
                 card.languagePills.map { it.code } == listOf("ko", "ja")
             },
         )
-        assertEquals(calls, profile.calls.size)
+        assertEquals(calls, userList.calls.size)
     }
 
     @Test
     fun `lists are A to Z by default and a chosen sort is saved and reloads`() = runTest {
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
-        assertEquals(EntryOrder.Title, profile.requests.last().order)
+        assertEquals(EntryOrder.Title, userList.requests.last().order)
         assertEquals(
             ListSort.Title,
             viewModel.state.value.sortOptions.single { it.isSelected }.sort,
@@ -336,7 +341,7 @@ class ProfileViewModelTest {
         advanceUntilIdle()
 
         assertEquals(ListSort.Updated, settings.current.value.listSort)
-        assertEquals(EntryOrder.Updated, profile.requests.last().order)
+        assertEquals(EntryOrder.Updated, userList.requests.last().order)
         assertEquals(
             ListSort.Updated,
             viewModel.state.value.sortOptions.single { it.isSelected }.sort,
@@ -346,7 +351,7 @@ class ProfileViewModelTest {
     @Test
     fun `reversing the direction is saved, reloads, and a new sort starts in its natural direction`() =
         runTest {
-            sessions.current.value = ProfileSamples.session()
+            sessions.current.value = SessionSamples.session()
             val viewModel = createViewModel()
             collect(viewModel.state)
             advanceUntilIdle()
@@ -356,7 +361,7 @@ class ProfileViewModelTest {
             advanceUntilIdle()
             assertTrue(settings.current.value.isListSortReversed)
             assertFalse(viewModel.state.value.isSortAscending)
-            assertEquals(false, profile.requests.last().ascending)
+            assertEquals(false, userList.requests.last().ascending)
 
             viewModel.onIntent(ProfileIntent.SortSelected(ListSort.Vote))
             advanceUntilIdle()
@@ -364,13 +369,13 @@ class ProfileViewModelTest {
             assertFalse(viewModel.state.value.isSortAscending)
             assertEquals(
                 EntryOrder.Vote,
-                profile.requests.first { it.order == EntryOrder.Vote }.order,
+                userList.requests.first { it.order == EntryOrder.Vote }.order,
             )
         }
 
     @Test
     fun `the edit button opens the list editor with the entry's title`() = runTest {
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
@@ -385,18 +390,18 @@ class ProfileViewModelTest {
 
     @Test
     fun `an entry edited in the app reloads the labels and the list`() = runTest {
-        sessions.current.value = ProfileSamples.session()
+        sessions.current.value = SessionSamples.session()
         val viewModel = createViewModel()
         collect(viewModel.state)
         advanceUntilIdle()
-        profile.calls.clear()
+        userList.calls.clear()
 
-        profile.saveEntry(
+        userList.saveEntry(
             MyListEntry(novelId = "v1", labelIds = setOf(ListLabel.FINISHED)),
             previous = null,
         )
         advanceUntilIdle()
 
-        assertTrue(profile.calls.containsAll(listOf("labels", "entries:1:1")))
+        assertTrue(userList.calls.containsAll(listOf("labels", "entries:1:1")))
     }
 }

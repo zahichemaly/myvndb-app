@@ -4,7 +4,7 @@ import com.zc.vndb.common.ui.component.entrylabel.EntryLabelUIModel
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.detail.presentation.component.mylist.model.MyListCardUIModel
-import com.zc.vndb.feature.profile.domain.model.MyListEntry
+import com.zc.vndb.feature.userlist.domain.model.MyListEntry
 import kotlinx.collections.immutable.toImmutableList
 
 private const val VOTE_SCALE = 10.0
