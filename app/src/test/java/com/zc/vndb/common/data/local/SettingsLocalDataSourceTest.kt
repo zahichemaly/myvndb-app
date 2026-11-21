@@ -53,6 +53,17 @@ class SettingsLocalDataSourceTest {
     }
 
     @Test
+    fun `every theme survives a round trip`() = runTest {
+        val local = SettingsLocalDataSource(dataStore())
+
+        AppTheme.entries.forEach { theme ->
+            local.update { it.copy(theme = theme) }
+
+            assertEquals(theme, local.settings.first().theme)
+        }
+    }
+
+    @Test
     fun `unknown or empty stored values fall back to the defaults`() = runTest {
         val store = dataStore()
         store.edit {

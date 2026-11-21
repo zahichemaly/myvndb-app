@@ -1,0 +1,102 @@
+{
+  "output_size": [1080, 2400],
+  "webp_quality": 80,
+  "wallpapers": [
+    {
+      "name": "steins_gate",
+      "vndb": "v2002",
+      "source": "https://t.vndb.org/cv/65/85365.jpg",
+      "region": [0, 0, 1, 0.72],
+      "focus": [0.64, 0.4],
+      "note": "Digital cover: Okabe, Kurisu, Mayuri. Region stops above the logo."
+    },
+    {
+      "name": "ever17",
+      "vndb": "v17",
+      "source": "https://t.vndb.org/cv/92/85892.jpg",
+      "region": [0, 0.115, 1, 0.78],
+      "focus": [0.5, 0.45],
+      "note": "PS2 cover: Tsugumi, Coco and You underwater. Region skips the PlayStation 2 bar and the logo."
+    },
+    {
+      "name": "clannad",
+      "vndb": "v4",
+      "source": "https://t.vndb.org/cv/64/95864.jpg",
+      "region": [0, 0.1, 1, 0.6],
+      "focus": [0.5, 0.5],
+      "note": "PC cover: the heroines, Nagisa in the middle. Region stops above the logo and tagline."
+    },
+    {
+      "name": "higurashi",
+      "vndb": "v67",
+      "source": "https://t.vndb.org/cv/84/83484.jpg",
+      "region": [0, 0.105, 1, 0.52],
+      "focus": [0.45, 0.5],
+      "note": "PS2 cover: Rena under a red moon. Region skips the PlayStation 2 bar and stops above the logo."
+    },
+    {
+      "name": "doki_doki_literature_club",
+      "vndb": "v21905",
+      "source": "https://t.vndb.org/cv/77/116477.jpg",
+      "region": [0, 0.065, 1, 0.6],
+      "focus": [0.72, 0.5],
+      "note": "Switch cover (Plus!): Monika. Region skips the Switch bar and stops above the logo."
+    },
+    {
+      "name": "muv_luv_alternative",
+      "vndb": "v92",
+      "source": "https://t.vndb.org/cv/17/83217.jpg",
+      "region": [0.5, 0.145, 0.9, 0.92],
+      "focus": [0.7, 0.5],
+      "note": "Xbox 360 cover: Meiya and the Takemikazuchi. Region skips the Xbox bar, the logo (left) and the rating marks."
+    },
+    {
+      "name": "danganronpa",
+      "vndb": "v7014",
+      "source": "https://t.vndb.org/cv/15/75815.jpg",
+      "region": [0, 0, 1, 1],
+      "focus": [0.75, 0.5],
+      "note": "Digital cover: pink-and-black type with Monokuma. PLACEHOLDER: the art is the logo, so the crop keeps part of it."
+    },
+    {
+      "name": "white_album_2",
+      "vndb": "v7771",
+      "source": "https://t.vndb.org/cv/06/97306.jpg",
+      "region": [0, 0, 1, 0.56],
+      "focus": [0.24, 0.5],
+      "note": "Extended Edition cover: Setsuna (pink scarf) in the snow. Region stops above the logo."
+    },
+    {
+      "name": "ef",
+      "vndb": "v88",
+      "source": "https://t.vndb.org/cv/33/120033.jpg",
+      "region": [0.03, 0.04, 0.97, 0.55],
+      "focus": [0.5, 0.5],
+      "note": "English package: the four heroines under a blue sky. Region skips the frame and stops above the logo."
+    },
+    {
+      "name": "kara_no_shoujo",
+      "vndb": "v810",
+      "source": "https://t.vndb.org/cv/88/120088.jpg",
+      "region": [0, 0.13, 1, 0.78],
+      "focus": [0.55, 0.45],
+      "note": "English package: Toko sitting in an eggshell, black and white. Region skips both logos and the 18+ mark."
+    },
+    {
+      "name": "umineko",
+      "vndb": "v24",
+      "source": "https://t.vndb.org/cv/28/94328.jpg",
+      "region": [0, 0.125, 1, 0.5],
+      "focus": [0.71, 0.3],
+      "note": "PS4 cover (Saku): Beatrice and golden butterflies. Region skips the PS4 bar and stops above the logo."
+    },
+    {
+      "name": "fate_stay_night",
+      "vndb": "v11",
+      "source": "https://t.vndb.org/cv/74/89274.jpg",
+      "region": [0, 0.12, 1, 0.78],
+      "focus": [0.5, 0.45],
+      "note": "Fate/stay night + hollow ataraxia package: Saber between Rin and Sakura. Region skips both logos and the title text."
+    }
+  ]
+}

@@ -14,7 +14,7 @@ Rules: `.claude/skills/*`. Supersedes the "no theme picker" decision in [plan 09
 | **Angelic Serenade** | Same Nocturne VN palette | `wallpaper_angelic_serenade.webp` at 20% | no |
 | **Saya no Uta** | Own wine-and-teal palette, taken from the wallpaper's colors | `wallpaper_saya_no_uta.webp` at 20% | no |
 | **House in Fata Morgana** | Own palette: warm near-black `#171311` / `#261F1B`, gold `#C9A66B`, wine `#8C4A4A` | `wallpaper_house_in_fata_morgana.webp` at 20% | no |
-| **Tsukihime** | Own palette: midnight blue `#0A0E1A` / `#141C33`, text `#E6ECFF`, crimson `#D92B4B` | `wallpaper_tsukihime.webp` at 20% | no |
+| **Tsukihime** | Own palette: midnight blue `#0A0E1A` / `#141C33`, text `#E6ECFF`, crimson `#EC5570` with dark text on it (was `#D92B4B` with white; changed in [plan 14](14-more-themes.md) §9 for contrast) | `wallpaper_tsukihime.webp` at 20% | no |
 | **Meikei no Lupercalia** | Own palette: violet-black `#0D0B14` / `#181524`, text `#F3EFFA`, gold `#E2B86B`, rose-crimson `#D94B6A` | `wallpaper_meikei_no_lupercalia.webp` at 20% | no |
 
 - **Saved:** the choice is stored in the `settings` DataStore and read at launch. An unknown or missing value falls back to Original.
@@ -80,13 +80,13 @@ Below it: the theme name and a check when selected. Cards sit in an adaptive gri
 
 ## Adding a theme
 A theme is a name, a color scheme and an optional wallpaper. Color schemes live one per file in `common/ui/theme/schemes/`; a theme may reuse an existing scheme (Original and Angelic Serenade both use Nocturne).
-1. **Scheme** (only if the theme has new colors): copy `schemes/SayaNoUtaScheme.kt`, rename it, and set every Material role and every `VndbColors` token. `VndbColors` has no defaults, so a missing token is a compile error, not a silent inherit. Contrast to check: the accent against the card and background colors (>= 4.5:1), `onAccent` on the accent, cream/body text on the wallpaper wash.
-2. **Wallpaper** (optional): 1080 x 2400 WebP in `res/drawable-nodpi/wallpaper_<name>.webp` (`cwebp -q 80`).
+1. **Scheme** (only if the theme has new colors): copy `schemes/TsukihimeScheme.kt` (dark) or `schemes/LightScheme.kt` (light), rename it, and set every Material role and every `VndbColors` token. `VndbColors` has no defaults, so a missing token is a compile error, not a silent inherit. [Plan 14](14-more-themes.md) §2 has the rules that derive a full scheme from six anchor colors. Contrast to check: the accent against the card and background colors (>= 4.5:1), `onAccent` on the accent, cream/body text on the wallpaper wash. `ThemeContrastTest` checks body text and the accent on cards, and `onAccent` on the accent, for every theme.
+2. **Wallpaper** (optional): add an entry to `tools/wallpapers/wallpapers.json` (source URL, clean region, focus point), run `python3 -I tools/wallpapers/fetch_wallpapers.py --preview --only <name>`, check `build/wallpapers/preview.png`, then run it again without `--preview`. It writes a 1080 x 2400 WebP (quality 80) to `res/drawable-nodpi/wallpaper_<name>.webp`. See plan 14 §3.
 3. **Strings:** `theme_<name>` in `strings.xml`.
 4. **Spec:** one entry in `common/ui/theme/Themes.kt`: `val <Name>ThemeSpec = <Scheme>.toSpec(name, wallpaper)`.
 5. **Enum and mapper:** add the entry to `AppTheme` (domain) and one branch to `AppTheme.toSpec()` (`common/ui/mapper/AppThemeUIModelMapper.kt`). The `when` is exhaustive, so the build fails until this is done.
 
-Nothing else changes: the Theme screen lists `AppTheme.entries`, the Settings row, persistence (an unknown stored value falls back to Original) and the root all read from the spec. The mapper test checks every theme has a unique name and look, and a wallpaper unless it is one of the plain themes (Original, Light, Dark, Neon). A light theme (background luminance > 0.5) gets dark system bar icons automatically (`AppRoute`).
+Nothing else changes: the Theme screen lists `AppTheme.entries`, the Settings row, persistence (an unknown stored value falls back to Original) and the root all read from the spec. The mapper test checks every theme has a unique name and look, and a wallpaper unless it is one of the plain themes (Original, Light, Dark, Neon, Sepia, AMOLED). A light theme (background luminance > 0.5) gets dark system bar icons automatically (`AppRoute`).
 
 ## 5. Tests
 - `SettingsLocalDataSourceTest`: theme round-trip, default is Original, an unknown stored value falls back to Original.

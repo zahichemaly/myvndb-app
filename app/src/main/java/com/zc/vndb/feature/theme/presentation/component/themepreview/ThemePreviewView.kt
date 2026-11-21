@@ -63,7 +63,8 @@ private const val LINE_ALPHA = 0.7f
 
 /**
  * A theme as a small phone: its wallpaper and real tokens drawn under that theme, so it can never
- * drift from the theme itself. Tapping selects it. Below the phone: four swatches, then the name (which may wrap).
+ * drift from the theme itself. Tapping selects it. Below the phone: four swatches (and a check when selected),
+ * then the name, which may wrap.
  */
 @Composable
 fun ThemePreviewView(model: ThemeUIModel, onSelect: () -> Unit, modifier: Modifier = Modifier) {
@@ -86,28 +87,27 @@ fun ThemePreviewView(model: ThemeUIModel, onSelect: () -> Unit, modifier: Modifi
                 .clip(shape)
                 .border(borderWidth, borderColor, shape),
         )
-        VndbTheme(model.spec) {
-            Row(
-                modifier = Modifier.clearAndSetSemantics {},
-                horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm),
-            ) {
-                Swatch(MaterialTheme.colorScheme.background)
-                Swatch(VndbTheme.colors.surfaceCard)
-                Swatch(VndbTheme.colors.accent)
-                Swatch(VndbTheme.colors.score)
-            }
-        }
+        // The check sits at the end of the swatch row, not next to the name, so a long name keeps the
+        // full width and never breaks mid-word when selected. The row is always check-tall, so selecting
+        // a card does not shift it against its neighbours.
         Row(
-            modifier = Modifier.heightIn(min = CheckIconSize),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = CheckIconSize),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm),
         ) {
-            Text(
-                text = model.name.asString(),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
+            VndbTheme(model.spec) {
+                Row(
+                    modifier = Modifier.clearAndSetSemantics {},
+                    horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm),
+                ) {
+                    Swatch(MaterialTheme.colorScheme.background)
+                    Swatch(VndbTheme.colors.surfaceCard)
+                    Swatch(VndbTheme.colors.accent)
+                    Swatch(VndbTheme.colors.score)
+                }
+            }
+            Spacer(modifier = Modifier.weight(1f))
             if (model.isSelected) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
@@ -118,6 +118,11 @@ fun ThemePreviewView(model: ThemeUIModel, onSelect: () -> Unit, modifier: Modifi
                 )
             }
         }
+        Text(
+            text = model.name.asString(),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
 }
 

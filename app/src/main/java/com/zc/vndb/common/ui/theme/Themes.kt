@@ -4,14 +4,28 @@ import androidx.annotation.DrawableRes
 import com.zc.vndb.common.ui.resource.DrawableResource
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
+import com.zc.vndb.common.ui.theme.schemes.AmoledScheme
+import com.zc.vndb.common.ui.theme.schemes.ClannadScheme
+import com.zc.vndb.common.ui.theme.schemes.DanganronpaScheme
 import com.zc.vndb.common.ui.theme.schemes.DarkScheme
+import com.zc.vndb.common.ui.theme.schemes.DokiDokiLiteratureClubScheme
+import com.zc.vndb.common.ui.theme.schemes.EfScheme
+import com.zc.vndb.common.ui.theme.schemes.Ever17Scheme
+import com.zc.vndb.common.ui.theme.schemes.FateStayNightScheme
+import com.zc.vndb.common.ui.theme.schemes.HigurashiScheme
 import com.zc.vndb.common.ui.theme.schemes.HouseInFataMorganaScheme
+import com.zc.vndb.common.ui.theme.schemes.KaraNoShoujoScheme
 import com.zc.vndb.common.ui.theme.schemes.LightScheme
 import com.zc.vndb.common.ui.theme.schemes.MeikeiNoLupercaliaScheme
+import com.zc.vndb.common.ui.theme.schemes.MuvLuvAlternativeScheme
 import com.zc.vndb.common.ui.theme.schemes.NeonScheme
 import com.zc.vndb.common.ui.theme.schemes.NocturneScheme
 import com.zc.vndb.common.ui.theme.schemes.SayaNoUtaScheme
+import com.zc.vndb.common.ui.theme.schemes.SepiaScheme
+import com.zc.vndb.common.ui.theme.schemes.SteinsGateScheme
 import com.zc.vndb.common.ui.theme.schemes.TsukihimeScheme
+import com.zc.vndb.common.ui.theme.schemes.UminekoScheme
+import com.zc.vndb.common.ui.theme.schemes.WhiteAlbum2Scheme
 
 // Every theme: a name, a color scheme from `schemes/` and an optional wallpaper. To add one, see
 // docs/plans/10-themes.md ("Adding a theme").
@@ -51,6 +65,16 @@ val NeonThemeSpec = NeonScheme.toSpec(
     name = UiText.StringResource(StringResource.theme_neon),
 )
 
+/** Warm paper and ink with a burnt-sienna accent, on a plain background. */
+val SepiaThemeSpec = SepiaScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_sepia),
+)
+
+/** Original's sky blue and amber on true black, on a plain background. */
+val AmoledThemeSpec = AmoledScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_amoled),
+)
+
 /** Nocturne VN over the Angelic Serenade wallpaper. */
 val AngelicSerenadeThemeSpec = NocturneScheme.toSpec(
     name = UiText.StringResource(StringResource.theme_angelic_serenade),
@@ -79,4 +103,76 @@ val TsukihimeThemeSpec = TsukihimeScheme.toSpec(
 val MeikeiNoLupercaliaThemeSpec = MeikeiNoLupercaliaScheme.toSpec(
     name = UiText.StringResource(StringResource.theme_meikei_no_lupercalia),
     wallpaper = wallpaper(DrawableResource.wallpaper_meikei_no_lupercalia),
+)
+
+/** Olive-black and Nixie amber over the Steins;Gate wallpaper. */
+val SteinsGateThemeSpec = SteinsGateScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_steins_gate),
+    wallpaper = wallpaper(DrawableResource.wallpaper_steins_gate),
+)
+
+/** Deep-sea teal and coral over the Ever17 wallpaper. */
+val Ever17ThemeSpec = Ever17Scheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_ever17),
+    wallpaper = wallpaper(DrawableResource.wallpaper_ever17),
+)
+
+/** Blush white and sakura rose over the Clannad wallpaper. */
+val ClannadThemeSpec = ClannadScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_clannad),
+    wallpaper = wallpaper(DrawableResource.wallpaper_clannad),
+)
+
+/** Forest green and blood red over the Higurashi wallpaper. */
+val HigurashiThemeSpec = HigurashiScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_higurashi),
+    wallpaper = wallpaper(DrawableResource.wallpaper_higurashi),
+)
+
+/** Plum, emerald and club pink over the Doki Doki Literature Club! wallpaper. */
+val DokiDokiLiteratureClubThemeSpec = DokiDokiLiteratureClubScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_doki_doki_literature_club),
+    wallpaper = wallpaper(DrawableResource.wallpaper_doki_doki_literature_club),
+)
+
+/** Gunmetal and hazard yellow over the Muv-Luv Alternative wallpaper. */
+val MuvLuvAlternativeThemeSpec = MuvLuvAlternativeScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_muv_luv_alternative),
+    wallpaper = wallpaper(DrawableResource.wallpaper_muv_luv_alternative),
+)
+
+/** Black, white and shocking pink over the Danganronpa wallpaper. */
+val DanganronpaThemeSpec = DanganronpaScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_danganronpa),
+    wallpaper = wallpaper(DrawableResource.wallpaper_danganronpa),
+)
+
+/** Frost grey and winter rose over the White Album 2 wallpaper. */
+val WhiteAlbum2ThemeSpec = WhiteAlbum2Scheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_white_album_2),
+    wallpaper = wallpaper(DrawableResource.wallpaper_white_album_2),
+)
+
+/** Twilight mauve and apricot over the ef - a fairy tale of the two. wallpaper. */
+val EfThemeSpec = EfScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_ef),
+    wallpaper = wallpaper(DrawableResource.wallpaper_ef),
+)
+
+/** Ash black and bone white over the Kara no Shoujo wallpaper. */
+val KaraNoShoujoThemeSpec = KaraNoShoujoScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_kara_no_shoujo),
+    wallpaper = wallpaper(DrawableResource.wallpaper_kara_no_shoujo),
+)
+
+/** Ebony, blue truth and red truth over the Umineko wallpaper. */
+val UminekoThemeSpec = UminekoScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_umineko),
+    wallpaper = wallpaper(DrawableResource.wallpaper_umineko),
+)
+
+/** Steel, royal blue and gold over the Fate/stay night wallpaper. */
+val FateStayNightThemeSpec = FateStayNightScheme.toSpec(
+    name = UiText.StringResource(StringResource.theme_fate_stay_night),
+    wallpaper = wallpaper(DrawableResource.wallpaper_fate_stay_night),
 )
