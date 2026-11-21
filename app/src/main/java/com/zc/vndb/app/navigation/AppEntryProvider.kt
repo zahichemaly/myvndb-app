@@ -16,8 +16,6 @@ import com.zc.vndb.feature.detail.presentation.navigation.DetailNavActions
 import com.zc.vndb.feature.detail.presentation.navigation.detailEntry
 import com.zc.vndb.feature.detail.presentation.navigation.navigateToDetail
 import com.zc.vndb.feature.discover.presentation.navigation.discoverEntry
-import com.zc.vndb.feature.listeditor.presentation.navigation.listEditorEntry
-import com.zc.vndb.feature.listeditor.presentation.navigation.navigateToListEditor
 import com.zc.vndb.feature.login.presentation.navigation.loginEntry
 import com.zc.vndb.feature.login.presentation.navigation.navigateToLogin
 import com.zc.vndb.feature.profile.presentation.navigation.profileEntry
@@ -27,6 +25,8 @@ import com.zc.vndb.feature.settings.presentation.navigation.navigateToSettings
 import com.zc.vndb.feature.settings.presentation.navigation.settingsEntry
 import com.zc.vndb.feature.theme.presentation.navigation.navigateToTheme
 import com.zc.vndb.feature.theme.presentation.navigation.themeEntry
+import com.zc.vndb.feature.userlist.presentation.navigation.listEditorEntry
+import com.zc.vndb.feature.userlist.presentation.navigation.navigateToListEditor
 
 /**
  * Registers every feature's entries. The only place that knows all the features: each one gets

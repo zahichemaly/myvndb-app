@@ -89,14 +89,14 @@ com.zc.vndb/
 
 Rules:
 
-- **MUST** create all four feature subpackages — `data`, `domain`, `di`, `presentation` — for every feature.
+- **MUST** give every feature `di` and `presentation`, plus `domain` and `data` whenever it has its own use cases or its own data sources. A feature built only on `common` repositories (e.g. `settings`, `theme`) has no `data/`; never create empty packages. A screen that edits another feature's data belongs to the feature that owns that data (the list editor lives in `userlist`, next to the list's repository).
 - Feature names are **lowercase**, no underscores or hyphens (`feature/userlist`, never `feature/UserList` or `feature/user_list`).
 - **NEVER** add top-level packages beyond `app`, `common`, `feature`. No layer-first packages (`com.zc.vndb.data`, `com.zc.vndb.ui`, `com.zc.vndb.viewmodels`, `com.zc.vndb.utils`).
 - Dev-only scripts live in the repo-root `tools/` folder (e.g. `tools/wallpapers/`), outside this package tree and the Gradle build.
 - **NEVER** add folders that are not in the tree (`helper/`, `base/`, `extensions/`, `manager/`). Place the code in the folder that matches its role.
 - `common/data/dto/` and `common/data/mapper/` hold only DTOs (and their mappers) that two or more features send or receive; a DTO used by one feature stays in that feature.
 - `util/` exists **only** at `common/data/util/`, `common/domain/util/` and `common/ui/util/`, for the cross-cutting helpers listed in §2. **NEVER** create `util/` inside a feature, and never use these folders as a dumping ground for feature logic.
-- Feature `presentation/` is flat: a feature with several screens holds several `[Name]State/Intent/Effect/ViewModel/Route/Screen` sets side by side.
+- Feature `presentation/` is flat: a feature with several screens holds several `[Name]State/Intent/Effect/ViewModel/Route/Screen` sets side by side. ViewModel state holders (`architecture` §3, e.g. `SectionLoader.kt`) sit flat there too, next to the ViewModel that uses them.
 
 ### 1.1 Components mirror `presentation` (recursively)
 
@@ -198,7 +198,9 @@ Rules are in `library-management`.
 | MVI contract, ViewModel, Route, Screen | `feature/[name]/presentation/` |
 | Library / plugin dependency declaration | `gradle/libs.versions.toml` |
 | Custom Gradle task, convention plugin, shared build config | `build-logic/convention/src/main/kotlin/` |
+| ViewModel state holder (one lazily loaded part of a screen, e.g. `SectionLoader`) | `feature/[name]/presentation/[Name].kt`, flat next to the ViewModel |
 | Unit test for `X` | `app/src/test/java/com/zc/vndb/<same package as X>/XTest.kt` |
+| Architecture rules (layers, feature edges) | `app/src/test/java/com/zc/vndb/app/ArchitectureTest.kt` |
 | Test fakes (`Fake[Name]Repository`, `TestDispatcherProvider`) and rules (`MainDispatcherRule`) | Test source set, mirroring the package of the thing they fake (`MainDispatcherRule` → `common/util/`) |
 
 ---
@@ -206,7 +208,10 @@ Rules are in `library-management`.
 ## 3. Shared code (`common/`)
 
 - Code moves to `common/` **only** when two or more features use it. Until then it stays in its feature.
-- When a second feature needs something from `feature/a`, **move** it to the matching `common/` folder — never import `feature.a.*` from `feature.b`.
+- When a second feature needs something from `feature/a`:
+  - A domain model or use case that is clearly `a`'s business (e.g. the user's list, owned by `userlist`): `feature/b` may import it from `feature/a/domain/{model,usecase}/`, after adding the `b -> a` edge to `ALLOWED_FEATURE_DEPENDENCIES` in `ArchitectureTest.kt`. The feature graph must stay acyclic.
+  - Anything else (data, presentation, navigation, a repository interface), anything a `common/` file needs, or anything that would make two features depend on each other: **move** it to the matching `common/` folder.
+  - A use case that only wraps a `common` repository (session, settings, languages) always lives in `common/domain/usecase/`.
 - `common/` is feature-agnostic: it **NEVER** imports `feature.*` or `app.*`.
 - `common/ui/component/` widgets accept primitives, `common` types, and lambdas — never a feature's `UIModel`, `State`, or `Intent`.
 
@@ -232,7 +237,7 @@ Each component folder follows §1.1 (`model/`, `mapper/`, nested `component/`).
 |---|---|---|---|---|
 | `app` | ✅ | ✅ | ✅ (Routes, modules) | ✅ (Routes, modules) |
 | `common` | — | ✅ | — | — |
-| `feature/[name]` | — | ✅ | ✅ (per layer rules in `architecture`) | `domain` only (models, use cases) |
+| `feature/[name]` | — | ✅ | ✅ (per layer rules in `architecture`) | `domain/model` and `domain/usecase` only, along an allow-listed, acyclic edge (§3) |
 
 - A feature owns its `NavKey`s and its entry extension function in `presentation/navigation/`. Everything that leaves the feature (open another feature's screen, go back) is a lambda parameter of that function. A feature never imports another feature's navigation package.
 - Only `app/navigation/AppEntryProvider.kt` knows every feature: it passes each entry function the lambdas that navigate to the other features' keys. The back stack and `NavDisplay` live in `app/navigation/` and `common/ui/navigation/`.
@@ -294,18 +299,10 @@ class AppApplication : Application(), SingletonImageLoader.Factory {
 
 ## 7. Checks
 
-Each must print nothing:
+`app/src/test/java/com/zc/vndb/app/ArchitectureTest.kt` checks the top-level packages, that `common` imports no `feature` or `app` code, that features never import `app`, and the feature edges of §3–4. It runs with the unit tests:
 
 ```bash
-ls app/src/main/java/com/zc/vndb | grep -vxE "app|common|feature"
-```
-
-```bash
-grep -rlE "import com\.zc\.vndb\.(feature|app)\." app/src/main/java/com/zc/vndb/common
-```
-
-```bash
-grep -rlE "import com\.zc\.vndb\.app\." app/src/main/java/com/zc/vndb/feature
+./gradlew testDevelopmentDebugUnitTest --tests 'com.zc.vndb.app.ArchitectureTest'
 ```
 
 ### Current repo migration
@@ -324,3 +321,4 @@ The template project still has `MainActivity.kt` at the root and `ui/theme/`. Mo
 - [ ] Every component has its own `component/[name]/` subpackage. Its own models and mappers sit inside it, its sub-components nest under its `component/`, and it has no ViewModel, Route or State.
 - [ ] NavKeys and entry extension functions live in the owning feature's `presentation/navigation/`; no feature imports another feature's navigation package; `AppEntryProvider.kt` does the wiring.
 - [ ] `app/di/AppModule.kt` includes every feature module.
+- [ ] Any new feature-to-feature import goes through `domain/model` or `domain/usecase` and its edge is in `ArchitectureTest.kt`; `ArchitectureTest` passes.

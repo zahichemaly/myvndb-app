@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import com.zc.vndb.common.domain.model.ListLabel
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelChipView
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelUIModel
 import com.zc.vndb.common.ui.component.sectioncard.SectionCardView
@@ -33,7 +34,6 @@ import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
 import com.zc.vndb.feature.detail.presentation.component.mylist.model.MyListCardUIModel
-import com.zc.vndb.feature.profile.domain.model.ListLabel
 import kotlinx.collections.immutable.persistentListOf
 
 private val ButtonIconSize = 18.dp

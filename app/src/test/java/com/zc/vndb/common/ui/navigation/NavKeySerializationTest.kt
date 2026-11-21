@@ -9,12 +9,12 @@ import com.zc.vndb.feature.browse.presentation.navigation.TagNavKey
 import com.zc.vndb.feature.character.presentation.navigation.CharacterNavKey
 import com.zc.vndb.feature.detail.presentation.navigation.DetailNavKey
 import com.zc.vndb.feature.discover.presentation.navigation.DiscoverNavKey
-import com.zc.vndb.feature.listeditor.presentation.navigation.ListEditorNavKey
 import com.zc.vndb.feature.login.presentation.navigation.LoginNavKey
 import com.zc.vndb.feature.profile.presentation.navigation.ProfileNavKey
 import com.zc.vndb.feature.release.presentation.navigation.ReleaseNavKey
 import com.zc.vndb.feature.settings.presentation.navigation.SettingsNavKey
 import com.zc.vndb.feature.theme.presentation.navigation.ThemeNavKey
+import com.zc.vndb.feature.userlist.presentation.navigation.ListEditorNavKey
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test

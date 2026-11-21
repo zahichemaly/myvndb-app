@@ -1,9 +1,9 @@
 package com.zc.vndb.feature.profile.presentation.mapper
 
+import com.zc.vndb.common.domain.model.ListLabel
 import com.zc.vndb.common.domain.model.ListSort
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
-import com.zc.vndb.feature.profile.domain.model.ListLabel
 import com.zc.vndb.feature.profile.presentation.model.LabelChipUIModel
 import com.zc.vndb.feature.profile.presentation.model.SortOptionUIModel
 import kotlinx.collections.immutable.ImmutableList

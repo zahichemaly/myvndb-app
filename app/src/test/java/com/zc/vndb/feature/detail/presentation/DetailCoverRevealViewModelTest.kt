@@ -4,6 +4,7 @@ import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSessionRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
+import com.zc.vndb.common.domain.usecase.ObserveSessionUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
 import com.zc.vndb.common.util.MainDispatcherRule
 import com.zc.vndb.feature.detail.domain.model.DetailSamples
@@ -17,11 +18,10 @@ import com.zc.vndb.feature.detail.domain.usecase.GetNovelReleasesUseCase
 import com.zc.vndb.feature.detail.domain.usecase.GetNovelScreenshotsUseCase
 import com.zc.vndb.feature.detail.presentation.model.CoverRevealRequest
 import com.zc.vndb.feature.detail.presentation.model.DetailSection
-import com.zc.vndb.feature.profile.domain.repository.FakeProfileRepository
-import com.zc.vndb.feature.profile.domain.usecase.GetMyListEntryUseCase
-import com.zc.vndb.feature.profile.domain.usecase.IsNovelFinishedUseCase
-import com.zc.vndb.feature.profile.domain.usecase.ObserveListChangesUseCase
-import com.zc.vndb.feature.profile.domain.usecase.ObserveSessionUseCase
+import com.zc.vndb.feature.userlist.domain.repository.FakeUserListRepository
+import com.zc.vndb.feature.userlist.domain.usecase.GetMyListEntryUseCase
+import com.zc.vndb.feature.userlist.domain.usecase.IsNovelFinishedUseCase
+import com.zc.vndb.feature.userlist.domain.usecase.ObserveListChangesUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -45,7 +45,7 @@ class DetailCoverRevealViewModelTest {
     private val settings = FakeSettingsRepository()
     private val languages = FakeLanguageRepository()
     private val sessions = FakeSessionRepository()
-    private val profileRepository = FakeProfileRepository()
+    private val userListRepository = FakeUserListRepository()
 
     private fun createViewModel() = DetailViewModel(
         novelId = "v2002",
@@ -58,10 +58,10 @@ class DetailCoverRevealViewModelTest {
         getNovelQuotes = GetNovelQuotesUseCase(repository),
         observeSettings = ObserveSettingsUseCase(settings),
         observeLanguages = ObserveLanguagesUseCase(languages),
-        isNovelFinished = IsNovelFinishedUseCase(sessions, profileRepository),
+        isNovelFinished = IsNovelFinishedUseCase(sessions, userListRepository),
         observeSession = ObserveSessionUseCase(sessions),
-        getMyListEntry = GetMyListEntryUseCase(sessions, profileRepository),
-        observeListChanges = ObserveListChangesUseCase(profileRepository),
+        getMyListEntry = GetMyListEntryUseCase(sessions, userListRepository),
+        observeListChanges = ObserveListChangesUseCase(userListRepository),
     )
 
     @Test

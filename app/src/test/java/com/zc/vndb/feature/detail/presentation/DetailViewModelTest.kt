@@ -4,7 +4,9 @@ import app.cash.turbine.test
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.CharacterRole
 import com.zc.vndb.common.domain.model.DomainError
+import com.zc.vndb.common.domain.model.ListLabel
 import com.zc.vndb.common.domain.model.Session
+import com.zc.vndb.common.domain.model.SessionSamples
 import com.zc.vndb.common.domain.model.SpoilerPreference
 import com.zc.vndb.common.domain.model.TagCategory
 import com.zc.vndb.common.domain.model.VoiceActor
@@ -12,6 +14,7 @@ import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSessionRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
+import com.zc.vndb.common.domain.usecase.ObserveSessionUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelUIModel
 import com.zc.vndb.common.ui.component.spoilerfilter.model.SpoilerLevel
@@ -32,14 +35,11 @@ import com.zc.vndb.feature.detail.presentation.model.DetailSection
 import com.zc.vndb.feature.detail.presentation.model.DetailTab
 import com.zc.vndb.feature.detail.presentation.model.SectionState
 import com.zc.vndb.feature.detail.presentation.model.dataOrNull
-import com.zc.vndb.feature.profile.domain.model.ListLabel
-import com.zc.vndb.feature.profile.domain.model.MyListEntry
-import com.zc.vndb.feature.profile.domain.model.ProfileSamples
-import com.zc.vndb.feature.profile.domain.repository.FakeProfileRepository
-import com.zc.vndb.feature.profile.domain.usecase.GetMyListEntryUseCase
-import com.zc.vndb.feature.profile.domain.usecase.IsNovelFinishedUseCase
-import com.zc.vndb.feature.profile.domain.usecase.ObserveListChangesUseCase
-import com.zc.vndb.feature.profile.domain.usecase.ObserveSessionUseCase
+import com.zc.vndb.feature.userlist.domain.model.MyListEntry
+import com.zc.vndb.feature.userlist.domain.repository.FakeUserListRepository
+import com.zc.vndb.feature.userlist.domain.usecase.GetMyListEntryUseCase
+import com.zc.vndb.feature.userlist.domain.usecase.IsNovelFinishedUseCase
+import com.zc.vndb.feature.userlist.domain.usecase.ObserveListChangesUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -80,7 +80,7 @@ class DetailViewModelTest {
     private val settings = FakeSettingsRepository()
     private val languages = FakeLanguageRepository()
     private val sessions = FakeSessionRepository()
-    private val profileRepository = FakeProfileRepository()
+    private val userListRepository = FakeUserListRepository()
 
     private fun createViewModel() = DetailViewModel(
         novelId = "v2002",
@@ -93,10 +93,10 @@ class DetailViewModelTest {
         getNovelQuotes = GetNovelQuotesUseCase(repository),
         observeSettings = ObserveSettingsUseCase(settings),
         observeLanguages = ObserveLanguagesUseCase(languages),
-        isNovelFinished = IsNovelFinishedUseCase(sessions, profileRepository),
+        isNovelFinished = IsNovelFinishedUseCase(sessions, userListRepository),
         observeSession = ObserveSessionUseCase(sessions),
-        getMyListEntry = GetMyListEntryUseCase(sessions, profileRepository),
-        observeListChanges = ObserveListChangesUseCase(profileRepository),
+        getMyListEntry = GetMyListEntryUseCase(sessions, userListRepository),
+        observeListChanges = ObserveListChangesUseCase(userListRepository),
     )
 
     private fun DetailViewModel.need(section: DetailSection) = onIntent(
@@ -322,12 +322,12 @@ class DetailViewModelTest {
     fun `a finished VN shows every spoiler when spoil me if finished is on`() = runTest {
         settings.current.value = AppSettings(spoilIfFinished = true)
         sessions.current.value = Session("u2", "Yorhel", canReadPrivateList = true)
-        profileRepository.entryLabels["v2002"] = listOf(2, 7)
+        userListRepository.entryLabels["v2002"] = listOf(2, 7)
         val viewModel = createViewModel()
         advanceUntilIdle()
 
         assertEquals(SpoilerLevel.Major, viewModel.state.value.spoilerLevel)
-        assertTrue("entryLabels:v2002" in profileRepository.calls)
+        assertTrue("entryLabels:v2002" in userListRepository.calls)
     }
 
     @Test
@@ -336,10 +336,10 @@ class DetailViewModelTest {
         val guest = createViewModel()
         advanceUntilIdle()
         assertEquals(SpoilerLevel.None, guest.state.value.spoilerLevel)
-        assertTrue(profileRepository.calls.isEmpty())
+        assertTrue(userListRepository.calls.isEmpty())
 
         sessions.current.value = Session("u2", "Yorhel", canReadPrivateList = true)
-        profileRepository.entryLabels["v2002"] = listOf(1)
+        userListRepository.entryLabels["v2002"] = listOf(1)
         val playing = createViewModel()
         advanceUntilIdle()
         assertEquals(SpoilerLevel.None, playing.state.value.spoilerLevel)
@@ -377,7 +377,7 @@ class DetailViewModelTest {
     @Test
     fun `signed-in users see their entry, refreshed after an edit, and can open the editor`() =
         runTest {
-            sessions.current.value = ProfileSamples.session()
+            sessions.current.value = SessionSamples.session()
             val viewModel = createViewModel()
             advanceUntilIdle()
             with(checkNotNull(viewModel.state.value.myList)) {
@@ -385,7 +385,7 @@ class DetailViewModelTest {
                 assertTrue(canEdit)
             }
 
-            profileRepository.saveEntry(
+            userListRepository.saveEntry(
                 MyListEntry(
                     novelId = "v2002",
                     labelIds = setOf(ListLabel.PLAYING),
@@ -412,7 +412,7 @@ class DetailViewModelTest {
 
     @Test
     fun `a token without listwrite shows the entry read-only`() = runTest {
-        sessions.current.value = ProfileSamples.session(canWriteList = false)
+        sessions.current.value = SessionSamples.session(canWriteList = false)
         val viewModel = createViewModel()
         advanceUntilIdle()
 

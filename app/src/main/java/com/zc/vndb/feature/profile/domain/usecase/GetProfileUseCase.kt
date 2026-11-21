@@ -1,8 +1,9 @@
 package com.zc.vndb.feature.profile.domain.usecase
 
-import com.zc.vndb.feature.profile.domain.model.ListLabel
+import com.zc.vndb.common.domain.model.ListLabel
 import com.zc.vndb.feature.profile.domain.model.ProfileOverview
 import com.zc.vndb.feature.profile.domain.repository.ProfileRepository
+import com.zc.vndb.feature.userlist.domain.usecase.GetListLabelsUseCase
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koin.core.annotation.Factory
@@ -13,11 +14,14 @@ import org.koin.core.annotation.Factory
  * Labels are required; the profile line is optional.
  */
 @Factory
-class GetProfileUseCase(private val repository: ProfileRepository) {
+class GetProfileUseCase(
+    private val repository: ProfileRepository,
+    private val getListLabels: GetListLabelsUseCase,
+) {
 
     suspend operator fun invoke(userId: String): Result<ProfileOverview> = coroutineScope {
         val user = async { repository.getUser(userId).getOrNull() }
-        repository.getLabels(userId)
+        getListLabels(userId)
             .map { labels ->
                 ProfileOverview(
                     user = user.await(),
