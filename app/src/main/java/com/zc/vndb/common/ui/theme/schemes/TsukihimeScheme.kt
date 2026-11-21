@@ -10,7 +10,9 @@ import com.zc.vndb.common.ui.theme.tinted
 import com.zc.vndb.common.ui.theme.tintedStrong
 
 // Tsukihime: a midnight-blue night with a crimson accent.
-// Anchors: background #0A0E1A, cards #141C33, text #E6ECFF, accent crimson #D92B4B.
+// Anchors: background #0A0E1A, cards #141C33, text #E6ECFF, accent crimson #EC5570.
+// The crimson is light enough to read as text on the cards (4.9:1), so text on it is the dark background
+// color (5.6:1) rather than white. See docs/plans/14-more-themes.md, section 9.
 // The moon-blue (secondary, "playing") and gold (score) come from the wallpaper's sky and hair.
 
 // Material 3 roles
@@ -31,9 +33,9 @@ private val OutlineVariant = Color(0xFF2C3858)
 private val SurfaceTint = Color(0xFFF28BA0)
 private val Primary = Color(0xFFFFB2BE)
 private val OnPrimary = Color(0xFF5C0A1F)
-private val PrimaryContainer = Color(0xFFD92B4B)
-private val OnPrimaryContainer = Color(0xFFFFFFFF)
-private val InversePrimary = Color(0xFFB4233F)
+private val PrimaryContainer = Color(0xFFEC5570)
+private val OnPrimaryContainer = Color(0xFF0A0E1A)
+private val InversePrimary = Color(0xFFBD445A)
 private val Secondary = Color(0xFFA9C0F0)
 private val OnSecondary = Color(0xFF0F2250)
 private val SecondaryContainer = Color(0xFF3F5A99)
@@ -53,12 +55,12 @@ private val Scrim = Color(0xFF000000)
 
 // Brand & semantic colors. Crimson is the brand accent, so red is not used for plain statuses:
 // "playing" is moon-blue, and only "dropped" and major spoilers use the lighter crimson.
-private val Crimson = Color(0xFFD92B4B)
-private val CrimsonPressed = Color(0xFFA91F39)
+private val Crimson = Color(0xFFEC5570)
+private val CrimsonPressed = Color(0xFFD44C65)
 private val CrimsonDeep = Color(0xFF4A1424)
-private val CrimsonLight = Color(0xFFF0617F)
+private val CrimsonLight = Color(0xFFFF7D95)
 private val CrimsonTint = Color(0xFFFF8FA3)
-private val OnCrimson = Color(0xFFFFFFFF)
+private val OnCrimson = Color(0xFF0A0E1A)
 private val MoonBlue = Color(0xFF7FA6F0)
 private val Gold = Color(0xFFF2C879)
 private val Amber = Color(0xFFF0B84A)

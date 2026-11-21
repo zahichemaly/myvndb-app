@@ -66,6 +66,12 @@ enum class AppTheme {
     /** Retro-terminal neon green on black, no wallpaper. */
     Neon,
 
+    /** Warm parchment and ink with a burnt-sienna accent, no wallpaper. */
+    Sepia,
+
+    /** Original's sky blue and amber on true black, no wallpaper. */
+    Amoled,
+
     /** The Nocturne VN palette over the Angelic Serenade wallpaper. */
     AngelicSerenade,
 
@@ -80,4 +86,40 @@ enum class AppTheme {
 
     /** A violet-black, gold and rose-crimson palette over the Meikei no Lupercalia wallpaper. */
     MeikeiNoLupercalia,
+
+    /** An olive-black and Nixie-amber palette over the Steins;Gate wallpaper. */
+    SteinsGate,
+
+    /** A deep-sea teal and coral palette over the Ever17 wallpaper. */
+    Ever17,
+
+    /** A blush-white and sakura-rose light palette over the Clannad wallpaper. */
+    Clannad,
+
+    /** A forest-green and blood-red palette over the Higurashi wallpaper. */
+    Higurashi,
+
+    /** A plum, emerald and pink palette over the Doki Doki Literature Club! wallpaper. */
+    DokiDokiLiteratureClub,
+
+    /** A gunmetal and hazard-yellow palette over the Muv-Luv Alternative wallpaper. */
+    MuvLuvAlternative,
+
+    /** A black, white and shocking-pink palette over the Danganronpa wallpaper. */
+    Danganronpa,
+
+    /** A frost-grey and winter-rose palette over the White Album 2 wallpaper. */
+    WhiteAlbum2,
+
+    /** A twilight-mauve and apricot palette over the ef - a fairy tale of the two. wallpaper. */
+    Ef,
+
+    /** An ash-black and bone-white palette over the Kara no Shoujo wallpaper. */
+    KaraNoShoujo,
+
+    /** An ebony, blue-truth and red-truth palette over the Umineko wallpaper. */
+    Umineko,
+
+    /** A steel, royal-blue and gold palette over the Fate/stay night wallpaper. */
+    FateStayNight,
 }

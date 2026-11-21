@@ -108,6 +108,7 @@ grep -rnE "runBlocking|GlobalScope|KoinComponent|by inject\(\)" app/src/main
 ### Kotlin only
 
 - **MUST** write every file in Kotlin, including tests and build scripts (`*.gradle.kts`).
+- Exception: the repo-root `tools/` folder may hold dev-only Python scripts that are run by hand and never by the Gradle build (for example `tools/wallpapers/fetch_wallpapers.py`).
 - Prefer Kotlin-first APIs: `kotlin.time.Duration` over `TimeUnit`, kotlinx-datetime over `java.time`, `buildList` / `map` / `associate` over manual loops into `ArrayList`, `require`/`check` over `IllegalArgumentException` throws, `use {}` for closeables.
 - Idioms: `data class`, `sealed interface`, `value class` for typed ids, `when` exhaustiveness, extension functions for mappers, null-safety over `!!` (**NEVER** `!!` in production code).
 

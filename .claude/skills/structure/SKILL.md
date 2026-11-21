@@ -92,6 +92,7 @@ Rules:
 - **MUST** create all four feature subpackages — `data`, `domain`, `di`, `presentation` — for every feature.
 - Feature names are **lowercase**, no underscores or hyphens (`feature/userlist`, never `feature/UserList` or `feature/user_list`).
 - **NEVER** add top-level packages beyond `app`, `common`, `feature`. No layer-first packages (`com.zc.vndb.data`, `com.zc.vndb.ui`, `com.zc.vndb.viewmodels`, `com.zc.vndb.utils`).
+- Dev-only scripts live in the repo-root `tools/` folder (e.g. `tools/wallpapers/`), outside this package tree and the Gradle build.
 - **NEVER** add folders that are not in the tree (`helper/`, `base/`, `extensions/`, `manager/`). Place the code in the folder that matches its role.
 - `common/data/dto/` and `common/data/mapper/` hold only DTOs (and their mappers) that two or more features send or receive; a DTO used by one feature stays in that feature.
 - `util/` exists **only** at `common/data/util/`, `common/domain/util/` and `common/ui/util/`, for the cross-cutting helpers listed in §2. **NEVER** create `util/` inside a feature, and never use these folders as a dumping ground for feature logic.
