@@ -37,7 +37,7 @@ import com.zc.vndb.common.ui.component.languagesdialog.LanguagesDialogView
 import com.zc.vndb.common.ui.component.selectablechip.SelectableChipView
 import com.zc.vndb.common.ui.mapper.nameOf
 import com.zc.vndb.common.ui.mapper.toLanguagesLabel
-import com.zc.vndb.common.ui.mapper.toNameLabel
+import com.zc.vndb.common.ui.mapper.toNameWithRangeLabel
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.TintedColors
@@ -242,7 +242,7 @@ private fun PickerRow(label: UiText, value: String?, onClick: () -> Unit) {
     ) {
         Text(
             text = label.asString(),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
@@ -296,7 +296,7 @@ private fun LengthSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> Un
         ChipFlow {
             NovelLength.entries.forEach { length ->
                 SelectableChipView(
-                    label = length.toNameLabel(),
+                    label = length.toNameWithRangeLabel(),
                     isSelected = length in advanced.lengths,
                     onClick = {
                         onDraftChange(
