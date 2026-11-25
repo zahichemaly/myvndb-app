@@ -8,36 +8,34 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.togetherWith
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.NavigationRailItemDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItemColors
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import com.zc.vndb.common.ui.navigation.BottomSheetSceneStrategy
+import com.zc.vndb.common.ui.navigation.LocalTabToolbarPadding
 import com.zc.vndb.common.ui.navigation.Navigator
 import com.zc.vndb.common.ui.navigation.rememberNavigationState
-import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.feature.discover.presentation.navigation.DiscoverNavKey
 
 /**
- * App root, in two levels. The tabs sit inside the adaptive navigation suite (bar / rail / drawer)
- * and cross-fade (Navigation 3's default). Pages open over the tabs, navigation suite included:
- * a new one slides in from the end edge as what is below leaves through the start edge, and Back
- * plays it in reverse (following the finger on predictive back).
+ * App root, in two levels. The tabs sit under a floating tab toolbar and cross-fade (Navigation
+ * 3's default). Pages open over the tabs, toolbar included: a new one slides in from the end edge
+ * as what is below leaves through the start edge, and Back plays it in reverse (following the
+ * finger on predictive back).
  */
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
@@ -51,7 +49,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
     val tabEntries by rememberUpdatedState(navigationState.decoratedTabEntries(entryProvider))
     val tabsEntry = remember(navigationState, navigator) {
         NavEntry<NavKey>(TabsNavKey) {
-            TabsScaffold(
+            TabsShell(
                 selectedTab = navigationState.topLevelRoute,
                 onSelectTab = navigator::navigate,
             ) {
@@ -74,57 +72,31 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 /** The bottom entry of the page stack: the tabs, under every page. */
 private data object TabsNavKey : NavKey
 
+/**
+ * The tabs, with the floating tab toolbar over them at the bottom center, above the system
+ * navigation bar. Tab screens read [LocalTabToolbarPadding] to keep their content clear of it.
+ */
 @Composable
-private fun TabsScaffold(
+private fun TabsShell(
     selectedTab: NavKey,
     onSelectTab: (NavKey) -> Unit,
     content: @Composable () -> Unit,
 ) {
-    val itemColors = navigationItemColors()
-    NavigationSuiteScaffold(
-        containerColor = Color.Transparent,
-        navigationSuiteColors = NavigationSuiteDefaults.colors(
-            navigationBarContainerColor = VndbTheme.colors.surfaceInset,
-            navigationRailContainerColor = VndbTheme.colors.surfaceInset,
-            navigationDrawerContainerColor = VndbTheme.colors.surfaceInset,
-        ),
-        navigationSuiteItems = {
-            TopLevelDestination.entries.forEach { destination ->
-                item(
-                    selected = selectedTab == destination.key,
-                    onClick = { onSelectTab(destination.key) },
-                    icon = { Icon(destination.icon, contentDescription = null) },
-                    label = { Text(destination.label.asString()) },
-                    colors = itemColors,
-                )
-            }
-        },
-        content = content,
-    )
-}
-
-/** Selected tab in the accent color on an elevated-surface indicator pill, as in the design. */
-@Composable
-private fun navigationItemColors(): NavigationSuiteItemColors {
-    val accent = VndbTheme.colors.accent
-    val idle = MaterialTheme.colorScheme.onSurfaceVariant
-    val indicator = VndbTheme.colors.surfaceElevated
-    return NavigationSuiteDefaults.itemColors(
-        navigationBarItemColors = NavigationBarItemDefaults.colors(
-            selectedIconColor = accent,
-            selectedTextColor = accent,
-            indicatorColor = indicator,
-            unselectedIconColor = idle,
-            unselectedTextColor = idle,
-        ),
-        navigationRailItemColors = NavigationRailItemDefaults.colors(
-            selectedIconColor = accent,
-            selectedTextColor = accent,
-            indicatorColor = indicator,
-            unselectedIconColor = idle,
-            unselectedTextColor = idle,
-        ),
-    )
+    Box(Modifier.fillMaxSize()) {
+        CompositionLocalProvider(
+            LocalTabToolbarPadding provides
+                    FloatingToolbarDefaults.ContainerSize + FloatingToolbarDefaults.ScreenOffset,
+            content = content,
+        )
+        TabToolbar(
+            selectedTab = selectedTab,
+            onSelectTab = onSelectTab,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = FloatingToolbarDefaults.ScreenOffset),
+        )
+    }
 }
 
 private const val SLIDE_DURATION_MILLIS = 350

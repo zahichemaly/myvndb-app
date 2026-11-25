@@ -49,6 +49,7 @@ import com.zc.vndb.common.ui.component.pulltorefresh.PullToRefreshView
 import com.zc.vndb.common.ui.component.searchfield.SearchFieldView
 import com.zc.vndb.common.ui.component.skeleton.SkeletonRowView
 import com.zc.vndb.common.ui.component.skeleton.loadingSemantics
+import com.zc.vndb.common.ui.navigation.LocalTabToolbarPadding
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
@@ -132,7 +133,13 @@ fun BrowseScreen(
                 onBack = if (state.isScopedPage) ({ onIntent(BrowseIntent.BackClicked) }) else null,
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            // Above the floating tab toolbar when this is a tab.
+            SnackbarHost(
+                snackbarHostState,
+                Modifier.padding(bottom = LocalTabToolbarPadding.current),
+            )
+        },
         containerColor = Color.Transparent,
     ) { padding ->
         PullToRefreshView(
@@ -191,7 +198,12 @@ private fun BrowseGrid(
         columns = GridCells.Fixed(columns),
         state = gridState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = margin, vertical = VndbTheme.spacing.sm),
+        contentPadding = PaddingValues(
+            start = margin,
+            top = VndbTheme.spacing.sm,
+            end = margin,
+            bottom = VndbTheme.spacing.sm + LocalTabToolbarPadding.current,
+        ),
         horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.gutter),
         verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.md),
     ) {

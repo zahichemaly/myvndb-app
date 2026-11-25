@@ -95,7 +95,8 @@ ktlint:
 
 Compose:
   CompositionLocalAllowlist:
-    # Theme token locals, plus app-wide display preferences from Settings.
+    # Theme token locals, app-wide display preferences from Settings, and the room the floating
+    # tab toolbar takes over the tab screens (provided by the app shell, read by the tabs).
     allowedCompositionLocals:
       - LocalVndbColors
       - LocalVndbShapes
@@ -103,6 +104,7 @@ Compose:
       - LocalShowSensitiveContent
       - LocalVndbSpacing
       - LocalVndbDimens
+      - LocalTabToolbarPadding
   PreviewAnnotationNaming:
     # The skills name the shared multi-preview `@AdaptivePreviews` (best-practices skill §5.1).
     active: false

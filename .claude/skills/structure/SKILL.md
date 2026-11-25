@@ -24,7 +24,8 @@ com.zc.vndb/
 │   │   ├── AppModule.kt             # @Module(includes = [...]): CommonModule and every feature module
 │   │   └── AppKoin.kt               # @KoinApplication entry point for startKoin<AppKoin>
 │   └── navigation/
-│       ├── AppNavigation.kt         # The shell: pages NavDisplay over the tabs (NavigationSuiteScaffold + tabs NavDisplay)
+│       ├── AppNavigation.kt         # The shell: pages NavDisplay over the tabs (tabs NavDisplay + floating toolbar)
+│       ├── TabToolbar.kt            # The floating tab toolbar (HorizontalFloatingToolbar)
 │       ├── TopLevelDestination.kt   # The tabs: root key, icon, label
 │       └── AppEntryProvider.kt      # entryProvider: calls every feature's entry function, wiring features together
 │
@@ -159,9 +160,9 @@ Rules are in `library-management`.
 |---|---|
 | Activity, `Application`, `startKoin<AppKoin>` | `app/` |
 | Aggregated Koin module (`@Module(includes = [...])`) and the `@KoinApplication` entry point | `app/di/AppModule.kt`, `app/di/AppKoin.kt` |
-| `NavigationSuiteScaffold`, `NavDisplay`, tab definitions | `app/navigation/AppNavigation.kt`, `app/navigation/TopLevelDestination.kt` |
+| `NavDisplay`s, the tab toolbar, tab definitions | `app/navigation/AppNavigation.kt`, `app/navigation/TabToolbar.kt`, `app/navigation/TopLevelDestination.kt` |
 | Wiring features' entries and cross-feature navigation lambdas | `app/navigation/AppEntryProvider.kt` |
-| `Navigator`, `NavigationState`, `BottomSheetSceneStrategy` | `common/ui/navigation/` |
+| `Navigator`, `NavigationState`, `BottomSheetSceneStrategy`, `LocalTabToolbarPadding` | `common/ui/navigation/` |
 | A feature's `@Serializable` `NavKey`s | `feature/[name]/presentation/navigation/[Name]NavKey.kt` |
 | A feature's `Navigator.navigateTo[Name](...)` helpers and `EntryProviderScope<NavKey>.[name]Entry(...)` (and `[Name]NavActions` when a Route has more than ~4 navigation callbacks) | `feature/[name]/presentation/navigation/[Name]Navigation.kt` (`[Name]NavActions.kt`) |
 | Shared `HttpClient` factory, `Json` instance | `common/data/network/` |
@@ -175,7 +176,7 @@ Rules are in `library-management`.
 | Koin providers for types we don't own (`HttpClient`, `Json`, `Clock`, `DataStore`) | `common/di/CommonModule.kt` |
 | Theme, colors, typography | `common/ui/theme/` |
 | `ObserveAsEvents`, `@AdaptivePreviews` and other non-visual Compose helpers | `common/ui/util/` |
-| Navigation plumbing shared by all features (`Navigator`, `NavigationState`, bottom-sheet scene) | `common/ui/navigation/` |
+| Navigation plumbing shared by all features (`Navigator`, `NavigationState`, bottom-sheet scene, tab toolbar padding) | `common/ui/navigation/` |
 | Presentation mapper for a `common/domain` type used by 2+ features (not tied to one component) | `common/ui/mapper/[Name]UIModelMapper.kt` |
 | `UiText` (all user-visible text in `presentation`) | `common/ui/text/UiText.kt` |
 | `StringResource` / `PluralResource` typealiases for `R.string` / `R.plurals` (the only way code names a string resource) | `common/ui/resource/ResourceTypes.kt` |

@@ -188,7 +188,7 @@ File templates for State, Intent, Effect, ViewModel, Route and Screen are in `co
 - Each feature exposes `Navigator.navigateTo[Name](...)` extensions next to its keys, so callers never construct another feature's `NavKey` directly. `app/navigation/NavigatorExtensions.kt` adds `Navigator.navigateBack()`; `AppEntryProvider.kt` passes these helpers as bound references (`navigator::navigateToDetail`), not wrapper lambdas.
 - `app/navigation/AppEntryProvider.kt` is the only place that knows every feature: it passes each entry function lambdas built from `Navigator` and the other features' keys.
 - Shared plumbing (`Navigator`, `NavigationState`, `BottomSheetSceneStrategy`) lives in `common/ui/navigation/`.
-- Two levels: the tabs (`TopLevelDestination`) live inside the navigation suite; every other key opens as a page over them, covering the navigation bar or rail, and slides in and out. A key never hides or shows the bar itself: where it opens decides that. Bottom sheets are pages whose entry uses `BottomSheetSceneStrategy.bottomSheet()`.
+- Two levels: the tabs (`TopLevelDestination`) live under the floating tab toolbar; every other key opens as a page over them, covering the toolbar, and slides in and out. A tab's screen pads its scrolling content and snackbars by `LocalTabToolbarPadding` (`0.dp` on pages). A key never hides or shows the bar itself: where it opens decides that. Bottom sheets are pages whose entry uses `BottomSheetSceneStrategy.bottomSheet()`.
 
 ---
 

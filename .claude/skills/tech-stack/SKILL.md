@@ -24,7 +24,7 @@ Quality rules for using these libraries (performance, Detekt, error handling, te
 | Dates/time | kotlinx-datetime |
 | Immutable collections | kotlinx-collections-immutable |
 | UI | Jetpack Compose + Material 3 |
-| Adaptive UI | Material 3 Adaptive (navigation suite, adaptive layout, adaptive Navigation 3 scenes) |
+| Adaptive UI | Material 3 Adaptive (adaptive layout, adaptive Navigation 3 scenes) |
 | Lifecycle | Lifecycle runtime/ViewModel Compose, ViewModel Navigation 3 |
 | Rich text | Compose RichText (CommonMark) |
 | Images | Coil 3 (Compose + Ktor network fetcher) |
@@ -153,35 +153,33 @@ runCatching { service.fetch() }                                  // ❌ swallows
 
 ### Material 3 Adaptive
 
-- Top-level destinations use **`NavigationSuiteScaffold`** (bottom bar on compact, rail on medium, drawer on expanded — chosen automatically).
+- Top-level destinations use a Material 3 **`HorizontalFloatingToolbar`** (`app/navigation/TabToolbar.kt`), floating over the tabs at the bottom center on every window size. Tab screens add **`LocalTabToolbarPadding`** to the bottom of their scrolling content and snackbars; pages cover the toolbar and get `0.dp`.
 - List/detail flows use the **`ListDetailPaneScaffold`** — with Navigation 3, through the list-detail scene strategy (`rememberListDetailSceneStrategy()` + `ListDetailSceneStrategy.listPane()` / `detailPane()` metadata on entries). Use `SupportingPaneScaffold` for main + supporting content.
 - Layout decisions read **`currentWindowAdaptiveInfo().windowSizeClass`** in a Route/Screen-level composable and pass plain values (`columns: Int`, `isExpanded: Boolean`) down. Window size is UI-only — it never goes into a ViewModel or `State`.
 
 ```kotlin
-// ✅ app/navigation/AppNavigation.kt (entry point)
+// ✅ app/navigation/AppNavigation.kt: the tabs under the floating toolbar
 @Composable
-fun AppNavigation() {
-    val backStack = rememberNavBackStack(NovelListNavKey)
-    val current = backStack.lastOrNull()
-
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            TopLevelDestination.entries.forEach { destination ->
-                item(
-                    selected = current == destination.key,
-                    onClick = {
-                        backStack.clear()
-                        backStack.add(destination.key)
-                    },
-                    icon = { Icon(destination.icon, contentDescription = null) },
-                    label = { Text(destination.label.asString()) },   // label: UiText
-                )
-            }
-        },
-    ) {
-        AppNavDisplay(backStack)
+private fun TabsShell(selectedTab: NavKey, onSelectTab: (NavKey) -> Unit, content: @Composable () -> Unit) {
+    Box(Modifier.fillMaxSize()) {
+        CompositionLocalProvider(
+            LocalTabToolbarPadding provides
+                FloatingToolbarDefaults.ContainerSize + FloatingToolbarDefaults.ScreenOffset,
+            content = content,   // the tabs' NavDisplay
+        )
+        TabToolbar(   // HorizontalFloatingToolbar, one selectable tab per TopLevelDestination
+            selectedTab = selectedTab,
+            onSelectTab = onSelectTab,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = FloatingToolbarDefaults.ScreenOffset),
+        )
     }
 }
+
+// ✅ a tab's screen keeps its last item and its snackbars clear of the toolbar (0.dp on pages)
+LazyColumn(contentPadding = PaddingValues(bottom = VndbTheme.spacing.sm + LocalTabToolbarPadding.current)) { /* … */ }
 ```
 
 ```kotlin

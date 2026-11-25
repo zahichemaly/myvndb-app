@@ -8,7 +8,8 @@ plugins {
 android {
     namespace = "com.zc.vndb"
     compileSdk {
-        version = release(37)
+        // 37.1: Compose 1.13 (Compose BOM 2026.11) requires it.
+        version = release(37) { minorApiLevel = 1 }
     }
 
     defaultConfig {
@@ -81,7 +82,6 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.androidx.compose.material3.adaptive.layout)
     implementation(libs.androidx.compose.material3.adaptive.navigation3)
-    implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.text.google.fonts)

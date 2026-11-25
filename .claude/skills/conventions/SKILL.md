@@ -530,7 +530,7 @@ class NovelDetailViewModel(...) : ViewModel() {
 - Receives the `NavKey`'s arguments as plain parameters (`novelId: String`) from the feature's entry function (`presentation/navigation/[Name]Navigation.kt`).
 - Obtains the ViewModel with `koinViewModel { parametersOf(...) }`, collects `state` with `collectAsStateWithLifecycle()`, collects `effect` with `ObserveAsEvents` (`common/ui/util/`, a lifecycle-aware `LaunchedEffect`), and delegates rendering to `[Name]Screen(state, viewModel::onIntent)`.
 - Receives navigation callbacks as lambdas (`onNavigateBack: () -> Unit`), or one `[Name]NavActions` when there are more than ~4 — never the back stack or a `Navigator`.
-- A `NavKey` carries ids only (never display data), is `@Serializable` and implements plain `NavKey`: any key that is not a tab opens as a page over the tabs, covering the navigation bar. A bottom sheet is chosen by its entry's metadata (`BottomSheetSceneStrategy.bottomSheet()`), not by the key. Add every new key to `NavKeySerializationTest`.
+- A `NavKey` carries ids only (never display data), is `@Serializable` and implements plain `NavKey`: any key that is not a tab opens as a page over the tabs, covering the tab toolbar. A bottom sheet is chosen by its entry's metadata (`BottomSheetSceneStrategy.bottomSheet()`), not by the key. Add every new key to `NavKeySerializationTest`.
 
 ```kotlin
 // ✅ presentation/NovelDetailRoute.kt

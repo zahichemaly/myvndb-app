@@ -46,6 +46,7 @@ import com.zc.vndb.common.ui.component.error.model.ErrorUIModel
 import com.zc.vndb.common.ui.component.pulltorefresh.PullToRefreshView
 import com.zc.vndb.common.ui.component.searchfield.SearchFieldView
 import com.zc.vndb.common.ui.component.selectablechip.SelectableChipView
+import com.zc.vndb.common.ui.navigation.LocalTabToolbarPadding
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
@@ -89,7 +90,13 @@ fun ProfileScreen(
                 },
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            // Above the floating tab toolbar when this is a tab.
+            SnackbarHost(
+                snackbarHostState,
+                Modifier.padding(bottom = LocalTabToolbarPadding.current),
+            )
+        },
         containerColor = Color.Transparent,
     ) { padding ->
         val contentModifier = Modifier
@@ -135,8 +142,10 @@ private fun SignedInContent(state: ProfileState, onIntent: (ProfileIntent) -> Un
                 .widthIn(max = MaxContentWidth)
                 .fillMaxSize(),
             contentPadding = PaddingValues(
-                horizontal = VndbTheme.spacing.margin,
-                vertical = VndbTheme.spacing.sm,
+                start = VndbTheme.spacing.margin,
+                top = VndbTheme.spacing.sm,
+                end = VndbTheme.spacing.margin,
+                bottom = VndbTheme.spacing.sm + LocalTabToolbarPadding.current,
             ),
             verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.md),
         ) {
