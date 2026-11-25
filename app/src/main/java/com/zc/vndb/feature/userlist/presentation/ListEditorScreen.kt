@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -58,7 +59,6 @@ import kotlinx.collections.immutable.persistentListOf
 private const val VOTE_STEPS = MyListEntry.MAX_VOTE - MyListEntry.MIN_VOTE - 1
 
 private val ProgressSize = 18.dp
-private val VoteRowHeight = 24.dp
 
 /** Keeps the sheet from jumping in height when the skeleton gives way to the fields. */
 private val BodyMinHeight = 360.dp
@@ -213,11 +213,11 @@ private fun ChipFlow(options: ImmutableList<LabelOptionUIModel>, onClick: (Int) 
 @Composable
 private fun VoteField(state: ListEditorState, onIntent: (ListEditorIntent) -> Unit) {
     Field(UiText.StringResource(StringResource.list_editor_vote)) {
-        // One line that reads "No vote" and turns into the vote as the slider moves. Its height
-        // is fixed, so Clear vote appearing doesn't push the slider down.
+        // One label that reads "No vote" and turns into the vote as the slider moves. The row is
+        // always as tall as the Clear vote button, so the button appearing moves nothing.
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.heightIn(min = VoteRowHeight),
+            modifier = Modifier.heightIn(min = LocalMinimumInteractiveComponentSize.current),
         ) {
             Text(
                 text = state.voteLabel.asString(),

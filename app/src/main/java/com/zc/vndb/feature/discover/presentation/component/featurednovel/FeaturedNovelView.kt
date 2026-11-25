@@ -2,22 +2,16 @@ package com.zc.vndb.feature.discover.presentation.component.featurednovel
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +21,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.zc.vndb.common.ui.component.chip.TagChipView
 import com.zc.vndb.common.ui.component.coverimage.CoverImageView
 import com.zc.vndb.common.ui.component.ratingbadge.RatingBadgeView
@@ -39,24 +32,26 @@ import com.zc.vndb.common.ui.util.AdaptivePreviews
 import com.zc.vndb.feature.discover.presentation.component.featurednovel.model.FeaturedNovelUIModel
 import kotlinx.collections.immutable.persistentListOf
 
-/** Landscape crop of the cover art for the hero. */
-private const val HERO_ASPECT_RATIO = 1.4f
-private const val DESCRIPTION_MAX_LINES = 3
-private val ArrowSize = 16.dp
+/** Landscape (16:9) crop of the cover art for the hero. */
+private const val HERO_ASPECT_RATIO = 16f / 9f
 
-/** The "VN of the Week" hero card. */
+private const val DESCRIPTION_MAX_LINES = 3
+
+/** The "VN of the Week" hero card; the whole card opens the VN. */
 @Composable
 fun FeaturedNovelView(
     model: FeaturedNovelUIModel,
-    onViewDetailsClick: () -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val shape = MaterialTheme.shapes.large
+    val clickLabel = UiText.StringResource(StringResource.discover_view_details).asString()
     Column(
         modifier = modifier
             .clip(shape)
             .cardBackground()
-            .border(VndbTheme.dimens.borderWidth, VndbTheme.colors.borderSubtle, shape),
+            .border(VndbTheme.dimens.borderWidth, VndbTheme.colors.borderSubtle, shape)
+            .clickable(onClickLabel = clickLabel, onClick = onClick),
     ) {
         HeroArt(model)
         Column(
@@ -79,7 +74,6 @@ fun FeaturedNovelView(
                 )
             }
             TagRow(model)
-            ViewDetailsButton(onClick = onViewDetailsClick)
         }
     }
 }
@@ -95,6 +89,8 @@ private fun HeroArt(model: FeaturedNovelUIModel) {
             url = model.coverUrl,
             isSensitive = model.isCoverSensitive,
             contentDescription = model.title,
+            // Portrait covers cropped to landscape keep their top, where the faces usually are.
+            alignment = Alignment.TopCenter,
             modifier = Modifier.matchParentSize(),
         )
         Box(
@@ -170,30 +166,6 @@ private fun TagRow(model: FeaturedNovelUIModel) {
     }
 }
 
-@Composable
-private fun ViewDetailsButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        shape = MaterialTheme.shapes.small,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = VndbTheme.colors.accent,
-            contentColor = VndbTheme.colors.onAccent,
-        ),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Text(
-            text = UiText.StringResource(StringResource.discover_view_details).asString(),
-            style = MaterialTheme.typography.labelLarge,
-        )
-        Spacer(Modifier.size(VndbTheme.spacing.xs))
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-            contentDescription = null,
-            modifier = Modifier.size(ArrowSize),
-        )
-    }
-}
-
 @AdaptivePreviews
 @Composable
 private fun FeaturedNovelViewPreview() {
@@ -216,7 +188,7 @@ private fun FeaturedNovelViewPreview() {
                 ),
                 ageLabel = UiText.StringValue("All Ages"),
             ),
-            onViewDetailsClick = {},
+            onClick = {},
             modifier = Modifier.padding(VndbTheme.spacing.lg),
         )
     }

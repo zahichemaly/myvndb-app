@@ -187,7 +187,7 @@ private fun LazyListScope.compactSections(state: DiscoverState, actions: Discove
         item(key = "featured", contentType = "featured") {
             FeaturedNovelView(
                 model = featured,
-                onViewDetailsClick = { actions.onNovelClick(featured.id) },
+                onClick = { actions.onNovelClick(featured.id) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -210,7 +210,7 @@ private fun LazyListScope.expandedSections(state: DiscoverState, actions: Discov
             state.featured?.let { featured ->
                 FeaturedNovelView(
                     model = featured,
-                    onViewDetailsClick = { actions.onNovelClick(featured.id) },
+                    onClick = { actions.onNovelClick(featured.id) },
                     modifier = Modifier.weight(1f),
                 )
             }

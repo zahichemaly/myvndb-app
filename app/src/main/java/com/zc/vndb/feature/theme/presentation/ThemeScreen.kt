@@ -1,5 +1,6 @@
 package com.zc.vndb.feature.theme.presentation
 
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,12 +9,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,8 +38,20 @@ import com.zc.vndb.feature.theme.presentation.mapper.themeState
 private val MaxContentWidth = 640.dp
 private val MinPreviewWidth = 100.dp
 
+/** The themes follow the title in the grid. */
+private const val FIRST_THEME_INDEX = 1
+
 @Composable
 fun ThemeScreen(state: ThemeState, onIntent: (ThemeIntent) -> Unit, modifier: Modifier = Modifier) {
+    val gridState = rememberLazyGridState()
+    val selectedIndex = state.themes.indexOfFirst { it.isSelected }
+    var hasShownSelection by rememberSaveable { mutableStateOf(false) }
+    // Opens on the selected theme once the themes have loaded; a theme picked later is in view.
+    LaunchedEffect(selectedIndex) {
+        if (selectedIndex < 0 || hasShownSelection) return@LaunchedEffect
+        gridState.centerItem(FIRST_THEME_INDEX + selectedIndex)
+        hasShownSelection = true
+    }
     Scaffold(
         modifier = modifier,
         topBar = { AppTopBarView(onBack = { onIntent(ThemeIntent.BackClicked) }) },
@@ -45,6 +65,7 @@ fun ThemeScreen(state: ThemeState, onIntent: (ThemeIntent) -> Unit, modifier: Mo
         ) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(MinPreviewWidth),
+                state = gridState,
                 modifier = Modifier
                     .widthIn(max = MaxContentWidth)
                     .fillMaxSize(),
@@ -71,6 +92,13 @@ fun ThemeScreen(state: ThemeState, onIntent: (ThemeIntent) -> Unit, modifier: Mo
             }
         }
     }
+}
+
+/** Moves item [index] to the middle of the grid, or as close as the grid can scroll. */
+private suspend fun LazyGridState.centerItem(index: Int) {
+    scrollToItem(index)
+    val item = layoutInfo.visibleItemsInfo.firstOrNull { it.index == index } ?: return
+    scrollBy(-(layoutInfo.viewportSize.height - item.size.height) / 2f)
 }
 
 @AdaptivePreviews

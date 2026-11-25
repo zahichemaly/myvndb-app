@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -77,34 +79,47 @@ fun ListEntryCardView(
                 .aspectRatio(VndbTheme.dimens.coverAspectRatio)
                 .clip(MaterialTheme.shapes.small),
         )
+        // At least as tall as the cover, so "Updated" always ends the card in its bottom end
+        // corner (under the edit button), however much sits above it.
         Column(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = CoverWidth / VndbTheme.dimens.coverAspectRatio),
             verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
         ) {
-            EntryTitles(model)
+            Row(horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs)) {
+                EntryTitles(model, Modifier.weight(1f))
+                onEdit?.let { EditButton(onClick = it) }
+            }
             EntryMeta(model)
             LanguagePillsView(model.languagePills)
             model.notes?.let { NotePill(it) }
-            UpdatedLine(model.updatedLabel)
-        }
-        onEdit?.let { edit ->
-            IconButton(onClick = edit, modifier = Modifier.size(EditButtonSize)) {
-                Icon(
-                    Icons.Outlined.Edit,
-                    contentDescription = UiText.StringResource(
-                        StringResource.cd_edit_list_entry,
-                    ).asString(),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(EditIconSize),
-                )
-            }
+            Spacer(Modifier.weight(1f))
+            UpdatedLine(model.updatedLabel, Modifier.align(Alignment.End))
         }
     }
 }
 
 @Composable
-private fun EntryTitles(model: ListEntryCardUIModel) {
-    Column(verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs)) {
+private fun EditButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(EditButtonSize)) {
+        Icon(
+            Icons.Outlined.Edit,
+            contentDescription = UiText.StringResource(
+                StringResource.cd_edit_list_entry,
+            ).asString(),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(EditIconSize),
+        )
+    }
+}
+
+@Composable
+private fun EntryTitles(model: ListEntryCardUIModel, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
+    ) {
         Text(
             text = model.title.asString(),
             style = MaterialTheme.typography.titleMedium,
@@ -116,8 +131,9 @@ private fun EntryTitles(model: ListEntryCardUIModel) {
 }
 
 @Composable
-private fun UpdatedLine(label: UiText) {
+private fun UpdatedLine(label: UiText, modifier: Modifier = Modifier) {
     Row(
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
