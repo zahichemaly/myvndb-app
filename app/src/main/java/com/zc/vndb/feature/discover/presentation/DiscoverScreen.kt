@@ -235,10 +235,11 @@ private fun LazyListScope.topRatedSection(
     if (cards.isEmpty()) return
     item(key = "top-rated", contentType = "top-rated") {
         Column(verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
+            // No top padding, unlike the other headers: the See all button's 48dp touch target
+            // already makes this header taller than its title, which adds about as much space.
             SectionHeaderView(
                 title = UiText.StringResource(StringResource.discover_top_rated),
                 icon = Icons.Outlined.EmojiEvents,
-                modifier = Modifier.padding(top = VndbTheme.spacing.md),
                 action = {
                     TextButton(onClick = actions.onSeeAllClick) {
                         Text(

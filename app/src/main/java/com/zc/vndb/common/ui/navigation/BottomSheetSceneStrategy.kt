@@ -1,6 +1,7 @@
 package com.zc.vndb.common.ui.navigation
 
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -40,6 +41,10 @@ internal data class BottomSheetScene<T : Any>(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             properties = properties,
             containerColor = VndbTheme.colors.surfaceCard,
+            // Explicit: surfaceCard isn't a color-scheme color, so the default falls back to the
+            // ambient content color (black). The sheet's own window also styles its system bars
+            // from this color, and black made them light (dark icons, a white navigation bar).
+            contentColor = MaterialTheme.colorScheme.onSurface,
         ) {
             CompositionLocalProvider(LocalLifecycleOwner provides lifecycleOwner) {
                 entry.Content()
