@@ -5,6 +5,8 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -107,6 +109,42 @@ class NavigatorTest {
 
         assertEquals(Home, state.topLevelRoute)
         assertEquals(listOf<NavKey>(Home), stack(Home))
+    }
+
+    @Test
+    fun `switching tabs is a tab switch`() {
+        navigator.navigate(Search)
+
+        assertTrue(state.isTabSwitch)
+    }
+
+    @Test
+    fun `pushing a page after a tab switch is not a tab switch`() {
+        navigator.navigate(Search)
+
+        navigator.navigate(Page("a"))
+
+        assertFalse(state.isTabSwitch)
+    }
+
+    @Test
+    fun `going back to the start tab is not a tab switch`() {
+        navigator.navigate(Search)
+
+        navigator.goBack()
+
+        assertFalse(state.isTabSwitch)
+    }
+
+    @Test
+    fun `reselecting a tab is not a tab switch`() {
+        navigator.navigate(Search)
+        navigator.navigate(Page("a"))
+        navigator.navigate(Home)
+
+        navigator.reselect(Home)
+
+        assertFalse(state.isTabSwitch)
     }
 
     @Test

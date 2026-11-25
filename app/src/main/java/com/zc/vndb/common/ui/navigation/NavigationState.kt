@@ -60,6 +60,12 @@ class NavigationState(
     /** The selected tab. */
     var topLevelRoute: NavKey by topLevelRoute
 
+    /**
+     * Whether the latest move was a switch from the navigation bar (or rail) rather than a push or
+     * a pop within a stack: pages slide in and out, but tabs cross-fade.
+     */
+    var isTabSwitch: Boolean = false
+
     /** Content key of each tab's top entry, as last composed. */
     private val topContentKeys = mutableMapOf<NavKey, Any>()
 

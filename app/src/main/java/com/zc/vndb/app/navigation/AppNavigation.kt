@@ -1,5 +1,13 @@
 package com.zc.vndb.app.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -13,9 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntOffset
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
+import androidx.navigation3.ui.defaultTransitionSpec
 import com.zc.vndb.common.ui.navigation.BottomSheetSceneStrategy
 import com.zc.vndb.common.ui.navigation.FullScreenNavKey
 import com.zc.vndb.common.ui.navigation.NavigationState
@@ -102,6 +114,11 @@ private fun navigationItemColors(): NavigationSuiteItemColors {
     )
 }
 
+/**
+ * Pages slide: a new one comes in from the end edge as the current one leaves through the start
+ * edge, and Back plays it in reverse (following the finger on predictive back). Tab switches keep
+ * Navigation 3's default cross-fade.
+ */
 @Composable
 private fun AppNavDisplay(navigationState: NavigationState, navigator: Navigator) {
     val bottomSheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
@@ -109,6 +126,28 @@ private fun AppNavDisplay(navigationState: NavigationState, navigator: Navigator
     NavDisplay(
         entries = navigationState.toDecoratedEntries(entryProvider),
         onBack = navigator::goBack,
+        // Sliding pages would otherwise be drawn over the navigation rail.
+        modifier = Modifier.clipToBounds(),
         sceneStrategies = listOf(bottomSheetStrategy),
+        transitionSpec = {
+            if (navigationState.isTabSwitch) tabSwitchTransition() else slide(SlideDirection.Start)
+        },
+        popTransitionSpec = {
+            if (navigationState.isTabSwitch) tabSwitchTransition() else slide(SlideDirection.End)
+        },
+        predictivePopTransitionSpec = { _ -> slide(SlideDirection.End, easing = LinearEasing) },
     )
+}
+
+private const val SLIDE_DURATION_MILLIS = 350
+
+private val tabSwitchTransition = defaultTransitionSpec<NavKey>()
+
+/** Both pages move [towards] the same edge: the new one slides in as the old one slides out. */
+private fun AnimatedContentTransitionScope<Scene<NavKey>>.slide(
+    towards: SlideDirection,
+    easing: Easing = FastOutSlowInEasing,
+): ContentTransform {
+    val spec = tween<IntOffset>(SLIDE_DURATION_MILLIS, easing = easing)
+    return slideIntoContainer(towards, spec) togetherWith slideOutOfContainer(towards, spec)
 }

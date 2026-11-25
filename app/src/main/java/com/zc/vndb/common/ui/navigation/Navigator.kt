@@ -14,8 +14,10 @@ class Navigator(private val state: NavigationState) {
             if (route == state.topLevelRoute) return
             // Each tab opens at the top: its data is kept, its scroll position is not.
             state.resetTopScreenState(route)
+            state.isTabSwitch = true
             state.topLevelRoute = route
         } else {
+            state.isTabSwitch = false
             currentStack().add(route)
         }
     }
@@ -23,10 +25,13 @@ class Navigator(private val state: NavigationState) {
     /** Tapping the already selected tab returns it to its root, keeping the root's state. */
     fun reselect(route: NavKey) {
         val stack = state.backStacks[route] ?: return
+        state.isTabSwitch = false
         while (stack.size > 1) stack.removeLastOrNull()
     }
 
+    /** Back is always a pop, even when it leaves a tab's root for the start tab. */
     fun goBack() {
+        state.isTabSwitch = false
         val stack = currentStack()
         if (stack.size == 1) {
             state.resetTopScreenState(state.startRoute)
