@@ -1,12 +1,12 @@
 package com.zc.vndb.common.ui.navigation
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -19,10 +19,18 @@ class NavigatorTest {
     private data object Search : NavKey
 
     @Serializable
-    private data class Page(val id: String) : FullScreenNavKey
+    private data class Page(val id: String) : NavKey
 
     @Serializable
-    private data class Sheet(val id: String) : OverlayNavKey
+    private data class Sheet(val id: String) : NavKey
+
+    /** Tab state is only recorded while composed, which these tests never are. */
+    private object NoTabState : SaveableStateHolder {
+        @Composable
+        override fun SaveableStateProvider(key: Any, content: @Composable () -> Unit) = content()
+
+        override fun removeState(key: Any) = Unit
+    }
 
     private lateinit var state: NavigationState
     private lateinit var navigator: Navigator
@@ -31,124 +39,95 @@ class NavigatorTest {
     fun setUp() {
         state = NavigationState(
             startRoute = Home,
+            topLevelRoutes = setOf(Home, Search),
             topLevelRoute = mutableStateOf<NavKey>(Home),
-            backStacks = mapOf(
-                Home to NavBackStack<NavKey>(Home),
-                Search to NavBackStack<NavKey>(Search),
-            ),
-            stateHolders = emptyMap(),
+            pages = NavBackStack(),
+            tabStateHolder = NoTabState,
         )
         navigator = Navigator(state)
     }
 
-    private fun stack(route: NavKey) = state.backStacks.getValue(route).toList()
+    private fun pages() = state.pages.toList()
 
     @Test
     fun `navigating to the current tab does nothing`() {
         navigator.navigate(Home)
 
         assertEquals(Home, state.topLevelRoute)
-        assertEquals(listOf<NavKey>(Home), stack(Home))
+        assertEquals(emptyList<NavKey>(), pages())
     }
 
     @Test
-    fun `navigating to another tab switches tab and keeps both stacks`() {
+    fun `navigating to another tab selects it`() {
+        navigator.navigate(Search)
+
+        assertEquals(Search, state.topLevelRoute)
+        assertEquals(emptyList<NavKey>(), pages())
+    }
+
+    @Test
+    fun `navigating to a page opens it over the selected tab`() {
+        navigator.navigate(Search)
+
+        navigator.navigate(Page("a"))
+        navigator.navigate(Page("b"))
+
+        assertEquals(Search, state.topLevelRoute)
+        assertEquals(listOf<NavKey>(Page("a"), Page("b")), pages())
+    }
+
+    @Test
+    fun `switching tabs closes the open pages`() {
         navigator.navigate(Page("a"))
 
         navigator.navigate(Search)
 
         assertEquals(Search, state.topLevelRoute)
-        assertEquals(listOf<NavKey>(Home, Page("a")), stack(Home))
-        assertEquals(listOf<NavKey>(Search), stack(Search))
+        assertEquals(emptyList<NavKey>(), pages())
     }
 
     @Test
-    fun `navigating to a page pushes it on the current tab only`() {
+    fun `going back closes the top page`() {
         navigator.navigate(Search)
-
-        navigator.navigate(Page("a"))
-
-        assertEquals(listOf<NavKey>(Search, Page("a")), stack(Search))
-        assertEquals(listOf<NavKey>(Home), stack(Home))
-    }
-
-    @Test
-    fun `reselecting a tab pops it to its root`() {
-        navigator.navigate(Page("a"))
-        navigator.navigate(Page("b"))
-
-        navigator.reselect(Home)
-
-        assertEquals(listOf<NavKey>(Home), stack(Home))
-        assertEquals(Home, state.topLevelRoute)
-    }
-
-    @Test
-    fun `going back pops within a stack`() {
         navigator.navigate(Page("a"))
         navigator.navigate(Page("b"))
 
         navigator.goBack()
 
-        assertEquals(listOf<NavKey>(Home, Page("a")), stack(Home))
+        assertEquals(Search, state.topLevelRoute)
+        assertEquals(listOf<NavKey>(Page("a")), pages())
     }
 
     @Test
-    fun `going back from another tab's root returns to the start tab`() {
+    fun `going back from the last page shows the tab below`() {
+        navigator.navigate(Search)
+        navigator.navigate(Page("a"))
+
+        navigator.goBack()
+
+        assertEquals(Search, state.topLevelRoute)
+        assertEquals(emptyList<NavKey>(), pages())
+    }
+
+    @Test
+    fun `going back from another tab returns to the start tab`() {
         navigator.navigate(Search)
 
         navigator.goBack()
 
         assertEquals(Home, state.topLevelRoute)
-        assertEquals(listOf<NavKey>(Search), stack(Search))
     }
 
     @Test
-    fun `going back at the start tab's root keeps the start tab`() {
+    fun `going back at the start tab keeps the start tab`() {
         navigator.goBack()
 
         assertEquals(Home, state.topLevelRoute)
-        assertEquals(listOf<NavKey>(Home), stack(Home))
+        assertEquals(emptyList<NavKey>(), pages())
     }
 
     @Test
-    fun `switching tabs is a tab switch`() {
-        navigator.navigate(Search)
-
-        assertTrue(state.isTabSwitch)
-    }
-
-    @Test
-    fun `pushing a page after a tab switch is not a tab switch`() {
-        navigator.navigate(Search)
-
-        navigator.navigate(Page("a"))
-
-        assertFalse(state.isTabSwitch)
-    }
-
-    @Test
-    fun `going back to the start tab is not a tab switch`() {
-        navigator.navigate(Search)
-
-        navigator.goBack()
-
-        assertFalse(state.isTabSwitch)
-    }
-
-    @Test
-    fun `reselecting a tab is not a tab switch`() {
-        navigator.navigate(Search)
-        navigator.navigate(Page("a"))
-        navigator.navigate(Home)
-
-        navigator.reselect(Home)
-
-        assertFalse(state.isTabSwitch)
-    }
-
-    @Test
-    fun `an overlay is popped without changing the page or tab below`() {
+    fun `an overlay is closed without changing the page or tab below`() {
         navigator.navigate(Search)
         navigator.navigate(Page("a"))
         navigator.navigate(Sheet("a"))
@@ -156,6 +135,6 @@ class NavigatorTest {
         navigator.goBack()
 
         assertEquals(Search, state.topLevelRoute)
-        assertEquals(listOf<NavKey>(Search, Page("a")), stack(Search))
+        assertEquals(listOf<NavKey>(Page("a")), pages())
     }
 }

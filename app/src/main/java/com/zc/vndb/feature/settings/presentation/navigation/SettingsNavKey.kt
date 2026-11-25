@@ -1,8 +1,8 @@
 package com.zc.vndb.feature.settings.presentation.navigation
 
-import com.zc.vndb.common.ui.navigation.FullScreenNavKey
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
-/** Preferences and app info (pushed on the Profile tab). */
+/** Preferences and app info (opened from the Profile tab). */
 @Serializable
-data object SettingsNavKey : FullScreenNavKey
+data object SettingsNavKey : NavKey

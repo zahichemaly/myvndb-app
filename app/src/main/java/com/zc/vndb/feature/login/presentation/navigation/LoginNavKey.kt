@@ -1,8 +1,8 @@
 package com.zc.vndb.feature.login.presentation.navigation
 
-import com.zc.vndb.common.ui.navigation.FullScreenNavKey
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
-/** Log in with a VNDB API token (pushed on the Profile tab). */
+/** Log in with a VNDB API token (opened from the Profile tab). */
 @Serializable
-data object LoginNavKey : FullScreenNavKey
+data object LoginNavKey : NavKey

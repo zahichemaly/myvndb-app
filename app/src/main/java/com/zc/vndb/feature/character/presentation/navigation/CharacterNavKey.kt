@@ -1,8 +1,8 @@
 package com.zc.vndb.feature.character.presentation.navigation
 
-import com.zc.vndb.common.ui.navigation.FullScreenNavKey
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 /** A character's page. */
 @Serializable
-data class CharacterNavKey(val id: String) : FullScreenNavKey
+data class CharacterNavKey(val id: String) : NavKey

@@ -16,28 +16,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItemColors
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
+import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
-import androidx.navigation3.ui.defaultTransitionSpec
 import com.zc.vndb.common.ui.navigation.BottomSheetSceneStrategy
-import com.zc.vndb.common.ui.navigation.FullScreenNavKey
-import com.zc.vndb.common.ui.navigation.NavigationState
 import com.zc.vndb.common.ui.navigation.Navigator
-import com.zc.vndb.common.ui.navigation.OverlayNavKey
 import com.zc.vndb.common.ui.navigation.rememberNavigationState
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.feature.discover.presentation.navigation.DiscoverNavKey
 
-/** App root: adaptive navigation suite (bar / rail / drawer) around the Navigation 3 back stack. */
+/**
+ * App root, in two levels. The tabs sit inside the adaptive navigation suite (bar / rail / drawer)
+ * and cross-fade (Navigation 3's default). Pages open over the tabs, navigation suite included:
+ * a new one slides in from the end edge as what is below leaves through the start edge, and Back
+ * plays it in reverse (following the finger on predictive back).
+ */
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
     val navigationState = rememberNavigationState(
@@ -45,20 +46,42 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         topLevelRoutes = remember { TopLevelDestination.entries.map { it.key }.toSet() },
     )
     val navigator = remember(navigationState) { Navigator(navigationState) }
-    val itemColors = navigationItemColors()
-
-    // Full-screen pages slide the navigation bar (or rail) away while they are on top.
-    val currentKey = navigationState.backStacks[navigationState.topLevelRoute]
-        ?.lastOrNull { it !is OverlayNavKey }
-    val isNavigationHidden = currentKey is FullScreenNavKey
-    val scaffoldState = rememberNavigationSuiteScaffoldState()
-    LaunchedEffect(isNavigationHidden) {
-        if (isNavigationHidden) scaffoldState.hide() else scaffoldState.show()
+    val entryProvider = remember(navigator) { appEntryProvider(navigator) }
+    // Decorated here, which stays composed, so the tabs keep their state while a page covers them.
+    val tabEntries by rememberUpdatedState(navigationState.decoratedTabEntries(entryProvider))
+    val tabsEntry = remember(navigationState, navigator) {
+        NavEntry<NavKey>(TabsNavKey) {
+            TabsScaffold(
+                selectedTab = navigationState.topLevelRoute,
+                onSelectTab = navigator::navigate,
+            ) {
+                NavDisplay(entries = tabEntries, onBack = navigator::goBack)
+            }
+        }
     }
-
-    NavigationSuiteScaffold(
+    val bottomSheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
+    NavDisplay(
+        entries = listOf(tabsEntry) + navigationState.decoratedPageEntries(entryProvider),
         modifier = modifier,
-        state = scaffoldState,
+        sceneStrategies = listOf(bottomSheetStrategy),
+        transitionSpec = { slide(SlideDirection.Start) },
+        popTransitionSpec = { slide(SlideDirection.End) },
+        predictivePopTransitionSpec = { _ -> slide(SlideDirection.End, easing = LinearEasing) },
+        onBack = navigator::goBack,
+    )
+}
+
+/** The bottom entry of the page stack: the tabs, under every page. */
+private data object TabsNavKey : NavKey
+
+@Composable
+private fun TabsScaffold(
+    selectedTab: NavKey,
+    onSelectTab: (NavKey) -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val itemColors = navigationItemColors()
+    NavigationSuiteScaffold(
         containerColor = Color.Transparent,
         navigationSuiteColors = NavigationSuiteDefaults.colors(
             navigationBarContainerColor = VndbTheme.colors.surfaceInset,
@@ -67,27 +90,17 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         ),
         navigationSuiteItems = {
             TopLevelDestination.entries.forEach { destination ->
-                val selected = navigationState.topLevelRoute == destination.key
                 item(
-                    selected = selected,
-                    onClick = {
-                        if (selected) {
-                            navigator.reselect(
-                                destination.key,
-                            )
-                        } else {
-                            navigator.navigate(destination.key)
-                        }
-                    },
+                    selected = selectedTab == destination.key,
+                    onClick = { onSelectTab(destination.key) },
                     icon = { Icon(destination.icon, contentDescription = null) },
                     label = { Text(destination.label.asString()) },
                     colors = itemColors,
                 )
             }
         },
-    ) {
-        AppNavDisplay(navigationState, navigator)
-    }
+        content = content,
+    )
 }
 
 /** Selected tab in the accent color on an elevated-surface indicator pill, as in the design. */
@@ -114,36 +127,9 @@ private fun navigationItemColors(): NavigationSuiteItemColors {
     )
 }
 
-/**
- * Pages slide: a new one comes in from the end edge as the current one leaves through the start
- * edge, and Back plays it in reverse (following the finger on predictive back). Tab switches keep
- * Navigation 3's default cross-fade.
- */
-@Composable
-private fun AppNavDisplay(navigationState: NavigationState, navigator: Navigator) {
-    val bottomSheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
-    val entryProvider = remember(navigator) { appEntryProvider(navigator) }
-    NavDisplay(
-        entries = navigationState.toDecoratedEntries(entryProvider),
-        onBack = navigator::goBack,
-        // Sliding pages would otherwise be drawn over the navigation rail.
-        modifier = Modifier.clipToBounds(),
-        sceneStrategies = listOf(bottomSheetStrategy),
-        transitionSpec = {
-            if (navigationState.isTabSwitch) tabSwitchTransition() else slide(SlideDirection.Start)
-        },
-        popTransitionSpec = {
-            if (navigationState.isTabSwitch) tabSwitchTransition() else slide(SlideDirection.End)
-        },
-        predictivePopTransitionSpec = { _ -> slide(SlideDirection.End, easing = LinearEasing) },
-    )
-}
-
 private const val SLIDE_DURATION_MILLIS = 350
 
-private val tabSwitchTransition = defaultTransitionSpec<NavKey>()
-
-/** Both pages move [towards] the same edge: the new one slides in as the old one slides out. */
+/** Both screens move [towards] the same edge: the new one slides in as the old one slides out. */
 private fun AnimatedContentTransitionScope<Scene<NavKey>>.slide(
     towards: SlideDirection,
     easing: Easing = FastOutSlowInEasing,
