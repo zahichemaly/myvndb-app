@@ -21,7 +21,7 @@ android {
         minSdk = 27
         targetSdk = 37
         // CI sets GITHUB_RUN_NUMBER automatically; local builds keep 1.
-        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 2
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
