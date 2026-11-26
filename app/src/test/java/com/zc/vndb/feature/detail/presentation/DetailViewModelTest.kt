@@ -1,6 +1,8 @@
 package com.zc.vndb.feature.detail.presentation
 
 import app.cash.turbine.test
+import com.zc.vndb.common.domain.model.AppConfig
+import com.zc.vndb.common.domain.model.AppConfigSamples
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.CharacterRole
 import com.zc.vndb.common.domain.model.DomainError
@@ -13,6 +15,7 @@ import com.zc.vndb.common.domain.model.VoiceActor
 import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSessionRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
+import com.zc.vndb.common.domain.usecase.GetAppConfigUseCase
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSessionUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
@@ -82,22 +85,24 @@ class DetailViewModelTest {
     private val sessions = FakeSessionRepository()
     private val userListRepository = FakeUserListRepository()
 
-    private fun createViewModel() = DetailViewModel(
-        novelId = "v2002",
-        getNovelDetail = GetNovelDetailUseCase(repository),
-        getNovelEditions = GetNovelEditionsUseCase(repository),
-        getNovelCast = GetNovelCastUseCase(repository),
-        getNovelScreenshots = GetNovelScreenshotsUseCase(repository),
-        getNovelCovers = GetNovelCoversUseCase(repository),
-        getNovelReleases = GetNovelReleasesUseCase(repository),
-        getNovelQuotes = GetNovelQuotesUseCase(repository),
-        observeSettings = ObserveSettingsUseCase(settings),
-        observeLanguages = ObserveLanguagesUseCase(languages),
-        isNovelFinished = IsNovelFinishedUseCase(sessions, userListRepository),
-        observeSession = ObserveSessionUseCase(sessions),
-        getMyListEntry = GetMyListEntryUseCase(sessions, userListRepository),
-        observeListChanges = ObserveListChangesUseCase(userListRepository),
-    )
+    private fun createViewModel(appConfig: AppConfig = AppConfigSamples.development) =
+        DetailViewModel(
+            novelId = "v2002",
+            getNovelDetail = GetNovelDetailUseCase(repository),
+            getNovelEditions = GetNovelEditionsUseCase(repository),
+            getNovelCast = GetNovelCastUseCase(repository),
+            getNovelScreenshots = GetNovelScreenshotsUseCase(repository),
+            getNovelCovers = GetNovelCoversUseCase(repository),
+            getNovelReleases = GetNovelReleasesUseCase(repository),
+            getNovelQuotes = GetNovelQuotesUseCase(repository),
+            observeSettings = ObserveSettingsUseCase(settings),
+            observeLanguages = ObserveLanguagesUseCase(languages),
+            isNovelFinished = IsNovelFinishedUseCase(sessions, userListRepository),
+            observeSession = ObserveSessionUseCase(sessions),
+            getMyListEntry = GetMyListEntryUseCase(sessions, userListRepository),
+            observeListChanges = ObserveListChangesUseCase(userListRepository),
+            getAppConfig = GetAppConfigUseCase(appConfig),
+        )
 
     private fun DetailViewModel.need(section: DetailSection) = onIntent(
         DetailIntent.SectionNeeded(section),

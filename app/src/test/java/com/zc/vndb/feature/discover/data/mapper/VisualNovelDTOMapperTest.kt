@@ -6,6 +6,7 @@ import com.zc.vndb.common.data.dto.TagDTO
 import com.zc.vndb.common.domain.model.Cover
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.NovelTag
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.common.domain.model.TagCategory
 import com.zc.vndb.feature.discover.data.dto.StaffDTO
 import com.zc.vndb.feature.discover.data.dto.VisualNovelDTO
@@ -38,7 +39,7 @@ class VisualNovelDTOMapperTest {
 
     @Test
     fun `missing optional fields map to empty values`() {
-        val details = dto().toNovelDetails()
+        val details = dto().toNovelDetails(SensitiveContentPolicy.Standard)
 
         assertEquals("", details.title)
         assertNull(details.rating)
@@ -47,12 +48,14 @@ class VisualNovelDTOMapperTest {
         assertTrue(
             details.developerNames.isEmpty() && details.staff.isEmpty() && details.tags.isEmpty(),
         )
-        assertNull(dto().toDiscoverNovel().developerName)
+        assertNull(dto().toDiscoverNovel(SensitiveContentPolicy.Standard).developerName)
     }
 
     @Test
     fun `blank descriptions become null`() {
-        assertNull(dto(description = "  ").toNovelDetails().description)
+        assertNull(
+            dto(description = "  ").toNovelDetails(SensitiveContentPolicy.Standard).description,
+        )
     }
 
     @Test
@@ -60,13 +63,13 @@ class VisualNovelDTOMapperTest {
         assertNull(
             dto(
                 image = ImageDTO(url = null, thumbnail = "t", sexual = 2.0, violence = 0.0),
-            ).toDiscoverNovel().cover,
+            ).toDiscoverNovel(SensitiveContentPolicy.Standard).cover,
         )
         assertEquals(
             Cover(url = "u", thumbnailUrl = null, sexual = 0.0, violence = 0.0),
             dto(
                 image = ImageDTO(url = "u", thumbnail = null, sexual = null, violence = null),
-            ).toDiscoverNovel().cover,
+            ).toDiscoverNovel(SensitiveContentPolicy.Standard).cover,
         )
     }
 
@@ -75,7 +78,7 @@ class VisualNovelDTOMapperTest {
         val roles = dto(
             staff = listOf("scenario", "chardesign", "art", "music", "director", "translator", null)
                 .map { StaffDTO(name = "n", role = it) },
-        ).toNovelDetails().staff.map { it.role }
+        ).toNovelDetails(SensitiveContentPolicy.Standard).staff.map { it.role }
 
         assertEquals(
             listOf(
@@ -118,7 +121,7 @@ class VisualNovelDTOMapperTest {
                     category = "new",
                 ),
             ),
-        ).toNovelDetails().tags
+        ).toNovelDetails(SensitiveContentPolicy.Standard).tags
 
         assertEquals(
             listOf(

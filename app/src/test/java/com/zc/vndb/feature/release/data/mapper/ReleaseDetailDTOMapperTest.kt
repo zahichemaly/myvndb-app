@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.release.data.mapper
 
 import com.zc.vndb.common.domain.model.ReleaseDate
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.feature.release.data.dto.ReleaseDetailDTO
 import com.zc.vndb.feature.release.data.dto.ReleaseImageDTO
 import com.zc.vndb.feature.release.data.dto.ReleaseNovelDTO
@@ -50,7 +51,7 @@ class ReleaseDetailDTOMapperTest {
 
     @Test
     fun `missing fields map to sensible defaults`() {
-        val release = dto().toDomain()
+        val release = dto().toDomain(SensitiveContentPolicy.Standard)
 
         assertNull(release.altTitle)
         assertEquals(ReleaseDate.Tba, release.releaseDate)
@@ -70,14 +71,24 @@ class ReleaseDetailDTOMapperTest {
     fun `resolution, voicing and barcode`() {
         assertEquals(
             Resolution(1920, 1080),
-            dto(resolution = listOf(1920, 1080)).toDomain().resolution,
+            dto(
+                resolution = listOf(1920, 1080),
+            ).toDomain(SensitiveContentPolicy.Standard).resolution,
         )
-        assertNull(dto(resolution = listOf(0, 0)).toDomain().resolution)
+        assertNull(
+            dto(resolution = listOf(0, 0)).toDomain(SensitiveContentPolicy.Standard).resolution,
+        )
         assertEquals(
             listOf(Voicing.NotVoiced, Voicing.EroScenesOnly, Voicing.Partial, Voicing.Full, null),
-            listOf(1, 2, 3, 4, 9).map { dto(voiced = it).toDomain().voicing },
+            listOf(
+                1,
+                2,
+                3,
+                4,
+                9,
+            ).map { dto(voiced = it).toDomain(SensitiveContentPolicy.Standard).voicing },
         )
-        assertNull(dto(gtin = "0").toDomain().gtin)
+        assertNull(dto(gtin = "0").toDomain(SensitiveContentPolicy.Standard).gtin)
     }
 
     @Test
@@ -94,7 +105,7 @@ class ReleaseDetailDTOMapperTest {
                 )
             } + ReleaseImageDTO("pkgfront", null, null, 0.0, 0.0),
         )
-            .toDomain().images
+            .toDomain(SensitiveContentPolicy.Standard).images
 
         assertEquals(ReleaseImageType.entries, images.map { it.type })
         assertTrue(images.first().image.isSensitive)
@@ -110,7 +121,7 @@ class ReleaseDetailDTOMapperTest {
                 null,
             ).map { ReleaseNovelDTO("v1", null, it, null, null) },
         )
-            .toDomain().novels
+            .toDomain(SensitiveContentPolicy.Standard).novels
 
         assertEquals(
             listOf(

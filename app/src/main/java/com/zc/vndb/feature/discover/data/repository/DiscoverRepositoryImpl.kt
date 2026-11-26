@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.discover.data.repository
 
 import com.zc.vndb.common.data.util.safeApiCall
+import com.zc.vndb.common.domain.model.AppConfig
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.feature.discover.data.mapper.firstNovelFromQuery
 import com.zc.vndb.feature.discover.data.mapper.idNumber
@@ -23,17 +24,21 @@ import com.zc.vndb.feature.discover.domain.repository.DiscoverRepository
 import org.koin.core.annotation.Single
 
 @Single
-class DiscoverRepositoryImpl(private val service: DiscoverService) : DiscoverRepository {
+class DiscoverRepositoryImpl(private val service: DiscoverService, appConfig: AppConfig) :
+    DiscoverRepository {
+
+    /** Images are judged by this build's rule: production never reveals sensitive ones. */
+    private val policy = appConfig.sensitiveContentPolicy
 
     override suspend fun getTopRatedNovels(limit: Int): Result<List<DiscoverNovel>> = safeApiCall {
-        service.queryNovels(topRatedNovelsQuery(limit)).results.map { it.toDiscoverNovel() }
+        service.queryNovels(topRatedNovelsQuery(limit)).results.map { it.toDiscoverNovel(policy) }
     }
 
     override suspend fun getNovelDetails(id: String): Result<NovelDetails> = safeApiCall {
         val novel = service.queryNovels(
             novelDetailsQuery(id),
         ).results.firstOrNull() ?: throw DomainError.NotFound
-        novel.toNovelDetails()
+        novel.toNovelDetails(policy)
     }
 
     override suspend fun getRecentReleases(
@@ -42,7 +47,7 @@ class DiscoverRepositoryImpl(private val service: DiscoverService) : DiscoverRep
     ): Result<List<Release>> = safeApiCall {
         service.queryReleases(
             recentReleasesQuery(languageCodes, limit),
-        ).results.map { it.toDomain() }
+        ).results.map { it.toDomain(policy) }
     }
 
     override suspend fun getRecentReleasesPage(
@@ -51,7 +56,10 @@ class DiscoverRepositoryImpl(private val service: DiscoverService) : DiscoverRep
         pageSize: Int,
     ): Result<ReleasesPage> = safeApiCall {
         val response = service.queryReleases(recentReleasesQuery(languageCodes, pageSize, page))
-        ReleasesPage(releases = response.results.map { it.toDomain() }, hasMore = response.more)
+        ReleasesPage(
+            releases = response.results.map { it.toDomain(policy) },
+            hasMore = response.more,
+        )
     }
 
     override suspend fun getDatabaseStats(): Result<DatabaseStats> = safeApiCall {

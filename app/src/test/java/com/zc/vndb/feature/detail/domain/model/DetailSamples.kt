@@ -7,6 +7,7 @@ import com.zc.vndb.common.domain.model.NovelLength
 import com.zc.vndb.common.domain.model.NovelTag
 import com.zc.vndb.common.domain.model.PlatformFamily
 import com.zc.vndb.common.domain.model.ReleaseDate
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.common.domain.model.TagCategory
 import com.zc.vndb.common.domain.model.VoiceActor
 import kotlinx.datetime.LocalDate
@@ -133,14 +134,33 @@ object DetailSamples {
         release: String? = "r1",
         sexual: Double = 0.0,
         violence: Double = 0.0,
+        policy: SensitiveContentPolicy = SensitiveContentPolicy.Standard,
     ) = Screenshot(
-        image = Cover(url = url, thumbnailUrl = "$url-t", sexual = sexual, violence = violence),
+        image = Cover(
+            url = url,
+            thumbnailUrl = "$url-t",
+            sexual = sexual,
+            violence = violence,
+            policy = policy,
+        ),
         releaseId = release,
         releaseTitle = release?.let { "Release $it" },
     )
 
-    fun coverArt(url: String, release: String = "r1", packageFront: Boolean = true) = CoverArt(
-        image = Cover(url = url, thumbnailUrl = "$url-t", sexual = 0.0, violence = 0.0),
+    fun coverArt(
+        url: String,
+        release: String = "r1",
+        packageFront: Boolean = true,
+        sexual: Double = 0.0,
+        policy: SensitiveContentPolicy = SensitiveContentPolicy.Standard,
+    ) = CoverArt(
+        image = Cover(
+            url = url,
+            thumbnailUrl = "$url-t",
+            sexual = sexual,
+            violence = 0.0,
+            policy = policy,
+        ),
         releaseId = release,
         releaseTitle = "Release $release",
         isPackageFront = packageFront,

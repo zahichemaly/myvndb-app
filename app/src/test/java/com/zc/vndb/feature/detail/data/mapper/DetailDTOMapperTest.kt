@@ -2,6 +2,7 @@ package com.zc.vndb.feature.detail.data.mapper
 
 import com.zc.vndb.common.domain.model.CharacterRole
 import com.zc.vndb.common.domain.model.PlatformFamily
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.feature.detail.data.dto.CharacterDTO
 import com.zc.vndb.feature.detail.data.dto.CharacterNovelDTO
 import com.zc.vndb.feature.detail.data.dto.EditionDTO
@@ -59,12 +60,12 @@ class DetailDTOMapperTest {
             vns = listOf(CharacterNovelDTO("v1", "side", 0), CharacterNovelDTO("v2", "main", null)),
         )
 
-        val inV2 = dto.toDomain("v2")
+        val inV2 = dto.toDomain("v2", SensitiveContentPolicy.Standard)
         assertEquals(CharacterRole.Main, inV2?.role)
         assertEquals(2, inV2?.spoilerLevel)
         assertNull(inV2?.originalName)
-        assertEquals(CharacterRole.Side, dto.toDomain("v1")?.role)
-        assertNull(dto.toDomain("v3"))
+        assertEquals(CharacterRole.Side, dto.toDomain("v1", SensitiveContentPolicy.Standard)?.role)
+        assertNull(dto.toDomain("v3", SensitiveContentPolicy.Standard))
     }
 
     @Test

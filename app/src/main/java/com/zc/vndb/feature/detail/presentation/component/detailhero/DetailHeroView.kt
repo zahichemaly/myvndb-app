@@ -53,10 +53,12 @@ fun DetailHeroView(
     onDeveloperClick: (String) -> Unit,
     onTagClick: (String) -> Unit,
     onRevealCoverClick: () -> Unit,
+    canRevealCover: Boolean,
     modifier: Modifier = Modifier,
     isCoverRevealed: Boolean = false,
 ) {
     // Tapping a blurred cover asks "I'm 18 or older"; Settings' "Show sensitive content" skips it.
+    // Builds that never show sensitive content keep it blurred and closed.
     val isCoverBlurred = model.isCoverSensitive && !isCoverRevealed &&
         !LocalShowSensitiveContent.current
     SectionCardView(modifier = modifier) {
@@ -70,7 +72,7 @@ fun DetailHeroView(
                         .fillMaxWidth()
                         .aspectRatio(VndbTheme.dimens.coverAspectRatio)
                         .then(
-                            if (isCoverBlurred) {
+                            if (isCoverBlurred && canRevealCover) {
                                 Modifier
                                     .clip(VndbTheme.shapes.cover)
                                     .clickable(
@@ -353,6 +355,7 @@ private fun DetailHeroViewPreview() {
             ),
             onDeveloperClick = {},
             onRevealCoverClick = {},
+            canRevealCover = true,
             onTagClick = {},
             modifier = Modifier.padding(VndbTheme.spacing.lg),
         )
