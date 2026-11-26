@@ -15,6 +15,7 @@ fun DiscoverRoute(
     onOpenNovel: (String) -> Unit,
     onOpenRelease: (String) -> Unit,
     onOpenBrowse: () -> Unit,
+    onOpenTopRatedPage: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DiscoverViewModel = koinViewModel(),
 ) {
@@ -29,6 +30,8 @@ fun DiscoverRoute(
             is DiscoverEffect.NavigateToRelease -> onOpenRelease(effect.id)
 
             DiscoverEffect.NavigateToBrowse -> onOpenBrowse()
+
+            DiscoverEffect.NavigateToTopRated -> onOpenTopRatedPage()
 
             is DiscoverEffect.ShowError -> snackbarHostState.showSnackbar(
                 effect.error.message.asString(context),

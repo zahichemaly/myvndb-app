@@ -171,7 +171,7 @@ class DiscoverViewModelTest {
             viewModel.onIntent(DiscoverIntent.ReleaseClicked("r7"))
             assertEquals(DiscoverEffect.NavigateToRelease("r7"), awaitItem())
             viewModel.onIntent(DiscoverIntent.SeeAllTopRatedClicked)
-            assertEquals(DiscoverEffect.NavigateToBrowse, awaitItem())
+            assertEquals(DiscoverEffect.NavigateToTopRated, awaitItem())
             viewModel.onIntent(DiscoverIntent.StatsClicked)
             assertEquals(DiscoverEffect.NavigateToBrowse, awaitItem())
         }

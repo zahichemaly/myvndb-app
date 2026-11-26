@@ -11,7 +11,7 @@ fun EntryProviderScope<NavKey>.browseEntry(onOpenNovel: (id: String) -> Unit) {
     entry<BrowseNavKey> { BrowseRoute(onOpenNovel = onOpenNovel) }
 }
 
-/** Browse pages scoped to a tag, a producer or a staff member. */
+/** Browse pages scoped to a tag, a producer, a staff member or the top rated novels. */
 fun EntryProviderScope<NavKey>.browseScopedEntries(
     onNavigateBack: () -> Unit,
     onOpenNovel: (id: String) -> Unit,
@@ -19,6 +19,7 @@ fun EntryProviderScope<NavKey>.browseScopedEntries(
     scopedBrowse<TagNavKey>(onNavigateBack, onOpenNovel) { BrowseScope.Tag(it.id) }
     scopedBrowse<ProducerNavKey>(onNavigateBack, onOpenNovel) { BrowseScope.Producer(it.id) }
     scopedBrowse<StaffNavKey>(onNavigateBack, onOpenNovel) { BrowseScope.Staff(it.id) }
+    scopedBrowse<TopRatedNavKey>(onNavigateBack, onOpenNovel) { BrowseScope.TopRated }
 }
 
 private inline fun <reified K : NavKey> EntryProviderScope<NavKey>.scopedBrowse(
@@ -46,3 +47,6 @@ fun Navigator.navigateToProducer(id: String) = navigate(ProducerNavKey(id))
 
 /** Opens Browse scoped to a staff member. */
 fun Navigator.navigateToStaff(id: String) = navigate(StaffNavKey(id))
+
+/** Opens Browse limited to the top rated novels, best rated first. */
+fun Navigator.navigateToTopRated() = navigate(TopRatedNavKey)

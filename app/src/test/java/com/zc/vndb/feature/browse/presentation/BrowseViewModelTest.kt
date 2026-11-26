@@ -346,6 +346,23 @@ class BrowseViewModelTest {
     }
 
     @Test
+    fun `the top rated page opens on rating and shows its header without loading one`() = runTest {
+        val viewModel = createViewModel(BrowseScope.TopRated)
+        advanceUntilIdle()
+
+        val state = viewModel.state.value
+        assertTrue(state.isScopedPage)
+        assertEquals(
+            UiText.StringResource(StringResource.browse_top_rated_title),
+            state.header?.name,
+        )
+        assertEquals(BrowseSort.Rating, state.sort)
+        val filter = repository.requests.single().filter
+        assertEquals(BrowseScope.TopRated, filter.scope)
+        assertEquals(BrowseSort.Rating, filter.sort)
+    }
+
+    @Test
     fun `a producer page opens on newest and shows the producer header`() = runTest {
         repository.producers["p30"] = ProducerInfo(
             id = "p30",

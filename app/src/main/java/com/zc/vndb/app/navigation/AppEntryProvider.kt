@@ -10,6 +10,7 @@ import com.zc.vndb.feature.browse.presentation.navigation.navigateToBrowse
 import com.zc.vndb.feature.browse.presentation.navigation.navigateToProducer
 import com.zc.vndb.feature.browse.presentation.navigation.navigateToStaff
 import com.zc.vndb.feature.browse.presentation.navigation.navigateToTag
+import com.zc.vndb.feature.browse.presentation.navigation.navigateToTopRated
 import com.zc.vndb.feature.character.presentation.navigation.characterEntry
 import com.zc.vndb.feature.character.presentation.navigation.navigateToCharacter
 import com.zc.vndb.feature.detail.presentation.navigation.DetailNavActions
@@ -37,6 +38,7 @@ internal fun appEntryProvider(navigator: Navigator): (NavKey) -> NavEntry<NavKey
         onOpenNovel = navigator::navigateToDetail,
         onOpenRelease = navigator::navigateToRelease,
         onOpenBrowse = navigator::navigateToBrowse,
+        onOpenTopRatedPage = navigator::navigateToTopRated,
     )
     browseEntry(onOpenNovel = navigator::navigateToDetail)
     browseScopedEntries(

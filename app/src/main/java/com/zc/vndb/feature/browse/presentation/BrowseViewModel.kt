@@ -23,6 +23,7 @@ import com.zc.vndb.feature.browse.domain.usecase.GetTagUseCase
 import com.zc.vndb.feature.browse.domain.usecase.SearchNovelsUseCase
 import com.zc.vndb.feature.browse.presentation.component.browsenovelcard.mapper.toCardUIModel
 import com.zc.vndb.feature.browse.presentation.component.scopeheader.mapper.toHeaderUIModel
+import com.zc.vndb.feature.browse.presentation.component.scopeheader.mapper.topRatedHeaderUIModel
 import com.zc.vndb.feature.browse.presentation.mapper.toActiveFilters
 import com.zc.vndb.feature.browse.presentation.mapper.toResultCountLabel
 import com.zc.vndb.feature.browse.presentation.mapper.toSortOptions
@@ -254,6 +255,7 @@ class BrowseViewModel(
                 is BrowseScope.Tag -> getTag(scope.id).map { it.toHeaderUIModel() }
                 is BrowseScope.Producer -> getProducer(scope.id).map { it.toHeaderUIModel() }
                 is BrowseScope.Staff -> getStaff(scope.id).map { it.toHeaderUIModel() }
+                BrowseScope.TopRated -> Result.success(topRatedHeaderUIModel())
             }?.getOrNull()
             _state.update { it.copy(header = header ?: it.header, isHeaderLoading = false) }
         }

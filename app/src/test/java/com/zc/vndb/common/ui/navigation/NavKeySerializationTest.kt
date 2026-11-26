@@ -6,6 +6,7 @@ import com.zc.vndb.feature.browse.presentation.navigation.BrowseNavKey
 import com.zc.vndb.feature.browse.presentation.navigation.ProducerNavKey
 import com.zc.vndb.feature.browse.presentation.navigation.StaffNavKey
 import com.zc.vndb.feature.browse.presentation.navigation.TagNavKey
+import com.zc.vndb.feature.browse.presentation.navigation.TopRatedNavKey
 import com.zc.vndb.feature.character.presentation.navigation.CharacterNavKey
 import com.zc.vndb.feature.detail.presentation.navigation.DetailNavKey
 import com.zc.vndb.feature.discover.presentation.navigation.DiscoverNavKey
@@ -36,6 +37,7 @@ class NavKeySerializationTest {
         TagNavKey("g1"),
         ProducerNavKey("p1"),
         StaffNavKey("s1"),
+        TopRatedNavKey,
         ListEditorNavKey("v17", "Fate/stay night"),
     )
 

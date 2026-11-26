@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.discover.data.mapper
 
 import com.zc.vndb.common.data.dto.QueryDTO
+import com.zc.vndb.common.domain.model.TOP_RATED_MIN_VOTES
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
@@ -13,9 +14,6 @@ private const val NOVEL_ID_PREFIX = "v"
 
 /** A release rated 18+ makes the whole visual novel adult, as in Browse. */
 private const val ADULT_MIN_AGE = 18
-
-/** Below this many votes a rating is too noisy to rank by. */
-private const val TOP_RATED_MIN_VOTES = 500
 
 private const val COVER_FIELDS = "image.url, image.thumbnail, image.sexual, image.violence"
 private const val NOVEL_CARD_FIELDS = "title, alttitle, rating, $COVER_FIELDS, developers.name"

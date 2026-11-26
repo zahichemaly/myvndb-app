@@ -162,6 +162,19 @@ class BrowseQueryDomainMapperTest {
     }
 
     @Test
+    fun `the top rated page needs enough votes and starts on the best rated`() {
+        val scope = BrowseScope.TopRated
+        val body = BrowseFilter(scope = scope, sort = scope.defaultSort).body()
+
+        assertEquals(
+            json("""["and",["release","!=",["minage",">=",18]],["votecount",">=",500]]"""),
+            body["filters"],
+        )
+        assertEquals(json("\"rating\""), body["sort"])
+        assertEquals(json("true"), body["reverse"])
+    }
+
+    @Test
     fun `staff lookup by id`() {
         val body = appJson.encodeToJsonElement(staffQuery("s2")).jsonObject
 

@@ -2,6 +2,7 @@ package com.zc.vndb.feature.browse.data.mapper
 
 import com.zc.vndb.common.data.dto.QueryDTO
 import com.zc.vndb.common.domain.model.NovelLength
+import com.zc.vndb.common.domain.model.TOP_RATED_MIN_VOTES
 import com.zc.vndb.feature.browse.domain.model.AdvancedFilters
 import com.zc.vndb.feature.browse.domain.model.AgeRating
 import com.zc.vndb.feature.browse.domain.model.BrowseFilter
@@ -123,6 +124,8 @@ private fun BrowseScope.toPredicate(): JsonArray? = when (this) {
         predicate("developer", "=", predicate("id", "=", JsonPrimitive(id)))
 
     is BrowseScope.Staff -> predicate("staff", "=", predicate("id", "=", JsonPrimitive(id)))
+
+    BrowseScope.TopRated -> predicate("votecount", ">=", JsonPrimitive(TOP_RATED_MIN_VOTES))
 }
 
 private val BrowseSort.apiField: String

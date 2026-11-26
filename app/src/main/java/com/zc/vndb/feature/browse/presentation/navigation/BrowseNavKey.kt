@@ -17,3 +17,7 @@ data class ProducerNavKey(val id: String) : NavKey
 /** Browse scoped to one VNDB staff member (writer, artist, voice actor…). */
 @Serializable
 data class StaffNavKey(val id: String) : NavKey
+
+/** Browse limited to the top rated novels (Discover's Top Rated, in full). */
+@Serializable
+data object TopRatedNavKey : NavKey

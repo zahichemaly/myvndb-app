@@ -50,6 +50,8 @@
 
     <!-- Browse -->
     <string name="browse_search_hint">Search visual novels…</string>
+    <string name="browse_top_rated_title">Top Rated</string>
+    <string name="browse_top_rated_rule">Rated by at least %1$d voters</string>
     <string name="search_clear">Clear search</string>
     <string name="browse_age_all">All Ages</string>
     <string name="browse_age_adult">18+</string>

@@ -8,12 +8,14 @@ fun EntryProviderScope<NavKey>.discoverEntry(
     onOpenNovel: (id: String) -> Unit,
     onOpenRelease: (id: String) -> Unit,
     onOpenBrowse: () -> Unit,
+    onOpenTopRatedPage: () -> Unit,
 ) {
     entry<DiscoverNavKey> {
         DiscoverRoute(
             onOpenNovel = onOpenNovel,
             onOpenRelease = onOpenRelease,
             onOpenBrowse = onOpenBrowse,
+            onOpenTopRatedPage = onOpenTopRatedPage,
         )
     }
 }

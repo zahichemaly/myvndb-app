@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.browse.presentation.component.scopeheader.mapper
 
 import androidx.annotation.StringRes
+import com.zc.vndb.common.domain.model.TOP_RATED_MIN_VOTES
 import com.zc.vndb.common.domain.model.TagCategory
 import com.zc.vndb.common.ui.component.linksrow.model.LinkUIModel
 import com.zc.vndb.common.ui.mapper.bbCodeToPlainText
@@ -116,6 +117,22 @@ private fun labelWithLanguage(
         else -> null
     }
 }
+
+/** Top Rated has nothing to load: its header names the list and says what gets into it. */
+fun topRatedHeaderUIModel(): ScopeHeaderUIModel = ScopeHeaderUIModel(
+    name = UiText.StringResource(StringResource.browse_top_rated_title),
+    originalName = null,
+    typeLabel = null,
+    isSexualCategory = false,
+    countLabel = UiText.StringResource(
+        StringResource.browse_top_rated_rule,
+        listOf(TOP_RATED_MIN_VOTES),
+    ),
+    aliasesLabel = null,
+    // Unused without a description.
+    aboutTitle = UiText.StringResource(StringResource.browse_top_rated_title),
+    description = null,
+)
 
 private fun List<String>.toAliasesLabel(): UiText? = takeIf { it.isNotEmpty() }
     ?.let { UiText.StringResource(StringResource.tag_aliases, listOf(it.joinToString(", "))) }
