@@ -2,6 +2,7 @@ package com.zc.vndb.feature.userlist.data.repository
 
 import com.zc.vndb.common.data.local.SessionLocalDataSource
 import com.zc.vndb.common.data.util.safeApiCall
+import com.zc.vndb.common.domain.model.AppConfig
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.ListLabel
 import com.zc.vndb.feature.userlist.data.mapper.entriesQuery
@@ -24,7 +25,11 @@ import org.koin.core.annotation.Single
 class UserListRepositoryImpl(
     private val service: UserListService,
     private val local: SessionLocalDataSource,
+    appConfig: AppConfig,
 ) : UserListRepository {
+
+    /** Images are judged by this build's rule: production never reveals sensitive ones. */
+    private val policy = appConfig.sensitiveContentPolicy
 
     private val changes = MutableSharedFlow<String>(extraBufferCapacity = CHANGES_BUFFER)
     override val listChanges: Flow<String> = changes.asSharedFlow()
@@ -46,7 +51,7 @@ class UserListRepositoryImpl(
             entriesQuery(userId, filter, page, pageSize, order, ascending, voted),
             token,
         )
-        EntryPage(entries = result.results.map { it.toDomain() }, hasMore = result.more)
+        EntryPage(entries = result.results.map { it.toDomain(policy) }, hasMore = result.more)
     }
 
     override suspend fun getMyEntry(userId: String, novelId: String): Result<MyListEntry?> =

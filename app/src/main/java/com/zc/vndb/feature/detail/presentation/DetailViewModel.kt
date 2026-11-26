@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.SpoilerPreference
+import com.zc.vndb.common.domain.usecase.GetAppConfigUseCase
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSessionUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
@@ -86,7 +87,11 @@ class DetailViewModel(
     private val observeSession: ObserveSessionUseCase,
     private val getMyListEntry: GetMyListEntryUseCase,
     private val observeListChanges: ObserveListChangesUseCase,
+    getAppConfig: GetAppConfigUseCase,
 ) : ViewModel() {
+
+    /** False in builds that never show sensitive content: blurred images stay blurred and closed. */
+    private val canRevealSensitiveContent = getAppConfig().showSensitiveContent
 
     private val editionsLoader = SectionLoader(
         scope = viewModelScope,
@@ -115,7 +120,12 @@ class DetailViewModel(
         key = Quote::id,
     ) { render(DetailSection.Quotes) }
 
-    private val _state = MutableStateFlow(DetailState(novelId = novelId).withTabs())
+    private val _state = MutableStateFlow(
+        DetailState(
+            novelId = novelId,
+            canRevealSensitiveContent = canRevealSensitiveContent,
+        ).withTabs(),
+    )
     val state: StateFlow<DetailState> = _state.asStateFlow()
 
     private val _effect = Channel<DetailEffect>(Channel.BUFFERED)
@@ -221,18 +231,26 @@ class DetailViewModel(
     private fun onMediaIntent(intent: DetailIntent) {
         when (intent) {
             is DetailIntent.ScreenshotClicked -> {
-                val viewer = screenshotsLoader.data.orEmpty().toViewer(contentFilters, intent.index)
+                val viewer = screenshotsLoader.data.orEmpty()
+                    .toViewer(
+                        contentFilters,
+                        intent.index,
+                        includesSensitive = canRevealSensitiveContent,
+                    )
                 _state.update { it.copy(viewer = viewer) }
             }
 
             is DetailIntent.CoverClicked -> _state.update {
-                it.copy(viewer = coversLoader.data.orEmpty().toViewer(intent.index))
+                it.copy(
+                    viewer = coversLoader.data.orEmpty()
+                        .toViewer(intent.index, includesSensitive = canRevealSensitiveContent),
+                )
             }
 
             DetailIntent.ViewerDismissed -> _state.update { it.copy(viewer = null) }
 
-            is DetailIntent.CoverRevealRequested -> _state.update {
-                it.copy(coverReveal = CoverRevealRequest(intent.viewerIndex))
+            is DetailIntent.CoverRevealRequested -> if (canRevealSensitiveContent) {
+                _state.update { it.copy(coverReveal = CoverRevealRequest(intent.viewerIndex)) }
             }
 
             DetailIntent.CoverRevealConfirmed -> confirmCoverReveal()
@@ -361,7 +379,12 @@ class DetailViewModel(
                 )
 
                 DetailSection.Screenshots -> state.copy(
-                    screenshots = screenshotsLoader.state.map { it.toMediaUIModel(contentFilters) },
+                    screenshots = screenshotsLoader.state.map {
+                        it.toMediaUIModel(
+                            contentFilters,
+                            blursSensitive = !canRevealSensitiveContent,
+                        )
+                    },
                 )
 
                 DetailSection.Covers -> state.copy(
@@ -433,7 +456,10 @@ class DetailViewModel(
                 areCoversRevealed = true,
                 coverReveal = null,
                 viewer = viewerIndex?.let { index ->
-                    coversLoader.data.orEmpty().toViewer(index)
+                    coversLoader.data.orEmpty().toViewer(
+                        index,
+                        includesSensitive = canRevealSensitiveContent,
+                    )
                 } ?: it.viewer,
             )
         }

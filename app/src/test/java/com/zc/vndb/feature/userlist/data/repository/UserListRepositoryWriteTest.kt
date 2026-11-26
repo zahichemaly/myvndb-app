@@ -4,6 +4,7 @@ import com.zc.vndb.common.data.local.StoredSession
 import com.zc.vndb.common.data.local.sessionStore
 import com.zc.vndb.common.data.network.appJson
 import com.zc.vndb.common.data.network.createHttpClient
+import com.zc.vndb.common.domain.model.AppConfigSamples
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.ListLabel
 import com.zc.vndb.feature.userlist.data.remote.UserListService
@@ -79,7 +80,7 @@ class UserListRepositoryWriteTest {
                 }
             },
         )
-        return UserListRepositoryImpl(UserListService(client), local)
+        return UserListRepositoryImpl(UserListService(client), local, AppConfigSamples.development)
     }
 
     @Test

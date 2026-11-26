@@ -1,7 +1,11 @@
 package com.zc.vndb.feature.release.presentation
 
 import app.cash.turbine.test
+import com.zc.vndb.common.domain.model.AppConfig
+import com.zc.vndb.common.domain.model.AppConfigSamples
+import com.zc.vndb.common.domain.model.ExternalLink
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
+import com.zc.vndb.common.domain.usecase.GetAppConfigUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
@@ -31,11 +35,13 @@ class ReleaseViewModelTest {
 
     private val settings = FakeSettingsRepository()
 
-    private fun createViewModel() = ReleaseViewModel(
-        releaseId = "r7668",
-        getRelease = GetReleaseUseCase(repository),
-        observeSettings = ObserveSettingsUseCase(settings),
-    )
+    private fun createViewModel(appConfig: AppConfig = AppConfigSamples.development) =
+        ReleaseViewModel(
+            releaseId = "r7668",
+            getRelease = GetReleaseUseCase(repository),
+            observeSettings = ObserveSettingsUseCase(settings),
+            getAppConfig = GetAppConfigUseCase(appConfig),
+        )
 
     @Test
     fun `loads every section`() = runTest {
@@ -131,5 +137,16 @@ class ReleaseViewModelTest {
             assertNull(error)
             assertNotNull(hero)
         }
+    }
+
+    @Test
+    fun `a production build shows only vndb org for an adult release`() = runTest {
+        repository.releases["r7668"] = ReleaseSamples.release(
+            links = listOf(ExternalLink("Getchu", "https://www.getchu.com/")),
+        ).copy(minAge = 18)
+        val viewModel = createViewModel(AppConfigSamples.production)
+        advanceUntilIdle()
+
+        assertEquals(listOf("https://vndb.org/r7668"), viewModel.state.value.links.map { it.url })
     }
 }

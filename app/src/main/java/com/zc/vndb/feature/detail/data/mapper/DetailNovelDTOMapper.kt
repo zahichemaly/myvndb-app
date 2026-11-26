@@ -5,6 +5,7 @@ import com.zc.vndb.common.data.mapper.toDomain
 import com.zc.vndb.common.data.mapper.toNovelLength
 import com.zc.vndb.common.data.mapper.toReleaseDate
 import com.zc.vndb.common.domain.model.ExternalLink
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.feature.detail.data.dto.DetailNovelDTO
 import com.zc.vndb.feature.detail.data.dto.RelationDTO
 import com.zc.vndb.feature.detail.domain.model.NovelDetail
@@ -13,7 +14,7 @@ import com.zc.vndb.feature.detail.domain.model.NovelTitle
 import com.zc.vndb.feature.detail.domain.model.RelatedNovel
 import com.zc.vndb.feature.detail.domain.model.RelationType
 
-fun DetailNovelDTO.toDomain(): NovelDetail = NovelDetail(
+fun DetailNovelDTO.toDomain(policy: SensitiveContentPolicy): NovelDetail = NovelDetail(
     id = id,
     title = title.orEmpty(),
     originalTitle = alttitle?.takeIf { it.isNotBlank() && it != title },
@@ -21,7 +22,7 @@ fun DetailNovelDTO.toDomain(): NovelDetail = NovelDetail(
     rating = rating,
     average = average,
     voteCount = votecount ?: 0,
-    cover = image?.toCover(),
+    cover = image?.toCover(policy),
     developers = developers.orEmpty().map { NovelDeveloper(id = it.id, name = it.name) },
     description = description?.takeIf { it.isNotBlank() },
     length = toNovelLength(lengthMinutes = lengthMinutes, estimate = length),

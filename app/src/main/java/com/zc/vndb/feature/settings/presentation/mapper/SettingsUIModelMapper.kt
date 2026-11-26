@@ -1,6 +1,6 @@
 package com.zc.vndb.feature.settings.presentation.mapper
 
-import com.zc.vndb.BuildConfig
+import com.zc.vndb.common.domain.model.AppConfig
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.SpoilerPreference
@@ -49,7 +49,20 @@ fun SettingsState.withSettings(
     cardLanguagesLabel = settings.cardLanguages.takeIf { it.isNotEmpty() }
         ?.toLanguagesLabel(languages::nameOf)
         ?: UiText.StringResource(StringResource.settings_card_languages_off),
-    showSourceCodeSection = BuildConfig.DEBUG,
+)
+
+/** The rows that depend on the build: the version, the "Show sensitive content" switch and the source code. */
+fun SettingsState.withAppConfig(appConfig: AppConfig): SettingsState = copy(
+    versionLabel = UiText.StringResource(
+        StringResource.settings_version,
+        listOf(
+            UiText.StringResource(StringResource.app_name),
+            appConfig.versionName,
+            appConfig.versionCode,
+        ),
+    ),
+    canShowSensitiveContent = appConfig.showSensitiveContent,
+    showSourceCodeSection = appConfig.isDebug,
 )
 
 /** The listed languages, plus any saved choice that is not in the list so it can still be unticked. */

@@ -2,6 +2,7 @@ package com.zc.vndb.feature.browse.data.repository
 
 import com.zc.vndb.common.data.network.appJson
 import com.zc.vndb.common.data.network.createHttpClient
+import com.zc.vndb.common.domain.model.AppConfigSamples
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.NovelLength
 import com.zc.vndb.feature.browse.data.remote.BrowseService
@@ -40,6 +41,7 @@ class BrowseRepositoryImplTest {
                 },
             ),
         ),
+        appConfig = AppConfigSamples.development,
     )
 
     @Test

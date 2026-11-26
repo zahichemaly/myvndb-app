@@ -1,9 +1,10 @@
 package com.zc.vndb.feature.release.data.mapper
 
+import com.zc.vndb.common.data.mapper.coverOf
 import com.zc.vndb.common.data.mapper.toCover
 import com.zc.vndb.common.data.mapper.toReleaseDate
-import com.zc.vndb.common.domain.model.Cover
 import com.zc.vndb.common.domain.model.ExternalLink
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.feature.release.data.dto.ReleaseDetailDTO
 import com.zc.vndb.feature.release.data.dto.ReleaseImageDTO
 import com.zc.vndb.feature.release.data.dto.ReleaseLanguageDTO
@@ -22,7 +23,7 @@ import com.zc.vndb.feature.release.domain.model.Voicing
 
 private const val RESOLUTION_PARTS = 2
 
-fun ReleaseDetailDTO.toDomain(): ReleaseDetail = ReleaseDetail(
+fun ReleaseDetailDTO.toDomain(policy: SensitiveContentPolicy): ReleaseDetail = ReleaseDetail(
     id = id,
     title = title.orEmpty(),
     altTitle = alttitle?.takeIf { it.isNotBlank() && it != title },
@@ -42,9 +43,9 @@ fun ReleaseDetailDTO.toDomain(): ReleaseDetail = ReleaseDetail(
     gtin = gtin?.takeIf { it.isNotBlank() && it != "0" },
     notes = notes?.takeIf { it.isNotBlank() },
     languages = languages.orEmpty().map { it.toDomain() },
-    novels = vns.orEmpty().map { it.toDomain() },
+    novels = vns.orEmpty().map { it.toDomain(policy) },
     producers = producers.orEmpty().map { it.toDomain() },
-    images = images.orEmpty().mapNotNull { it.toDomain() },
+    images = images.orEmpty().mapNotNull { it.toDomain(policy) },
     links = extlinks.orEmpty().map { ExternalLink(label = it.label, url = it.url) },
 )
 
@@ -66,12 +67,12 @@ private fun ReleaseProducerDTO.toDomain() = ReleaseProducer(
     isPublisher = publisher ?: false,
 )
 
-private fun ReleaseNovelDTO.toDomain() = ReleaseNovel(
+private fun ReleaseNovelDTO.toDomain(policy: SensitiveContentPolicy) = ReleaseNovel(
     id = id,
     title = title.orEmpty(),
     originalTitle = altTitle,
     releaseDate = released.toReleaseDate(),
-    cover = image?.toCover(),
+    cover = image?.toCover(policy),
     type = when (rtype) {
         "partial" -> ReleaseType.Partial
         "trial" -> ReleaseType.Trial
@@ -80,7 +81,7 @@ private fun ReleaseNovelDTO.toDomain() = ReleaseNovel(
 )
 
 /** Null for an image without a URL. */
-private fun ReleaseImageDTO.toDomain(): ReleaseImage? {
+private fun ReleaseImageDTO.toDomain(policy: SensitiveContentPolicy): ReleaseImage? {
     val imageUrl = url ?: return null
     return ReleaseImage(
         type = when (type) {
@@ -92,11 +93,6 @@ private fun ReleaseImageDTO.toDomain(): ReleaseImage? {
             "dig" -> ReleaseImageType.Digital
             else -> ReleaseImageType.Other
         },
-        image = Cover(
-            url = imageUrl,
-            thumbnailUrl = thumbnail,
-            sexual = sexual ?: 0.0,
-            violence = violence ?: 0.0,
-        ),
+        image = coverOf(imageUrl, thumbnail, sexual, violence, policy),
     )
 }

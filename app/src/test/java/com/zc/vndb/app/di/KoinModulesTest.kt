@@ -19,6 +19,10 @@ class KoinModulesTest {
                 HttpClient::class,
                 HttpClientEngine::class,
                 HttpClientConfig::class,
+                // AppConfig's fields, filled from BuildConfig by its @Single provider.
+                String::class,
+                Int::class,
+                Boolean::class,
             ),
         )
     }

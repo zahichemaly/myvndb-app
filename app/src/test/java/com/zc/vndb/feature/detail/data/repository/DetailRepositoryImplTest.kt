@@ -2,6 +2,7 @@ package com.zc.vndb.feature.detail.data.repository
 
 import com.zc.vndb.common.data.network.appJson
 import com.zc.vndb.common.data.network.createHttpClient
+import com.zc.vndb.common.domain.model.AppConfigSamples
 import com.zc.vndb.common.domain.model.CharacterRole
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.NovelLength
@@ -50,6 +51,7 @@ class DetailRepositoryImplTest {
                 },
             ),
         ),
+        appConfig = AppConfigSamples.development,
     )
 
     @Test

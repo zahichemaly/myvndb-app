@@ -36,13 +36,17 @@ android {
     flavorDimensions += "environment"
     productFlavors {
         // Installs next to production: its own application id, version suffix and app name.
+        // Shows sensitive content like vndb.org: blurred images can be revealed after the 18+ question.
         create("development") {
             dimension = "environment"
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
+            buildConfigField("boolean", "SHOW_SENSITIVE_CONTENT", "true")
         }
+        // The Google Play build: sensitive images stay blurred and can never be revealed.
         create("production") {
             dimension = "environment"
+            buildConfigField("boolean", "SHOW_SENSITIVE_CONTENT", "false")
         }
     }
 

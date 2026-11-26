@@ -60,6 +60,8 @@ data class DetailState(
     val viewer: ImageViewerUIState? = null,
     /** The user confirmed they are 18 or older: this page's blurred covers are shown. */
     val areCoversRevealed: Boolean = false,
+    /** Whether blurred images can be revealed at all; builds that never show sensitive content can't. */
+    val canRevealSensitiveContent: Boolean = false,
     /** Set while the "I'm 18 or older" question is open. */
     val coverReveal: CoverRevealRequest? = null,
 )

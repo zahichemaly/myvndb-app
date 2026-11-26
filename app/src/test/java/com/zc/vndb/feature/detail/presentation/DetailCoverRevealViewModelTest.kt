@@ -1,8 +1,12 @@
 package com.zc.vndb.feature.detail.presentation
 
+import com.zc.vndb.common.domain.model.AppConfig
+import com.zc.vndb.common.domain.model.AppConfigSamples
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSessionRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
+import com.zc.vndb.common.domain.usecase.GetAppConfigUseCase
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSessionUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
@@ -47,22 +51,24 @@ class DetailCoverRevealViewModelTest {
     private val sessions = FakeSessionRepository()
     private val userListRepository = FakeUserListRepository()
 
-    private fun createViewModel() = DetailViewModel(
-        novelId = "v2002",
-        getNovelDetail = GetNovelDetailUseCase(repository),
-        getNovelEditions = GetNovelEditionsUseCase(repository),
-        getNovelCast = GetNovelCastUseCase(repository),
-        getNovelScreenshots = GetNovelScreenshotsUseCase(repository),
-        getNovelCovers = GetNovelCoversUseCase(repository),
-        getNovelReleases = GetNovelReleasesUseCase(repository),
-        getNovelQuotes = GetNovelQuotesUseCase(repository),
-        observeSettings = ObserveSettingsUseCase(settings),
-        observeLanguages = ObserveLanguagesUseCase(languages),
-        isNovelFinished = IsNovelFinishedUseCase(sessions, userListRepository),
-        observeSession = ObserveSessionUseCase(sessions),
-        getMyListEntry = GetMyListEntryUseCase(sessions, userListRepository),
-        observeListChanges = ObserveListChangesUseCase(userListRepository),
-    )
+    private fun createViewModel(appConfig: AppConfig = AppConfigSamples.development) =
+        DetailViewModel(
+            novelId = "v2002",
+            getNovelDetail = GetNovelDetailUseCase(repository),
+            getNovelEditions = GetNovelEditionsUseCase(repository),
+            getNovelCast = GetNovelCastUseCase(repository),
+            getNovelScreenshots = GetNovelScreenshotsUseCase(repository),
+            getNovelCovers = GetNovelCoversUseCase(repository),
+            getNovelReleases = GetNovelReleasesUseCase(repository),
+            getNovelQuotes = GetNovelQuotesUseCase(repository),
+            observeSettings = ObserveSettingsUseCase(settings),
+            observeLanguages = ObserveLanguagesUseCase(languages),
+            isNovelFinished = IsNovelFinishedUseCase(sessions, userListRepository),
+            observeSession = ObserveSessionUseCase(sessions),
+            getMyListEntry = GetMyListEntryUseCase(sessions, userListRepository),
+            observeListChanges = ObserveListChangesUseCase(userListRepository),
+            getAppConfig = GetAppConfigUseCase(appConfig),
+        )
 
     @Test
     fun `covers are not revealed and nothing is asked until a blurred cover is tapped`() = runTest {
@@ -154,5 +160,42 @@ class DetailCoverRevealViewModelTest {
 
         assertNull(viewModel.state.value.viewer)
         assertTrue(viewModel.state.value.areCoversRevealed)
+    }
+
+    @Test
+    fun `a production build never asks the question and its viewer skips sensitive covers`() =
+        runTest {
+            repository.covers = listOf(
+                DetailSamples.coverArt("front"),
+                DetailSamples.coverArt(
+                    "explicit",
+                    "r2",
+                    sexual = 1.0,
+                    policy = SensitiveContentPolicy.Censored,
+                ),
+                DetailSamples.coverArt("back", "r3"),
+            )
+            val viewModel = createViewModel(AppConfigSamples.production)
+            advanceUntilIdle()
+            viewModel.onIntent(DetailIntent.SectionNeeded(DetailSection.Covers))
+            advanceUntilIdle()
+
+            assertFalse(viewModel.state.value.canRevealSensitiveContent)
+            viewModel.onIntent(DetailIntent.CoverRevealRequested(viewerIndex = 1))
+            assertNull(viewModel.state.value.coverReveal)
+
+            viewModel.onIntent(DetailIntent.CoverClicked(2))
+
+            val viewer = assertNotNull(viewModel.state.value.viewer)
+            assertEquals(listOf("front", "back"), viewer.images.map { it.url })
+            assertEquals(1, viewer.startIndex)
+        }
+
+    @Test
+    fun `a development build can reveal sensitive covers`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.state.value.canRevealSensitiveContent)
     }
 }

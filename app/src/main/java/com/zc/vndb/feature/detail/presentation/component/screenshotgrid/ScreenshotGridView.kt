@@ -41,7 +41,8 @@ fun ScreenshotGridView(
                             .weight(1f)
                             .aspectRatio(SCREENSHOT_ASPECT_RATIO)
                             .clip(MaterialTheme.shapes.small)
-                            .clickable { onImageClick(image.index) },
+                            // Only builds that never reveal a screenshot blur it, so a blurred one stays closed.
+                            .clickable(enabled = !image.isSensitive) { onImageClick(image.index) },
                     )
                 }
                 repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }

@@ -3,6 +3,7 @@ package com.zc.vndb.feature.userlist.data.mapper
 import com.zc.vndb.common.data.mapper.toCover
 import com.zc.vndb.common.data.mapper.toReleaseDate
 import com.zc.vndb.common.domain.model.ListLabel
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.feature.userlist.data.dto.ListEntryDTO
 import com.zc.vndb.feature.userlist.data.dto.ListLabelDTO
 import com.zc.vndb.feature.userlist.data.dto.MyListEntryDTO
@@ -19,11 +20,11 @@ fun ListLabelDTO.toDomain() = ListLabel(
     isPrivate = private ?: false,
 )
 
-fun ListEntryDTO.toDomain() = ListEntry(
+fun ListEntryDTO.toDomain(policy: SensitiveContentPolicy) = ListEntry(
     novelId = id,
     title = vn.title,
     originalTitle = vn.altTitle,
-    cover = vn.image?.toCover(),
+    cover = vn.image?.toCover(policy),
     releaseDate = vn.released.toReleaseDate(),
     vote = vote,
     started = started.toLocalDateOrNull(),

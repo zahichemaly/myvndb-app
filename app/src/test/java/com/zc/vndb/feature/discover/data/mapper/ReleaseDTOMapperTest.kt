@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.discover.data.mapper
 
 import com.zc.vndb.common.domain.model.ReleaseDate
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.feature.discover.data.dto.ReleaseDTO
 import com.zc.vndb.feature.discover.data.dto.ReleaseLanguageDTO
 import com.zc.vndb.feature.discover.data.dto.ReleaseVisualNovelDTO
@@ -24,7 +25,7 @@ class ReleaseDTOMapperTest {
             languages = null,
             vns = null,
         )
-            .toDomain()
+            .toDomain(SensitiveContentPolicy.Standard)
 
         assertEquals(ReleaseDate.Tba, release.releaseDate)
         assertFalse(release.isPatch)
@@ -54,7 +55,7 @@ class ReleaseDTOMapperTest {
                     image = null,
                 ),
             ),
-        ).toDomain()
+        ).toDomain(SensitiveContentPolicy.Standard)
 
         assertEquals(ReleaseDate.Month(YearMonth(2024, 10)), release.releaseDate)
         assertTrue(release.isPatch)

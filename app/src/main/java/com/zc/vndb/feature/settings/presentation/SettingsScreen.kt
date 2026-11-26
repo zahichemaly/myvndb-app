@@ -188,15 +188,17 @@ private fun LazyListScope.spoilerSection(state: SettingsState, actions: Settings
 
 private fun LazyListScope.adultSection(state: SettingsState, actions: SettingsActions) {
     sectionHeader("adult", UiText.StringResource(StringResource.settings_section_adult))
-    item(key = "show-sensitive", contentType = "switch") {
-        SettingSwitchRowView(
-            icon = Icons.Outlined.Visibility,
-            title = UiText.StringResource(StringResource.settings_show_sensitive),
-            body = UiText.StringResource(StringResource.settings_show_sensitive_body),
-            isOn = state.showSensitiveContent,
-            onChange = { actions.onIntent(SettingsIntent.ShowSensitiveChanged(it)) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+    if (state.canShowSensitiveContent) {
+        item(key = "show-sensitive", contentType = "switch") {
+            SettingSwitchRowView(
+                icon = Icons.Outlined.Visibility,
+                title = UiText.StringResource(StringResource.settings_show_sensitive),
+                body = UiText.StringResource(StringResource.settings_show_sensitive_body),
+                isOn = state.showSensitiveContent,
+                onChange = { actions.onIntent(SettingsIntent.ShowSensitiveChanged(it)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
     item(key = "include-adult", contentType = "switch") {
         SettingSwitchRowView(
@@ -433,6 +435,7 @@ private val previewState = SettingsState(
     accountLabel = UiText.StringValue("Yorhel"),
     languagesLabel = UiText.StringValue("English, Japanese"),
     imageCacheLabel = UiText.StringValue("142 MB"),
+    canShowSensitiveContent = true,
     versionLabel = UiText.StringResource(
         StringResource.settings_version,
         listOf(UiText.StringResource(StringResource.app_name), "1.0.0", 1),
