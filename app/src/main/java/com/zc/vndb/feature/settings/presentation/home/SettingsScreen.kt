@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.settings.presentation
+package com.zc.vndb.feature.settings.presentation.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,9 +11,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
-import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Explicit
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Image
@@ -50,12 +51,12 @@ import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
-import com.zc.vndb.feature.settings.presentation.component.choicedialog.ChoiceDialogView
-import com.zc.vndb.feature.settings.presentation.component.settingrow.SettingRowView
-import com.zc.vndb.feature.settings.presentation.component.settingrow.SettingSwitchRowView
-import com.zc.vndb.feature.settings.presentation.component.settingrow.SettingValueView
-import com.zc.vndb.feature.settings.presentation.model.SettingOptionUIModel
-import com.zc.vndb.feature.settings.presentation.model.SettingsDialog
+import com.zc.vndb.feature.settings.presentation.home.component.choicedialog.ChoiceDialogView
+import com.zc.vndb.feature.settings.presentation.home.component.settingrow.SettingRowView
+import com.zc.vndb.feature.settings.presentation.home.component.settingrow.SettingSwitchRowView
+import com.zc.vndb.feature.settings.presentation.home.component.settingrow.SettingValueView
+import com.zc.vndb.feature.settings.presentation.home.model.SettingOptionUIModel
+import com.zc.vndb.feature.settings.presentation.home.model.SettingsDialog
 import kotlinx.collections.immutable.persistentListOf
 
 private val MaxContentWidth = 640.dp
@@ -259,17 +260,21 @@ private fun LazyListScope.storageSection(state: SettingsState, actions: Settings
 
 private fun LazyListScope.aboutSection(state: SettingsState, actions: SettingsActions) {
     sectionHeader("about", UiText.StringResource(StringResource.settings_section_about))
-    item(key = "source", contentType = "link") {
-        LinkRow(
-            icon = Icons.Outlined.Code,
-            title = UiText.StringResource(StringResource.settings_about_source),
+    item(key = "licenses", contentType = "row") {
+        // Opens a page in the app, so a chevron rather than Privacy's open-in-browser icon.
+        SettingRowView(
+            icon = Icons.Outlined.Description,
+            title = UiText.StringResource(StringResource.settings_about_licenses),
             body = null,
-            onClick = {
-                actions.onIntent(
-                    SettingsIntent.LinkClicked(SettingsViewModel.SOURCE_URL),
-                )
-            },
-        )
+            onClick = { actions.onIntent(SettingsIntent.LicensesClicked) },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Icon(
+                Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
     item(key = "privacy", contentType = "link") {
         LinkRow(

@@ -14,6 +14,7 @@ import com.zc.vndb.feature.discover.presentation.navigation.TrendingNavKey
 import com.zc.vndb.feature.login.presentation.navigation.LoginNavKey
 import com.zc.vndb.feature.profile.presentation.navigation.ProfileNavKey
 import com.zc.vndb.feature.release.presentation.navigation.ReleaseNavKey
+import com.zc.vndb.feature.settings.presentation.navigation.LicensesNavKey
 import com.zc.vndb.feature.settings.presentation.navigation.SettingsNavKey
 import com.zc.vndb.feature.theme.presentation.navigation.ThemeNavKey
 import com.zc.vndb.feature.userlist.presentation.navigation.ListEditorNavKey
@@ -30,6 +31,7 @@ class NavKeySerializationTest {
         BrowseNavKey,
         ProfileNavKey,
         SettingsNavKey,
+        LicensesNavKey,
         ThemeNavKey,
         LoginNavKey,
         DetailNavKey("v17"),

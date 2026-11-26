@@ -1,12 +1,13 @@
-package com.zc.vndb.feature.settings.presentation
+package com.zc.vndb.feature.settings.presentation.home
 
-import com.zc.vndb.feature.settings.presentation.model.SettingsDialog
+import com.zc.vndb.feature.settings.presentation.home.model.SettingsDialog
 
 sealed interface SettingsIntent {
     data object BackClicked : SettingsIntent
     data class DialogOpened(val dialog: SettingsDialog) : SettingsIntent
     data object DialogDismissed : SettingsIntent
     data object ThemeClicked : SettingsIntent
+    data object LicensesClicked : SettingsIntent
 
     /** A choice in the title language or spoiler level dialog. */
     data class OptionSelected(val dialog: SettingsDialog, val key: String) : SettingsIntent

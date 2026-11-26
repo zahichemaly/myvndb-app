@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.vndb.detekt)
     alias(libs.plugins.koin.compiler)
+    // Generates res/raw/aboutlibraries.json (the Licenses page) from the dependencies at build time.
+    alias(libs.plugins.aboutlibraries.android)
 }
 
 android {
@@ -109,6 +111,8 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.coil.network.ktor3)
+
+    implementation(libs.aboutlibraries.compose.m3)
 
     testImplementation(platform(libs.koin.bom))
     testImplementation(libs.bundles.test.unit)

@@ -1,10 +1,10 @@
-package com.zc.vndb.feature.settings.presentation
+package com.zc.vndb.feature.settings.presentation.home
 
 import androidx.compose.runtime.Immutable
 import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.ui.text.UiText
-import com.zc.vndb.feature.settings.presentation.model.SettingOptionUIModel
-import com.zc.vndb.feature.settings.presentation.model.SettingsDialog
+import com.zc.vndb.feature.settings.presentation.home.model.SettingOptionUIModel
+import com.zc.vndb.feature.settings.presentation.home.model.SettingsDialog
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 

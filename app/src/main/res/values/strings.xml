@@ -497,8 +497,8 @@
     <string name="settings_size_kb">%1$s KB</string>
     <string name="settings_size_mb">%1$s MB</string>
     <string name="settings_size_gb">%1$s GB</string>
-    <string name="settings_about_source">Source code</string>
-    <string name="settings_about_privacy">Privacy</string>
+    <string name="settings_about_licenses">Licenses</string>
+    <string name="settings_about_privacy">Privacy Policy</string>
     <string name="settings_version">%1$s %2$s (%3$s)</string>
     <string name="action_ok">OK</string>
 

@@ -44,6 +44,7 @@ Each approved library from `tech-stack` §1, with its catalog accessor and coord
 | DataStore | `libs.androidx.datastore.preferences` (or `libs.androidx.datastore`) | `androidx.datastore:datastore-preferences` / `androidx.datastore:datastore` |
 | Koin | `libs.koin.bom`, `libs.koin.android` *BOM*, `libs.koin.androidx.compose` *BOM*, `libs.koin.annotations` *BOM*, `libs.plugins.koin.compiler` | `io.insert-koin:koin-bom`, `koin-android`, `koin-androidx-compose`, `koin-annotations`, plugin `io.insert-koin.compiler.plugin` |
 | Detekt | `libs.plugins.detekt`, `libs.detekt.formatting`, `libs.compose.rules.detekt` | `io.gitlab.arturbosch.detekt` (or `dev.detekt` on 2.x), `detekt-formatting` (`detekt-rules-ktlint-wrapper` on 2.x), `io.nlopez.compose.rules:detekt` |
+| AboutLibraries | `libs.aboutlibraries.compose.m3`, `libs.plugins.aboutlibraries.android` | `com.mikepenz:aboutlibraries-compose-m3`, plugin `com.mikepenz.aboutlibraries.plugin.android` |
 | Testing | `libs.bundles.test.unit` | `junit:junit`, `org.jetbrains.kotlin:kotlin-test`, `org.jetbrains.kotlinx:kotlinx-coroutines-test`, `app.cash.turbine:turbine`, `io.ktor:ktor-client-mock`, `io.insert-koin:koin-test` |
 | build-logic compile-only | `libs.android.gradle.plugin`, `libs.kotlin.gradle.plugin`, `libs.compose.gradle.plugin`, `libs.detekt.gradle.plugin` | `com.android.tools.build:gradle`, `org.jetbrains.kotlin:kotlin-gradle-plugin`, `org.jetbrains.kotlin:compose-compiler-gradle-plugin`, Detekt Gradle plugin artifact |
 

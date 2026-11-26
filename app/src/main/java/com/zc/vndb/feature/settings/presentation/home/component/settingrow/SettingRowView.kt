@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.settings.presentation.component.settingrow
+package com.zc.vndb.feature.settings.presentation.home.component.settingrow
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

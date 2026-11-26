@@ -24,6 +24,8 @@ import com.zc.vndb.feature.login.presentation.navigation.navigateToLogin
 import com.zc.vndb.feature.profile.presentation.navigation.profileEntry
 import com.zc.vndb.feature.release.presentation.navigation.navigateToRelease
 import com.zc.vndb.feature.release.presentation.navigation.releaseEntry
+import com.zc.vndb.feature.settings.presentation.navigation.licensesEntry
+import com.zc.vndb.feature.settings.presentation.navigation.navigateToLicenses
 import com.zc.vndb.feature.settings.presentation.navigation.navigateToSettings
 import com.zc.vndb.feature.settings.presentation.navigation.settingsEntry
 import com.zc.vndb.feature.theme.presentation.navigation.navigateToTheme
@@ -62,7 +64,9 @@ internal fun appEntryProvider(navigator: Navigator): (NavKey) -> NavEntry<NavKey
     settingsEntry(
         onNavigateBack = navigator::navigateBack,
         onOpenTheme = navigator::navigateToTheme,
+        onOpenLicenses = navigator::navigateToLicenses,
     )
+    licensesEntry(onNavigateBack = navigator::navigateBack)
     themeEntry(onNavigateBack = navigator::navigateBack)
     loginEntry(onNavigateBack = navigator::navigateBack)
     detailEntry(

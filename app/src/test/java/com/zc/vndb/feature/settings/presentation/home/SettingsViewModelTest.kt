@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.settings.presentation
+package com.zc.vndb.feature.settings.presentation.home
 
 import app.cash.turbine.test
 import com.zc.vndb.common.domain.model.AppSettings
@@ -22,7 +22,7 @@ import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.util.MainDispatcherRule
 import com.zc.vndb.feature.settings.domain.usecase.ClearImageCacheUseCase
 import com.zc.vndb.feature.settings.domain.usecase.GetImageCacheSizeUseCase
-import com.zc.vndb.feature.settings.presentation.model.SettingsDialog
+import com.zc.vndb.feature.settings.presentation.home.model.SettingsDialog
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -231,6 +231,16 @@ class SettingsViewModelTest {
         viewModel.effect.test {
             viewModel.onIntent(SettingsIntent.ThemeClicked)
             assertEquals(SettingsEffect.OpenTheme, awaitItem())
+        }
+    }
+
+    @Test
+    fun `the Licenses row opens the Licenses screen`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.effect.test {
+            viewModel.onIntent(SettingsIntent.LicensesClicked)
+            assertEquals(SettingsEffect.OpenLicenses, awaitItem())
         }
     }
 

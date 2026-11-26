@@ -33,6 +33,7 @@ Quality rules for using these libraries (performance, Detekt, error handling, te
 | Serialization | kotlinx.serialization (JSON) |
 | Persistence | Jetpack DataStore (Preferences or Proto/typed) |
 | DI | Koin (Android, Compose) |
+| Open-source licenses | AboutLibraries (Gradle plugin + Compose Material 3 UI) |
 | Static analysis | Detekt + ktlint formatting + Compose rules |
 | Compose diagnostics | Compose compiler reports |
 | Testing | JUnit 4, kotlin.test, kotlinx-coroutines-test, Turbine, Ktor MockEngine, koin-test |
@@ -100,6 +101,7 @@ grep -rnE "runBlocking|GlobalScope|KoinComponent|by inject\(\)" app/src/main
 | Navigation 3 | — | — | ✅ `NavKey`s and entry functions (`presentation/navigation/`) only | ✅ `common/ui/navigation/` plumbing | — | ✅ `NavDisplay`, back stack, entry wiring |
 | Lifecycle / ViewModel | — | — | ✅ | — | — | ✅ |
 | Koin | ✅ annotations only (`@Factory`, `@Single`) | ✅ annotations only (`@Single`) | ✅ `@KoinViewModel` / `@Factory`, `koinViewModel()` in Routes only | — | ✅ `@Module`, providers | ✅ `startKoin<AppKoin>` |
+| AboutLibraries | — | — | ✅ the Licenses screen only (`feature/settings/presentation/licenses/`) | — | — | — |
 
 ---
 
@@ -249,6 +251,12 @@ fun CoverImageView(
     )
 }
 ```
+
+### Open-source licenses (AboutLibraries)
+
+- The `com.mikepenz.aboutlibraries.plugin.android` Gradle plugin writes `res/raw/aboutlibraries.json` from the app's dependencies at build time, license texts included, so the page works offline.
+- Settings → Licenses shows it: `LicensesRoute` loads the bundled list with `produceLibraries()` and `LicensesScreen` renders it with the Material 3 `LibrariesContainer`. This list is static data packaged in the APK, so this one screen has no ViewModel, use case or repository (a deliberate exception to the MVI flow).
+- AboutLibraries types (`Libs`, `Library`) stay in that screen. Nothing else imports `com.mikepenz.*`.
 
 ---
 

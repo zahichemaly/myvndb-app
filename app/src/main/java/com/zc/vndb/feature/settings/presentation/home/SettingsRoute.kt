@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.settings.presentation
+package com.zc.vndb.feature.settings.presentation.home
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -15,6 +15,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun SettingsRoute(
     onNavigateBack: () -> Unit,
     onOpenTheme: () -> Unit,
+    onOpenLicenses: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
@@ -28,6 +29,8 @@ fun SettingsRoute(
             SettingsEffect.NavigateBack -> onNavigateBack()
 
             SettingsEffect.OpenTheme -> onOpenTheme()
+
+            SettingsEffect.OpenLicenses -> onOpenLicenses()
 
             is SettingsEffect.OpenUrl -> uriHandler.openUri(effect.url)
 

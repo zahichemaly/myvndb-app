@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.settings.presentation
+package com.zc.vndb.feature.settings.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,9 +17,9 @@ import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.settings.domain.usecase.ClearImageCacheUseCase
 import com.zc.vndb.feature.settings.domain.usecase.GetImageCacheSizeUseCase
-import com.zc.vndb.feature.settings.presentation.mapper.toSizeLabel
-import com.zc.vndb.feature.settings.presentation.mapper.withSettings
-import com.zc.vndb.feature.settings.presentation.model.SettingsDialog
+import com.zc.vndb.feature.settings.presentation.home.mapper.toSizeLabel
+import com.zc.vndb.feature.settings.presentation.home.mapper.withSettings
+import com.zc.vndb.feature.settings.presentation.home.model.SettingsDialog
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -88,6 +88,8 @@ class SettingsViewModel(
             SettingsIntent.DialogDismissed -> closeDialog()
 
             SettingsIntent.ThemeClicked -> sendEffect(SettingsEffect.OpenTheme)
+
+            SettingsIntent.LicensesClicked -> sendEffect(SettingsEffect.OpenLicenses)
 
             is SettingsIntent.OptionSelected -> selectOption(intent.dialog, intent.key)
 
@@ -205,7 +207,6 @@ class SettingsViewModel(
 
     companion object {
         const val PRIVACY_URL = "https://vndb.org/d17#4"
-        const val SOURCE_URL = "https://github.com/zahichemaly/vndb-app"
         private const val STOP_TIMEOUT_MILLIS = 5_000L
     }
 }

@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.settings.presentation.mapper
+package com.zc.vndb.feature.settings.presentation.home.mapper
 
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.LanguageOption
@@ -11,8 +11,8 @@ import com.zc.vndb.common.ui.mapper.toLabel
 import com.zc.vndb.common.ui.mapper.toLanguagesLabel
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
-import com.zc.vndb.feature.settings.presentation.SettingsState
-import com.zc.vndb.feature.settings.presentation.model.SettingOptionUIModel
+import com.zc.vndb.feature.settings.presentation.home.SettingsState
+import com.zc.vndb.feature.settings.presentation.home.model.SettingOptionUIModel
 import kotlinx.collections.immutable.toImmutableList
 
 private const val BYTES_PER_UNIT = 1024.0

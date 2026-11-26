@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.settings.presentation.model
+package com.zc.vndb.feature.settings.presentation.home.model
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector

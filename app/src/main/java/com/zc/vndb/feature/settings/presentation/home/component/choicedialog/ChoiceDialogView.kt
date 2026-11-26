@@ -1,4 +1,4 @@
-package com.zc.vndb.feature.settings.presentation.component.choicedialog
+package com.zc.vndb.feature.settings.presentation.home.component.choicedialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,7 +27,7 @@ import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
 import com.zc.vndb.common.ui.util.AdaptivePreviews
-import com.zc.vndb.feature.settings.presentation.model.SettingOptionUIModel
+import com.zc.vndb.feature.settings.presentation.home.model.SettingOptionUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
