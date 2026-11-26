@@ -29,7 +29,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -74,7 +73,8 @@ private val RollProgressSize = 16.dp
 private class DiscoverActions(
     val onNovelClick: (String) -> Unit,
     val onReleaseClick: (String) -> Unit,
-    val onSeeAllClick: () -> Unit,
+    val onSeeAllTopRatedClick: () -> Unit,
+    val onSeeAllTrendingClick: () -> Unit,
     val onStatsClick: () -> Unit,
     val onRollClick: () -> Unit,
 )
@@ -92,7 +92,8 @@ fun DiscoverScreen(
         DiscoverActions(
             onNovelClick = { id -> onIntent(DiscoverIntent.NovelClicked(id)) },
             onReleaseClick = { id -> onIntent(DiscoverIntent.ReleaseClicked(id)) },
-            onSeeAllClick = { onIntent(DiscoverIntent.SeeAllTopRatedClicked) },
+            onSeeAllTopRatedClick = { onIntent(DiscoverIntent.SeeAllTopRatedClicked) },
+            onSeeAllTrendingClick = { onIntent(DiscoverIntent.SeeAllTrendingClicked) },
             onStatsClick = { onIntent(DiscoverIntent.StatsClicked) },
             onRollClick = { onIntent(DiscoverIntent.RandomRollClicked) },
         )
@@ -197,7 +198,7 @@ private fun LazyListScope.compactSections(state: DiscoverState, actions: Discove
         item(
             key = "trending-header",
             contentType = "section-header",
-        ) { TrendingHeader(state.trendingLanguagesLabel) }
+        ) { TrendingHeader(state.trendingLanguagesLabel, actions.onSeeAllTrendingClick) }
         item(key = "trending", contentType = "trending") {
             TrendingList(state.trending, actions, Modifier.fillMaxWidth())
         }
@@ -219,7 +220,7 @@ private fun LazyListScope.expandedSections(state: DiscoverState, actions: Discov
                 verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.md),
             ) {
                 if (state.trending.isNotEmpty()) {
-                    TrendingHeader(state.trendingLanguagesLabel)
+                    TrendingHeader(state.trendingLanguagesLabel, actions.onSeeAllTrendingClick)
                     TrendingList(state.trending, actions, Modifier.fillMaxWidth())
                 }
             }
@@ -235,22 +236,11 @@ private fun LazyListScope.topRatedSection(
     if (cards.isEmpty()) return
     item(key = "top-rated", contentType = "top-rated") {
         Column(verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
-            // No top padding, unlike the other headers: the See all button's 48dp touch target
-            // already makes this header taller than its title, which adds about as much space.
             SectionHeaderView(
                 title = UiText.StringResource(StringResource.discover_top_rated),
                 icon = Icons.Outlined.EmojiEvents,
-                action = {
-                    TextButton(onClick = actions.onSeeAllClick) {
-                        Text(
-                            text = UiText.StringResource(
-                                StringResource.discover_see_all,
-                            ).asString(),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = VndbTheme.colors.accent,
-                        )
-                    }
-                },
+                modifier = Modifier.padding(top = VndbTheme.spacing.md),
+                onSeeAllClick = actions.onSeeAllTopRatedClick,
             )
             LazyRow(horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.md)) {
                 items(items = cards, key = { it.id }) { card ->
@@ -261,21 +251,15 @@ private fun LazyListScope.topRatedSection(
     }
 }
 
+/** The Trending languages under the title, and See all where they used to be. */
 @Composable
-private fun TrendingHeader(languagesLabel: UiText?) {
+private fun TrendingHeader(languagesLabel: UiText?, onSeeAllClick: () -> Unit) {
     SectionHeaderView(
         title = UiText.StringResource(StringResource.discover_new_and_trending),
         icon = Icons.Outlined.Bolt,
         modifier = Modifier.padding(top = VndbTheme.spacing.md),
-        action = languagesLabel?.let { label ->
-            {
-                Text(
-                    text = label.asString(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        },
+        subtitle = languagesLabel,
+        onSeeAllClick = onSeeAllClick,
     )
 }
 

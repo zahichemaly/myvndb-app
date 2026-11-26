@@ -44,7 +44,8 @@ fun novelDetailsQuery(id: String) = QueryDTO(
     count = null,
 )
 
-fun recentReleasesQuery(languageCodes: List<String>, limit: Int) = QueryDTO(
+/** Releases already out in any of [languageCodes], newest first; [page] counts from 1. */
+fun recentReleasesQuery(languageCodes: List<String>, limit: Int, page: Int? = null) = QueryDTO(
     filters = buildJsonArray {
         add("and")
         add(filter("released", "<=", JsonPrimitive("today")))
@@ -57,7 +58,7 @@ fun recentReleasesQuery(languageCodes: List<String>, limit: Int) = QueryDTO(
     sort = "released",
     reverse = true,
     results = limit,
-    page = null,
+    page = page,
     count = null,
 )
 

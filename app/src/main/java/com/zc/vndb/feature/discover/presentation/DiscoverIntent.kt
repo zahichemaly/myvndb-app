@@ -12,5 +12,6 @@ sealed interface DiscoverIntent {
     /** A trending translation or patch: opens the release itself. */
     data class ReleaseClicked(val id: String) : DiscoverIntent
     data object SeeAllTopRatedClicked : DiscoverIntent
+    data object SeeAllTrendingClicked : DiscoverIntent
     data object StatsClicked : DiscoverIntent
 }

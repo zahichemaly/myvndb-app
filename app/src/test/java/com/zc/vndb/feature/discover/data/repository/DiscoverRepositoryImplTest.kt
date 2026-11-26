@@ -10,8 +10,11 @@ import io.ktor.http.HttpStatusCode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 
 class DiscoverRepositoryImplTest {
 
@@ -47,6 +50,19 @@ class DiscoverRepositoryImplTest {
         api.body = """{"more":false,"results":[]}"""
 
         assertEquals(DomainError.NotFound, repository.getNovelDetails("v0").exceptionOrNull())
+    }
+
+    @Test
+    fun `a releases page asks VNDB for that page and says whether there are more`() = runTest {
+        api.body = """{"more":true,"results":[]}"""
+
+        val page = repository.getRecentReleasesPage(listOf("en"), page = 2, pageSize = 30)
+            .getOrThrow()
+
+        val body = api.requests.single().body?.jsonObject
+        assertEquals(JsonPrimitive(2), body?.get("page"))
+        assertEquals(JsonPrimitive(30), body?.get("results"))
+        assertTrue(page.hasMore)
     }
 
     @Test

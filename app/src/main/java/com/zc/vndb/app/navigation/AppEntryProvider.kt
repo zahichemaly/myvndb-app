@@ -17,6 +17,8 @@ import com.zc.vndb.feature.detail.presentation.navigation.DetailNavActions
 import com.zc.vndb.feature.detail.presentation.navigation.detailEntry
 import com.zc.vndb.feature.detail.presentation.navigation.navigateToDetail
 import com.zc.vndb.feature.discover.presentation.navigation.discoverEntry
+import com.zc.vndb.feature.discover.presentation.navigation.navigateToTrending
+import com.zc.vndb.feature.discover.presentation.navigation.trendingEntry
 import com.zc.vndb.feature.login.presentation.navigation.loginEntry
 import com.zc.vndb.feature.login.presentation.navigation.navigateToLogin
 import com.zc.vndb.feature.profile.presentation.navigation.profileEntry
@@ -39,6 +41,12 @@ internal fun appEntryProvider(navigator: Navigator): (NavKey) -> NavEntry<NavKey
         onOpenRelease = navigator::navigateToRelease,
         onOpenBrowse = navigator::navigateToBrowse,
         onOpenTopRatedPage = navigator::navigateToTopRated,
+        onOpenTrendingPage = navigator::navigateToTrending,
+    )
+    trendingEntry(
+        onNavigateBack = navigator::navigateBack,
+        onOpenNovel = navigator::navigateToDetail,
+        onOpenRelease = navigator::navigateToRelease,
     )
     browseEntry(onOpenNovel = navigator::navigateToDetail)
     browseScopedEntries(

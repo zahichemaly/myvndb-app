@@ -40,6 +40,7 @@
     <string name="discover_release_patch">Patch</string>
     <string name="discover_release_rerelease">Re-release</string>
     <string name="discover_quote_title">Quote of the Day</string>
+    <string name="discover_trending_empty">Nothing new in your languages yet.</string>
     <string name="discover_quote_attribution_character">— %1$s, %2$s</string>
     <string name="discover_quote_attribution_novel">— %1$s</string>
     <string name="discover_stats_subtitle">Indexed &amp; curated by readers</string>

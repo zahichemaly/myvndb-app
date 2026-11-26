@@ -74,6 +74,8 @@ class DiscoverViewModel(
 
             DiscoverIntent.SeeAllTopRatedClicked -> sendEffect(DiscoverEffect.NavigateToTopRated)
 
+            DiscoverIntent.SeeAllTrendingClicked -> sendEffect(DiscoverEffect.NavigateToTrending)
+
             DiscoverIntent.StatsClicked -> sendEffect(DiscoverEffect.NavigateToBrowse)
         }
     }

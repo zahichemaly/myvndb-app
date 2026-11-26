@@ -10,6 +10,7 @@ import com.zc.vndb.feature.browse.presentation.navigation.TopRatedNavKey
 import com.zc.vndb.feature.character.presentation.navigation.CharacterNavKey
 import com.zc.vndb.feature.detail.presentation.navigation.DetailNavKey
 import com.zc.vndb.feature.discover.presentation.navigation.DiscoverNavKey
+import com.zc.vndb.feature.discover.presentation.navigation.TrendingNavKey
 import com.zc.vndb.feature.login.presentation.navigation.LoginNavKey
 import com.zc.vndb.feature.profile.presentation.navigation.ProfileNavKey
 import com.zc.vndb.feature.release.presentation.navigation.ReleaseNavKey
@@ -38,6 +39,7 @@ class NavKeySerializationTest {
         ProducerNavKey("p1"),
         StaffNavKey("s1"),
         TopRatedNavKey,
+        TrendingNavKey,
         ListEditorNavKey("v17", "Fate/stay night"),
     )
 

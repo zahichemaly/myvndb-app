@@ -5,6 +5,7 @@ import com.zc.vndb.feature.discover.domain.model.DiscoverNovel
 import com.zc.vndb.feature.discover.domain.model.NovelDetails
 import com.zc.vndb.feature.discover.domain.model.QuoteOfTheDay
 import com.zc.vndb.feature.discover.domain.model.Release
+import com.zc.vndb.feature.discover.domain.model.ReleasesPage
 
 interface DiscoverRepository {
 
@@ -15,6 +16,13 @@ interface DiscoverRepository {
 
     /** Releases already out in any of [languageCodes], newest first. */
     suspend fun getRecentReleases(languageCodes: List<String>, limit: Int): Result<List<Release>>
+
+    /** Page [page] (from 1) of the same releases, [pageSize] at a time. */
+    suspend fun getRecentReleasesPage(
+        languageCodes: List<String>,
+        page: Int,
+        pageSize: Int,
+    ): Result<ReleasesPage>
 
     suspend fun getDatabaseStats(): Result<DatabaseStats>
 
