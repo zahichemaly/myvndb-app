@@ -79,6 +79,8 @@ com.zc.vndb/
             │       ├── mapper/      # [Name]UIModelMapper.kt for this component's models
             │       ├── component/   # Sub-components of this component (same shape, recursively)
             │       └── [Name]View.kt
+            ├── navigation/          # [Name]NavKey.kt, [Name]Navigation.kt (entries for every screen of the feature)
+            ├── [screen]/            # ONLY in a feature with 2+ screens: one package per screen, see §1.2
             ├── [Name]State.kt       # Screen-level immutable MVI state
             ├── [Name]Intent.kt      # Sealed interface of user actions & screen triggers
             ├── [Name]Effect.kt      # Sealed interface of one-off side effects
@@ -96,7 +98,7 @@ Rules:
 - **NEVER** add folders that are not in the tree (`helper/`, `base/`, `extensions/`, `manager/`). Place the code in the folder that matches its role.
 - `common/data/dto/` and `common/data/mapper/` hold only DTOs (and their mappers) that two or more features send or receive; a DTO used by one feature stays in that feature.
 - `util/` exists **only** at `common/data/util/`, `common/domain/util/` and `common/ui/util/`, for the cross-cutting helpers listed in §2. **NEVER** create `util/` inside a feature, and never use these folders as a dumping ground for feature logic.
-- Feature `presentation/` is flat: a feature with several screens holds several `[Name]State/Intent/Effect/ViewModel/Route/Screen` sets side by side. ViewModel state holders (`architecture` §3, e.g. `SectionLoader.kt`) sit flat there too, next to the ViewModel that uses them.
+- A feature with one screen keeps its `[Name]State/Intent/Effect/ViewModel/Route/Screen` directly in `presentation/`. A feature with two or more screens gives **each screen its own subpackage** (§1.2); **NEVER** put two screens' MVI sets side by side. ViewModel state holders (`architecture` §3, e.g. `SectionLoader.kt`) sit next to the ViewModel that uses them.
 
 ### 1.1 Components mirror `presentation` (recursively)
 
@@ -137,9 +139,37 @@ Rules:
 - A sub-component used by two sibling components moves **up** to the nearest shared `component/` level. When two features use it, it moves to `common/ui/component/[name]/`.
 - `common/ui/component/[name]/` follows the same shape. Its models are feature-agnostic, and its mappers (if any) map only from `common/domain` types.
 
+### 1.2 Screen packages (features with 2+ screens)
+
+A screen that belongs to a feature's journey and shares its data (a "See all" page, a settings sub-page) is a second screen of that feature, not a new feature. Once a feature has two or more screens, each gets its own subpackage, shaped like `presentation/` itself:
+
+```text
+feature/discover/presentation/
+├── navigation/                      # DiscoverNavKey, TrendingNavKey, DiscoverNavigation.kt (both entries)
+├── component/
+│   └── trendingrelease/             # Used by both screens → stays at presentation/ level
+├── home/                            # The Discover tab
+│   ├── component/                   # featurednovel/, novelcard/, statsfooter/, … (this screen only)
+│   ├── mapper/                      # DatabaseStatsUIModelMapper.kt
+│   └── DiscoverState.kt, …Intent, …Effect, …ViewModel, …Route, …Screen
+└── trending/                        # The full "New & Trending" page
+    ├── component/trendingskeleton/
+    └── TrendingState.kt, …Intent, …Effect, …ViewModel, …Route, …Screen
+```
+
+Rules:
+
+- Name the subpackage after the screen in lowercase (`trending/`). The screen named after the feature itself goes in `home/`, never a repeat of the feature name (`discover/presentation/discover/`).
+- A screen package holds that screen's MVI set and state holders, plus its own `model/`, `mapper/` and `component/` with the same meanings as in `presentation/` (§1.1).
+- `navigation/` stays at `presentation/` level: one `[Name]Navigation.kt` registers every entry of the feature.
+- The narrowest-owner rule gains a level: one component → that component; one screen → that screen's package; 2+ screens of the feature → `presentation/{model,mapper,component}/`; 2+ features → `common/ui/`.
+- A screen package **NEVER** imports from a sibling screen package (`ArchitectureTest` checks this). What two screens share moves up to `presentation/`. Any `presentation/` subpackage other than `model`, `mapper`, `component` and `navigation` counts as a screen package.
+- `domain/` and `data/` stay at feature level and serve every screen; screens never get their own.
+- Tests mirror the same packages (`feature/discover/presentation/trending/TrendingViewModelTest.kt`).
+
 ---
 
-### 1.2 Repository root (build files)
+### 1.3 Repository root (build files)
 
 ```text
 MyVNDB/
@@ -195,10 +225,10 @@ Rules are in `library-management`.
 | Mapper for a component's own models | `…/component/[component]/mapper/[Name]UIModelMapper.kt` |
 | Sub-component used only inside one component | `…/component/[component]/component/[sub]/[Name]View.kt` |
 | Composable used by one screen only | `private` in that `[Name]Screen.kt` |
-| MVI contract, ViewModel, Route, Screen | `feature/[name]/presentation/` |
+| MVI contract, ViewModel, Route, Screen | `feature/[name]/presentation/`, or `feature/[name]/presentation/[screen]/` when the feature has 2+ screens (§1.2) |
 | Library / plugin dependency declaration | `gradle/libs.versions.toml` |
 | Custom Gradle task, convention plugin, shared build config | `build-logic/convention/src/main/kotlin/` |
-| ViewModel state holder (one lazily loaded part of a screen, e.g. `SectionLoader`) | `feature/[name]/presentation/[Name].kt`, flat next to the ViewModel |
+| ViewModel state holder (one lazily loaded part of a screen, e.g. `SectionLoader`) | Next to the ViewModel that uses it (`feature/[name]/presentation/[Name].kt`, or in its screen package) |
 | Unit test for `X` | `app/src/test/java/com/zc/vndb/<same package as X>/XTest.kt` |
 | Architecture rules (layers, feature edges) | `app/src/test/java/com/zc/vndb/app/ArchitectureTest.kt` |
 | Test fakes (`Fake[Name]Repository`, `TestDispatcherProvider`) and rules (`MainDispatcherRule`) | Test source set, mirroring the package of the thing they fake (`MainDispatcherRule` → `common/util/`) |
@@ -220,10 +250,14 @@ Rules are in `library-management`.
 ```text
 Is the composable used by more than one screen?
 ├── No  → private in that [Name]Screen.kt
+│         (in a feature with 2+ screens, a large one or one with its own models may go in
+│          presentation/[screen]/component/[name]/[Name]View.kt)
 └── Yes → Are all users inside the SAME feature?
           ├── Yes → Are all users inside the SAME parent component?
           │         ├── Yes → …/component/[parent]/component/[name]/[Name]View.kt
-          │         └── No  → feature/[name]/presentation/component/[name]/[Name]View.kt
+          │         └── No  → Are all users inside the SAME screen package (§1.2)?
+          │                   ├── Yes → feature/[name]/presentation/[screen]/component/[name]/[Name]View.kt
+          │                   └── No  → feature/[name]/presentation/component/[name]/[Name]View.kt
           └── No  → common/ui/component/[name]/[Name]View.kt
 ```
 
@@ -299,7 +333,7 @@ class AppApplication : Application(), SingletonImageLoader.Factory {
 
 ## 7. Checks
 
-`app/src/test/java/com/zc/vndb/app/ArchitectureTest.kt` checks the top-level packages, that `common` imports no `feature` or `app` code, that features never import `app`, and the feature edges of §3–4. It runs with the unit tests:
+`app/src/test/java/com/zc/vndb/app/ArchitectureTest.kt` checks the top-level packages, that `common` imports no `feature` or `app` code, that features never import `app`, that a feature's screen packages never import each other (§1.2), and the feature edges of §3–4. It runs with the unit tests:
 
 ```bash
 ./gradlew testDevelopmentDebugUnitTest --tests 'com.zc.vndb.app.ArchitectureTest'
@@ -319,6 +353,7 @@ The template project still has `MainActivity.kt` at the root and `ui/theme/`. Mo
 - [ ] No top-level packages or folders outside the tree.
 - [ ] `common/` code is used by 2+ features and imports no `feature`/`app` code.
 - [ ] Every component has its own `component/[name]/` subpackage. Its own models and mappers sit inside it, its sub-components nest under its `component/`, and it has no ViewModel, Route or State.
+- [ ] A feature with 2+ screens has one `presentation/[screen]/` package per screen (§1.2), and no screen package imports a sibling.
 - [ ] NavKeys and entry extension functions live in the owning feature's `presentation/navigation/`; no feature imports another feature's navigation package; `AppEntryProvider.kt` does the wiring.
 - [ ] `app/di/AppModule.kt` includes every feature module.
 - [ ] Any new feature-to-feature import goes through `domain/model` or `domain/usecase` and its edge is in `ArchitectureTest.kt`; `ArchitectureTest` passes.

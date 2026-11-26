@@ -72,6 +72,16 @@ class ArchitectureTest {
         }
 
     @Test
+    fun `a feature's screen packages never import each other`() =
+        check("screen package imports a sibling screen") { file, import ->
+            val target = import.target
+            file.screen != null &&
+                target?.screen != null &&
+                target.feature == file.feature &&
+                target.screen != file.screen
+        }
+
+    @Test
     fun `dependencies between features are allowed and acyclic`() {
         val edges = sources.flatMap { file ->
             val from = file.feature ?: return@flatMap emptyList()
@@ -112,12 +122,16 @@ class ArchitectureTest {
         return graph.keys.firstNotNullOfOrNull { visit(it, emptyList()) }
     }
 
-    /** Where a file or import sits: `app`, `common/<layer>/…` or `feature/<name>/<layer>/…`. */
+    /**
+     * Where a file or import sits: `app`, `common/<layer>/…` or `feature/<name>/<layer>/…`.
+     * [screen] is set inside a screen package, `feature/<name>/presentation/<screen>/…`.
+     */
     private data class Location(
         val area: String,
         val feature: String? = null,
         val layer: String? = null,
         val sublayer: String? = null,
+        val screen: String? = null,
     ) {
         companion object {
             fun of(segments: List<String>): Location? = when (segments.firstOrNull()) {
@@ -134,6 +148,12 @@ class ArchitectureTest {
                     feature = segments.getOrNull(1),
                     layer = segments.getOrNull(2),
                     sublayer = segments.getOrNull(3),
+                    screen = segments.getOrNull(3)?.takeIf {
+                        // A package (something follows it), not a file or class in presentation/.
+                        segments[2] == "presentation" &&
+                            segments.size > SCREEN_DEPTH &&
+                            it !in PRESENTATION_SHARED
+                    },
                 )
 
                 else -> null
@@ -146,6 +166,7 @@ class ArchitectureTest {
         val area = location?.area
         val feature = location?.feature
         val layer = location?.layer
+        val screen = location?.screen
     }
 
     /** The app package an import points into, or null for a library import. */
@@ -159,6 +180,12 @@ class ArchitectureTest {
         val NOT_FOR_DOMAIN = setOf("data", "presentation", "ui", "di")
         val UI_LAYERS = setOf("presentation", "ui")
         val SHARED_DOMAIN = setOf("model", "usecase")
+
+        /** `presentation/` packages shared by a feature's screens; any other is a screen package. */
+        val PRESENTATION_SHARED = setOf("model", "mapper", "component", "navigation")
+
+        /** Segments in `feature/<name>/presentation/<screen>`, the shortest path into a screen package. */
+        const val SCREEN_DEPTH = 4
 
         /**
          * Every allowed `feature -> other feature` edge: a feature using another's domain models

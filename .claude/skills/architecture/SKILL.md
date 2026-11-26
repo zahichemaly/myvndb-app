@@ -53,7 +53,7 @@ A feature may use another feature's **domain models and use cases**, and nothing
 - Persistence: `androidx.datastore.*`
 - DI: `org.koin.*` except the annotations in `org.koin.core.annotation.*`, and `javax.inject.*`. Domain classes use plain constructors; the only Koin touch is an annotation on the class (`@Factory` on use cases, `@Single` on `DefaultDispatcherProvider`).
 
-`ArchitectureTest` checks domain purity, the layer table above, the feature edges, and that no ViewModel imports a repository. Run it alone with:
+`ArchitectureTest` checks domain purity, the layer table above, the feature edges, that no ViewModel imports a repository, and that a feature's screen packages (`structure` §1.2) never import each other. Run it alone with:
 
 ```bash
 ./gradlew testDevelopmentDebugUnitTest --tests 'com.zc.vndb.app.ArchitectureTest'

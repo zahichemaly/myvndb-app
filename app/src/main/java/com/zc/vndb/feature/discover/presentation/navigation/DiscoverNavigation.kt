@@ -3,8 +3,8 @@ package com.zc.vndb.feature.discover.presentation.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.zc.vndb.common.ui.navigation.Navigator
-import com.zc.vndb.feature.discover.presentation.DiscoverRoute
-import com.zc.vndb.feature.discover.presentation.TrendingRoute
+import com.zc.vndb.feature.discover.presentation.home.DiscoverRoute
+import com.zc.vndb.feature.discover.presentation.trending.TrendingRoute
 
 fun EntryProviderScope<NavKey>.discoverEntry(
     onOpenNovel: (id: String) -> Unit,
