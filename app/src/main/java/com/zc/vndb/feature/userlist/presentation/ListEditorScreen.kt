@@ -1,7 +1,5 @@
 package com.zc.vndb.feature.userlist.presentation
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,7 +22,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
@@ -36,8 +33,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelMark
 import com.zc.vndb.common.ui.component.entrylabel.statusColors
 import com.zc.vndb.common.ui.component.error.ErrorView
+import com.zc.vndb.common.ui.component.pickerfield.PickerFieldView
 import com.zc.vndb.common.ui.component.selectablechip.SelectableChipDefaults
 import com.zc.vndb.common.ui.component.selectablechip.SelectableChipView
 import com.zc.vndb.common.ui.resource.StringResource
@@ -82,7 +78,6 @@ private val VoteThumbSize = DpSize(width = 4.dp, height = 24.dp)
 private val VoteTickRadius = 1.5.dp
 
 private val ClearIconSize = 18.dp
-private val DateBorderWidth = 1.dp
 
 /** The list editor's content: the VN's title, status, labels, vote, dates and notes, then Save (and Remove). */
 @Composable
@@ -325,7 +320,7 @@ private fun DatesField(state: ListEditorState, onIntent: (ListEditorIntent) -> U
     }
 }
 
-/** A date as a compact outlined box: its name above the date (or "Set date"), and Clear at the end. */
+/** A date's field: its name above the date (or "Set date", in the action color), Clear at the end. */
 @Composable
 private fun DateCell(
     title: UiText,
@@ -336,51 +331,25 @@ private fun DateCell(
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = MaterialTheme.shapes.small
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .heightIn(min = LocalMinimumInteractiveComponentSize.current)
-            .clip(shape)
-            .border(
-                width = DateBorderWidth,
-                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
-                shape = shape,
-            )
-            .clickable(role = Role.Button, onClick = onPick)
-            .padding(start = VndbTheme.spacing.md),
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(vertical = VndbTheme.spacing.xs)
-                .padding(end = if (canClear) 0.dp else VndbTheme.spacing.md),
-        ) {
-            Text(
-                text = title.asString(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            // Without a date it reads "Set date", in the action color.
-            val colors = MaterialTheme.colorScheme
-            val label = value ?: UiText.StringResource(StringResource.list_editor_set_date)
-            Text(
-                text = label.asString(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (value != null) colors.onSurface else colors.primary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        if (canClear) {
-            ClearButton(
-                contentDescription = UiText.StringResource(StringResource.cd_clear_date),
-                onClick = onClear,
-            )
-        }
-    }
+    val colors = MaterialTheme.colorScheme
+    PickerFieldView(
+        label = title,
+        value = value ?: UiText.StringResource(StringResource.list_editor_set_date),
+        onClick = onPick,
+        modifier = modifier,
+        valueColor = if (value != null) colors.onSurface else colors.primary,
+        isError = isError,
+        trailing = if (canClear) {
+            {
+                ClearButton(
+                    contentDescription = UiText.StringResource(StringResource.cd_clear_date),
+                    onClick = onClear,
+                )
+            }
+        } else {
+            null
+        },
+    )
 }
 
 @Composable

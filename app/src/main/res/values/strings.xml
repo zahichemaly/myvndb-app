@@ -61,7 +61,6 @@
     <string name="browse_age_adult">18+</string>
     <string name="browse_age_any">Any Age</string>
     <string name="browse_filters_button">Filters</string>
-    <string name="browse_filters_title">Filters</string>
     <string name="browse_filters_reset">Reset</string>
     <string name="browse_filters_apply">Apply</string>
     <string name="browse_filter_section_age">Age rating</string>
