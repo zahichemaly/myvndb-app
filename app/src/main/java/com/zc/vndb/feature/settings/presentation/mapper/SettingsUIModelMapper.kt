@@ -1,5 +1,6 @@
 package com.zc.vndb.feature.settings.presentation.mapper
 
+import com.zc.vndb.BuildConfig
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.SpoilerPreference
@@ -48,6 +49,7 @@ fun SettingsState.withSettings(
     cardLanguagesLabel = settings.cardLanguages.takeIf { it.isNotEmpty() }
         ?.toLanguagesLabel(languages::nameOf)
         ?: UiText.StringResource(StringResource.settings_card_languages_off),
+    showSourceCodeSection = BuildConfig.DEBUG,
 )
 
 /** The listed languages, plus any saved choice that is not in the list so it can still be unticked. */

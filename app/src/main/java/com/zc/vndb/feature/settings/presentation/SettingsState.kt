@@ -37,4 +37,5 @@ data class SettingsState(
     val isClearingCache: Boolean = false,
     val versionLabel: UiText? = null,
     val dialog: SettingsDialog? = null,
+    val showSourceCodeSection: Boolean = false,
 )

@@ -259,17 +259,19 @@ private fun LazyListScope.storageSection(state: SettingsState, actions: Settings
 
 private fun LazyListScope.aboutSection(state: SettingsState, actions: SettingsActions) {
     sectionHeader("about", UiText.StringResource(StringResource.settings_section_about))
-    item(key = "source", contentType = "link") {
-        LinkRow(
-            icon = Icons.Outlined.Code,
-            title = UiText.StringResource(StringResource.settings_about_source),
-            body = null,
-            onClick = {
-                actions.onIntent(
-                    SettingsIntent.LinkClicked(SettingsViewModel.SOURCE_URL),
-                )
-            },
-        )
+    if (state.showSourceCodeSection) {
+        item(key = "source", contentType = "link") {
+            LinkRow(
+                icon = Icons.Outlined.Code,
+                title = UiText.StringResource(StringResource.settings_about_source),
+                body = null,
+                onClick = {
+                    actions.onIntent(
+                        SettingsIntent.LinkClicked(SettingsViewModel.SOURCE_URL),
+                    )
+                },
+            )
+        }
     }
     item(key = "privacy", contentType = "link") {
         LinkRow(
