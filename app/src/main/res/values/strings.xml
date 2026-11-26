@@ -507,18 +507,15 @@
     <string name="cd_sensitive_cover">Cover hidden: sensitive content</string>
 
     <!-- List editor -->
-    <string name="list_editor_title_add">Add to my list</string>
-    <string name="list_editor_title_edit">My list</string>
-    <string name="list_editor_status">STATUS</string>
-    <string name="list_editor_labels">LABELS</string>
-    <string name="list_editor_vote">MY VOTE</string>
+    <string name="list_editor_status">Status</string>
+    <string name="list_editor_labels">Labels</string>
+    <string name="list_editor_vote">My vote</string>
     <string name="list_editor_no_vote">No vote</string>
-    <string name="list_editor_clear_vote">Clear vote</string>
-    <string name="list_editor_dates">DATES</string>
+    <string name="list_editor_dates">Dates</string>
     <string name="list_editor_started">Started</string>
     <string name="list_editor_finished">Finished</string>
     <string name="list_editor_set_date">Set date</string>
-    <string name="list_editor_notes">NOTES</string>
+    <string name="list_editor_notes">Notes</string>
     <string name="list_editor_notes_hint">Anything you want to remember about it</string>
     <string name="list_editor_save">Save</string>
     <string name="list_editor_add">Add to list</string>
@@ -526,6 +523,7 @@
     <string name="list_editor_remove_title">Remove from your list?</string>
     <string name="list_editor_remove_body">Its status, labels, vote, dates, notes and releases are removed from your VNDB list.</string>
     <string name="cd_clear_date">Clear date</string>
+    <string name="cd_clear_vote">Clear vote</string>
     <string name="cd_your_vote">Your vote: %1$s</string>
     <string name="list_editor_notes_counter">%1$d / %2$d</string>
     <string name="list_editor_dates_hint">VNDB can change a saved date but not remove it.</string>

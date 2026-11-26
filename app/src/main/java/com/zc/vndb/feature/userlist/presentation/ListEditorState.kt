@@ -10,7 +10,7 @@ import kotlinx.collections.immutable.persistentListOf
 
 @Immutable
 data class ListEditorState(
-    /** The visual novel's title, shown under the sheet's heading. */
+    /** The visual novel's title: the sheet's only heading. */
     val novelTitle: UiText,
     val isLoading: Boolean = true,
     /** Loading the entry or the labels failed. */

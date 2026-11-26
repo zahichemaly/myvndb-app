@@ -1,11 +1,15 @@
 package com.zc.vndb.feature.userlist.presentation
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -17,11 +21,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -29,12 +33,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelMark
 import com.zc.vndb.common.ui.component.entrylabel.statusColors
@@ -57,12 +66,21 @@ import kotlinx.collections.immutable.persistentListOf
 /** Slider stops: every tenth of a point from 1.0 to 10.0. */
 private const val VOTE_STEPS = MyListEntry.MAX_VOTE - MyListEntry.MIN_VOTE - 1
 
+private const val TITLE_MAX_LINES = 2
+
 private val ProgressSize = 18.dp
 
 /** Keeps the sheet from jumping in height when the skeleton gives way to the fields. */
 private val BodyMinHeight = 360.dp
 
-/** The list editor's content: status, labels, vote, dates and notes, then Save (and Remove). */
+/** Slimmer than Material's 16dp track and 44dp thumb. The touch target stays 48dp. */
+private val VoteTrackHeight = 6.dp
+private val VoteThumbSize = DpSize(width = 4.dp, height = 24.dp)
+
+private val ClearIconSize = 18.dp
+private val DateBorderWidth = 1.dp
+
+/** The list editor's content: the VN's title, status, labels, vote, dates and notes, then Save (and Remove). */
 @Composable
 fun ListEditorScreen(
     state: ListEditorState,
@@ -85,7 +103,7 @@ fun ListEditorScreen(
                 .padding(horizontal = VndbTheme.spacing.lg),
             verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.lg),
         ) {
-            Header(state)
+            Header(state.novelTitle)
             when {
                 state.isLoading -> EditorSkeletonView(modifier = Modifier.fillMaxWidth())
 
@@ -127,22 +145,17 @@ private fun Footer(state: ListEditorState, onIntent: (ListEditorIntent) -> Unit)
     }
 }
 
+/** The sheet's only heading: the VN's title. */
 @Composable
-private fun Header(state: ListEditorState) {
-    Column(verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs)) {
-        Text(
-            text = UiText.StringResource(
-                if (state.isOnList) StringResource.list_editor_title_edit else StringResource.list_editor_title_add,
-            ).asString(),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = state.novelTitle.asString(),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+private fun Header(title: UiText) {
+    Text(
+        text = title.asString(),
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        maxLines = TITLE_MAX_LINES,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.semantics { heading() },
+    )
 }
 
 @Composable
@@ -158,32 +171,29 @@ private fun EditorFields(state: ListEditorState, onIntent: (ListEditorIntent) ->
         }
         VoteField(state, onIntent)
         DatesField(state, onIntent)
-        Field(UiText.StringResource(StringResource.list_editor_notes)) {
-            OutlinedTextField(
-                value = state.notes,
-                onValueChange = { onIntent(ListEditorIntent.NotesChanged(it)) },
-                placeholder = {
-                    Text(
-                        UiText.StringResource(StringResource.list_editor_notes_hint).asString(),
-                    )
-                },
-                isError = state.notesError != null,
-                supportingText = { Text((state.notesError ?: state.notesCounter).asString()) },
-                minLines = 2,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+        NotesField(state, onIntent)
     }
 }
 
+/** A section: a heading (with optional [trailing] content at its end) above its [content]. */
 @Composable
-private fun Field(title: UiText, content: @Composable () -> Unit) {
+private fun Field(
+    title: UiText,
+    trailing: (@Composable () -> Unit)? = null,
+    content: @Composable () -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
-        Text(
-            text = title.asString(),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = title.asString(),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { heading() },
+            )
+            trailing?.invoke()
+        }
         content()
     }
 }
@@ -210,120 +220,199 @@ private fun ChipFlow(options: ImmutableList<LabelOptionUIModel>, onClick: (Int) 
 
 @Composable
 private fun VoteField(state: ListEditorState, onIntent: (ListEditorIntent) -> Unit) {
-    Field(UiText.StringResource(StringResource.list_editor_vote)) {
-        // One label that reads "No vote" and turns into the vote as the slider moves. The row is
-        // always as tall as the Clear vote button, so the button appearing moves nothing.
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.heightIn(min = LocalMinimumInteractiveComponentSize.current),
-        ) {
+    val hasVote = state.vote != null
+    Field(
+        title = UiText.StringResource(StringResource.list_editor_vote),
+        // One label at the heading's end that reads "No vote" and turns into the vote as the slider moves.
+        trailing = {
+            val typography = MaterialTheme.typography
             Text(
                 text = state.voteLabel.asString(),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = if (state.vote !=
-                    null
-                ) {
-                    VndbTheme.colors.accent
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+                style = if (hasVote) typography.titleMedium else typography.bodyMedium,
+                color = if (hasVote) VndbTheme.colors.accent else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+    ) {
+        // Clear is always there (disabled without a vote), so the slider never changes width.
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            VoteSlider(
+                vote = state.vote,
+                onVoteChange = { onIntent(ListEditorIntent.VoteChanged(it)) },
                 modifier = Modifier.weight(1f),
             )
-            if (state.vote != null) {
-                TextButton(onClick = { onIntent(ListEditorIntent.VoteCleared) }) {
-                    Text(UiText.StringResource(StringResource.list_editor_clear_vote).asString())
-                }
-            }
+            ClearButton(
+                contentDescription = UiText.StringResource(StringResource.cd_clear_vote),
+                onClick = { onIntent(ListEditorIntent.VoteCleared) },
+                enabled = hasVote,
+            )
         }
-        Slider(
-            value = (state.vote ?: MyListEntry.MIN_VOTE).toFloat(), // No vote rests at 1.0
-            onValueChange = { onIntent(ListEditorIntent.VoteChanged(it.roundToInt())) },
-            valueRange = MyListEntry.MIN_VOTE.toFloat()..MyListEntry.MAX_VOTE.toFloat(),
-            steps = VOTE_STEPS,
-            colors = SliderDefaults.colors(
-                thumbColor = VndbTheme.colors.accent,
-                activeTrackColor = if (state.vote != null) {
-                    VndbTheme.colors.accent
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                inactiveTrackColor = VndbTheme.colors.surfaceInset,
-                activeTickColor = Color.Transparent,
-                inactiveTickColor = Color.Transparent,
-            ),
-        )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class) // The thumb and track slots, for a slimmer slider.
+@Composable
+private fun VoteSlider(vote: Int?, onVoteChange: (Int) -> Unit, modifier: Modifier = Modifier) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val accent = VndbTheme.colors.accent
+    val colors = SliderDefaults.colors(
+        thumbColor = accent,
+        activeTrackColor = if (vote != null) accent else MaterialTheme.colorScheme.onSurfaceVariant,
+        inactiveTrackColor = VndbTheme.colors.surfaceInset,
+    )
+    Slider(
+        value = (vote ?: MyListEntry.MIN_VOTE).toFloat(), // No vote rests at 1.0
+        onValueChange = { onVoteChange(it.roundToInt()) },
+        modifier = modifier,
+        colors = colors,
+        interactionSource = interactionSource,
+        steps = VOTE_STEPS,
+        thumb = {
+            SliderDefaults.Thumb(
+                interactionSource = interactionSource,
+                colors = colors,
+                thumbSize = VoteThumbSize,
+            )
+        },
+        track = { sliderState ->
+            SliderDefaults.Track(
+                sliderState = sliderState,
+                modifier = Modifier.height(VoteTrackHeight),
+                colors = colors,
+                // 90 stops are too dense to draw.
+                drawStopIndicator = null,
+                drawTick = { _, _ -> },
+            )
+        },
+        valueRange = MyListEntry.MIN_VOTE.toFloat()..MyListEntry.MAX_VOTE.toFloat(),
+    )
 }
 
 @Composable
 private fun DatesField(state: ListEditorState, onIntent: (ListEditorIntent) -> Unit) {
     Field(UiText.StringResource(StringResource.list_editor_dates)) {
-        DateRow(
-            title = UiText.StringResource(StringResource.list_editor_started),
-            value = state.startedLabel,
-            canClear = state.canClearStarted,
-            error = state.startedError,
-            onPick = { onIntent(ListEditorIntent.DateClicked(DateField.Started)) },
-            onClear = { onIntent(ListEditorIntent.DateCleared(DateField.Started)) },
-        )
-        DateRow(
-            title = UiText.StringResource(StringResource.list_editor_finished),
-            value = state.finishedLabel,
-            canClear = state.canClearFinished,
-            error = state.finishedError,
-            onPick = { onIntent(ListEditorIntent.DateClicked(DateField.Finished)) },
-            onClear = { onIntent(ListEditorIntent.DateCleared(DateField.Finished)) },
-        )
-        state.datesHint?.let { hint ->
+        Row(horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
+            DateCell(
+                title = UiText.StringResource(StringResource.list_editor_started),
+                value = state.startedLabel,
+                canClear = state.canClearStarted,
+                isError = state.startedError != null,
+                onPick = { onIntent(ListEditorIntent.DateClicked(DateField.Started)) },
+                onClear = { onIntent(ListEditorIntent.DateCleared(DateField.Started)) },
+                modifier = Modifier.weight(1f),
+            )
+            DateCell(
+                title = UiText.StringResource(StringResource.list_editor_finished),
+                value = state.finishedLabel,
+                canClear = state.canClearFinished,
+                isError = state.finishedError != null,
+                onPick = { onIntent(ListEditorIntent.DateClicked(DateField.Finished)) },
+                onClear = { onIntent(ListEditorIntent.DateCleared(DateField.Finished)) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        // Errors read in full under both dates; the red border says which one they're about.
+        state.startedError?.let { DatesNote(it, isError = true) }
+        state.finishedError?.let { DatesNote(it, isError = true) }
+        state.datesHint?.let { DatesNote(it, isError = false) }
+    }
+}
+
+/** A date as a compact outlined box: its name above the date (or "Set date"), and Clear at the end. */
+@Composable
+private fun DateCell(
+    title: UiText,
+    value: UiText?,
+    canClear: Boolean,
+    isError: Boolean,
+    onPick: () -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shape = MaterialTheme.shapes.small
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .heightIn(min = LocalMinimumInteractiveComponentSize.current)
+            .clip(shape)
+            .border(
+                width = DateBorderWidth,
+                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+                shape = shape,
+            )
+            .clickable(role = Role.Button, onClick = onPick)
+            .padding(start = VndbTheme.spacing.md),
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = VndbTheme.spacing.xs)
+                .padding(end = if (canClear) 0.dp else VndbTheme.spacing.md),
+        ) {
             Text(
-                text = hint.asString(),
+                text = title.asString(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            // Without a date it reads "Set date", in the action color.
+            val colors = MaterialTheme.colorScheme
+            val label = value ?: UiText.StringResource(StringResource.list_editor_set_date)
+            Text(
+                text = label.asString(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (value != null) colors.onSurface else colors.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (canClear) {
+            ClearButton(
+                contentDescription = UiText.StringResource(StringResource.cd_clear_date),
+                onClick = onClear,
             )
         }
     }
 }
 
 @Composable
-private fun DateRow(
-    title: UiText,
-    value: UiText?,
-    canClear: Boolean,
-    error: UiText?,
-    onPick: () -> Unit,
-    onClear: () -> Unit,
-) {
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = title.asString(),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-            OutlinedButton(onClick = onPick) {
-                val label = value ?: UiText.StringResource(StringResource.list_editor_set_date)
-                Text(label.asString())
-            }
-            if (canClear) {
-                IconButton(onClick = onClear) {
-                    Icon(
-                        Icons.Outlined.Close,
-                        contentDescription = UiText.StringResource(
-                            StringResource.cd_clear_date,
-                        ).asString(),
-                    )
-                }
-            }
-        }
-        error?.let {
-            Text(
-                text = it.asString(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
+private fun DatesNote(text: UiText, isError: Boolean) {
+    Text(
+        text = text.asString(),
+        style = MaterialTheme.typography.bodySmall,
+        color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun NotesField(state: ListEditorState, onIntent: (ListEditorIntent) -> Unit) {
+    Field(UiText.StringResource(StringResource.list_editor_notes)) {
+        OutlinedTextField(
+            value = state.notes,
+            onValueChange = { onIntent(ListEditorIntent.NotesChanged(it)) },
+            textStyle = MaterialTheme.typography.bodyMedium,
+            placeholder = {
+                Text(
+                    text = UiText.StringResource(StringResource.list_editor_notes_hint).asString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            isError = state.notesError != null,
+            supportingText = { Text((state.notesError ?: state.notesCounter).asString()) },
+            minLines = 2,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun ClearButton(contentDescription: UiText, onClick: () -> Unit, enabled: Boolean = true) {
+    IconButton(onClick = onClick, enabled = enabled) {
+        Icon(
+            imageVector = Icons.Outlined.Close,
+            contentDescription = contentDescription.asString(),
+            modifier = Modifier.size(ClearIconSize),
+        )
     }
 }
 
@@ -393,6 +482,12 @@ private class ListEditorStateProvider : PreviewParameterProvider<ListEditorState
             vote = null,
             voteLabel = UiText.StringValue("No vote"),
             startedLabel = null,
+        ),
+        previewState.copy(
+            finishedLabel = UiText.StringValue("2026-10-30"),
+            canClearFinished = true,
+            finishedError = UiText.StringValue("Finished can't be before Started."),
+            datesHint = UiText.StringValue("VNDB can change a saved date but not remove it."),
         ),
         previewState.copy(isLoading = true),
     )
