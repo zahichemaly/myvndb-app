@@ -4,6 +4,21 @@ An unofficial Android client for [vndb.org](https://vndb.org), the Visual Novel 
 
 Browse and search visual novels, then dig into the details: tags, releases, screenshots, staff, characters and voice actors.
 
+<table>
+  <tr>
+    <td><img src="docs/store-listing/screenshots/phone/01-discover.jpg" alt="Discover" width="180"></td>
+    <td><img src="docs/store-listing/screenshots/phone/02-browse.jpg" alt="Browse" width="180"></td>
+    <td><img src="docs/store-listing/screenshots/phone/03-filters.jpg" alt="Browse filters" width="180"></td>
+    <td><img src="docs/store-listing/screenshots/phone/04-detail.jpg" alt="Visual novel overview" width="180"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/store-listing/screenshots/phone/05-media.jpg" alt="Screenshots with content filters" width="180"></td>
+    <td><img src="docs/store-listing/screenshots/phone/06-cast.jpg" alt="Cast and staff" width="180"></td>
+    <td><img src="docs/store-listing/screenshots/phone/07-releases.jpg" alt="Releases" width="180"></td>
+    <td></td>
+  </tr>
+</table>
+
 ## Technologies
 - Kotlin
 - Jetpack Compose (Material 3, Adaptive)
