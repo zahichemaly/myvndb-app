@@ -118,7 +118,8 @@ fun ImageViewerView(
 private fun ZoomableImage(image: ViewerImageUIModel) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
-    val transformState = rememberTransformableState { zoomChange, panChange, _ ->
+    // The pinch centroid is ignored: the image zooms around its centre.
+    val transformState = rememberTransformableState { _, zoomChange, panChange, _ ->
         scale = (scale * zoomChange).coerceIn(1f, MAX_ZOOM)
         offset = if (scale == 1f) Offset.Zero else offset + panChange
     }
