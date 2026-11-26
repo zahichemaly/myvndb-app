@@ -1,5 +1,6 @@
 package com.zc.vndb.feature.detail.presentation.mapper
 
+import com.zc.vndb.common.ui.mapper.languageFlag
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.detail.domain.model.NovelDetail
 import com.zc.vndb.feature.detail.presentation.model.AlsoKnownAsUIModel
@@ -12,9 +13,7 @@ fun NovelDetail.toAlsoKnownAs(): AlsoKnownAsUIModel? {
     val shown = setOf(title, originalTitle)
     val titleLines = titles.filter { it.title !in shown }.map {
         TitleLineUIModel(
-            language = UiText.StringValue(
-                Locale.forLanguageTag(it.languageCode).displayLanguage.ifBlank { it.languageCode },
-            ),
+            language = UiText.StringValue(languageLabel(it.languageCode)),
             title = UiText.StringValue(it.title),
             latin = it.latin?.let(UiText::StringValue),
         )
@@ -24,4 +23,10 @@ fun NovelDetail.toAlsoKnownAs(): AlsoKnownAsUIModel? {
         titles = titleLines.toImmutableList(),
         aliases = aliases.map(UiText::StringValue).toImmutableList(),
     )
+}
+
+/** "🇰🇷 Korean", or just "Catalan" for a language without a national flag. */
+private fun languageLabel(code: String): String {
+    val name = Locale.forLanguageTag(code).displayLanguage.ifBlank { code }
+    return languageFlag(code)?.let { "$it $name" } ?: name
 }

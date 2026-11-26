@@ -135,10 +135,10 @@
         <item quantity="one">%1$s vote</item>
         <item quantity="other">%1$s votes</item>
     </plurals>
-    <string name="detail_spoiler_filter">SPOILER FILTER:</string>
-    <string name="detail_spoiler_none">None (0)</string>
-    <string name="detail_spoiler_minor">Minor (1)</string>
-    <string name="detail_spoiler_major">Major (2)</string>
+    <string name="detail_spoiler_filter">SPOILER</string>
+    <string name="detail_spoiler_none">None</string>
+    <string name="detail_spoiler_minor">Minor</string>
+    <string name="detail_spoiler_major">Major</string>
     <string name="detail_synopsis">Synopsis</string>
     <string name="detail_read_more">Read more</string>
     <string name="detail_read_less">Show less</string>

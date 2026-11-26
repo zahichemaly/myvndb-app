@@ -5,9 +5,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -27,6 +33,7 @@ import kotlinx.collections.immutable.persistentListOf
 
 /** Tall enough to space the options apart and give each a full-width touch target. */
 private val OptionRowMinHeight = 48.dp
+private val OptionIconSize = 20.dp
 
 /** Single choice: picking an option applies it and closes the dialog. */
 @Composable
@@ -63,6 +70,14 @@ fun ChoiceDialogView(
                                 selectedColor = VndbTheme.colors.accent,
                             ),
                         )
+                        option.icon?.let { icon ->
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(OptionIconSize),
+                            )
+                        }
                         Text(option.label.asString())
                     }
                 }
@@ -93,6 +108,32 @@ private fun ChoiceDialogViewPreview() {
                     "Original",
                     UiText.StringValue("Japanese"),
                     isSelected = false,
+                ),
+            ),
+            onSelect = {},
+            onDismiss = {},
+        )
+    }
+}
+
+@AdaptivePreviews
+@Composable
+private fun ChoiceDialogViewIconsPreview() {
+    VndbTheme {
+        ChoiceDialogView(
+            title = UiText.StringValue("Default spoiler level"),
+            options = persistentListOf(
+                SettingOptionUIModel(
+                    "None",
+                    UiText.StringValue("Off"),
+                    isSelected = true,
+                    icon = Icons.Outlined.VisibilityOff,
+                ),
+                SettingOptionUIModel(
+                    "Minor",
+                    UiText.StringValue("Minor"),
+                    isSelected = false,
+                    icon = Icons.Outlined.Visibility,
                 ),
             ),
             onSelect = {},

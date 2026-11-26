@@ -56,6 +56,7 @@ import com.zc.vndb.common.ui.component.sectioncard.SectionCardView
 import com.zc.vndb.common.ui.component.skeleton.PageSkeletonView
 import com.zc.vndb.common.ui.component.spoilerfilter.SpoilerFilterView
 import com.zc.vndb.common.ui.component.spoilerfilter.model.SpoilerLevel
+import com.zc.vndb.common.ui.component.textlink.TextLinkView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
@@ -725,15 +726,10 @@ private fun <T> LazyListScope.loadMore(
 
 // endregion
 
+/** A card header's "See all": a compact link, so the card's title sits where every other card's does. */
 @Composable
 private fun SeeAllButton(label: UiText, onClick: () -> Unit) {
-    TextButton(onClick = onClick) {
-        Text(
-            text = label.asString(),
-            style = MaterialTheme.typography.labelLarge,
-            color = VndbTheme.colors.accent,
-        )
-    }
+    TextLinkView(label = label, onClick = onClick)
 }
 
 @Composable

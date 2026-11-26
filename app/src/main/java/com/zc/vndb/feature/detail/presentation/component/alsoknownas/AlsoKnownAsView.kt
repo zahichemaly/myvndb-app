@@ -74,7 +74,7 @@ private fun AlsoKnownAsViewPreview() {
             model = AlsoKnownAsUIModel(
                 titles = persistentListOf(
                     TitleLineUIModel(
-                        UiText.StringValue("Chinese"),
+                        UiText.StringValue("🇨🇳 Chinese"),
                         UiText.StringValue("淑女同萌！"),
                         null,
                     ),

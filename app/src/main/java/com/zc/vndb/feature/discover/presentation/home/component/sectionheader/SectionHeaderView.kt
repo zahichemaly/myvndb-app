@@ -1,6 +1,5 @@
 package com.zc.vndb.feature.discover.presentation.home.component.sectionheader
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,10 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.zc.vndb.common.ui.component.textlink.TextLinkView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
@@ -54,7 +52,12 @@ fun SectionHeaderView(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
             )
-            onSeeAllClick?.let { SeeAllLink(onClick = it) }
+            onSeeAllClick?.let {
+                TextLinkView(
+                    label = UiText.StringResource(StringResource.discover_see_all),
+                    onClick = it,
+                )
+            }
         }
         subtitle?.let {
             Text(
@@ -66,24 +69,6 @@ fun SectionHeaderView(
             )
         }
     }
-}
-
-/**
- * Only as tall as its text, so a header with it is as tall as one without and every section sits
- * the same distance below the one above. Compose still extends its touch target to the 48dp
- * minimum when hit-testing.
- */
-@Composable
-private fun SeeAllLink(onClick: () -> Unit) {
-    Text(
-        text = UiText.StringResource(StringResource.discover_see_all).asString(),
-        style = MaterialTheme.typography.labelLarge,
-        color = VndbTheme.colors.accent,
-        modifier = Modifier
-            .clip(MaterialTheme.shapes.small)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = VndbTheme.spacing.sm, vertical = VndbTheme.spacing.xs),
-    )
 }
 
 @AdaptivePreviews

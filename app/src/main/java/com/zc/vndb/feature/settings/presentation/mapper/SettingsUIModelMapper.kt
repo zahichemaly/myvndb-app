@@ -4,6 +4,8 @@ import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.SpoilerPreference
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.ui.component.spoilerfilter.mapper.toIcon
+import com.zc.vndb.common.ui.component.spoilerfilter.mapper.toSpoilerLevel
 import com.zc.vndb.common.ui.mapper.nameOf
 import com.zc.vndb.common.ui.mapper.toLabel
 import com.zc.vndb.common.ui.mapper.toLanguagesLabel
@@ -27,7 +29,12 @@ fun SettingsState.withSettings(
     }.toImmutableList(),
     titleLanguageLabel = settings.titleLanguage.toLabel(),
     spoilerOptions = SpoilerPreference.entries.map {
-        SettingOptionUIModel(it.name, it.toLabel(), it == settings.defaultSpoilerLevel)
+        SettingOptionUIModel(
+            key = it.name,
+            label = it.toLabel(),
+            isSelected = it == settings.defaultSpoilerLevel,
+            icon = it.toSpoilerLevel().toIcon(),
+        )
     }.toImmutableList(),
     spoilerLabel = settings.defaultSpoilerLevel.toLabel(),
     spoilIfFinished = settings.spoilIfFinished,

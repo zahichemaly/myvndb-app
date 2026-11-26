@@ -17,7 +17,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +27,7 @@ import com.zc.vndb.common.domain.model.ListLabel
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelChipView
 import com.zc.vndb.common.ui.component.entrylabel.EntryLabelUIModel
 import com.zc.vndb.common.ui.component.sectioncard.SectionCardView
+import com.zc.vndb.common.ui.component.textlink.TextLinkView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.VndbTheme
@@ -45,7 +45,13 @@ fun MyListCardView(model: MyListCardUIModel, onEdit: () -> Unit, modifier: Modif
         modifier = modifier,
         title = UiText.StringResource(StringResource.detail_my_list),
         trailing = if (model.isOnList && model.canEdit) {
-            { EditButton(onEdit) }
+            {
+                TextLinkView(
+                    label = UiText.StringResource(StringResource.detail_my_list_edit),
+                    onClick = onEdit,
+                    icon = Icons.Outlined.Edit,
+                )
+            }
         } else {
             null
         },
@@ -58,22 +64,6 @@ fun MyListCardView(model: MyListCardUIModel, onEdit: () -> Unit, modifier: Modif
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-    }
-}
-
-@Composable
-private fun EditButton(onEdit: () -> Unit) {
-    TextButton(onClick = onEdit) {
-        Icon(
-            Icons.Outlined.Edit,
-            contentDescription = null,
-            modifier = Modifier.size(ButtonIconSize),
-        )
-        Spacer(Modifier.size(VndbTheme.spacing.xs))
-        Text(
-            text = UiText.StringResource(StringResource.detail_my_list_edit).asString(),
-            color = VndbTheme.colors.accent,
-        )
     }
 }
 
