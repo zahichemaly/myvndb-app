@@ -63,8 +63,11 @@ import kotlin.math.roundToInt
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
-/** Slider stops: every tenth of a point from 1.0 to 10.0. */
-private const val VOTE_STEPS = MyListEntry.MAX_VOTE - MyListEntry.MIN_VOTE - 1
+/** The slider moves in half points (votes are stored ×10): 1.0, 1.5, … 10.0. */
+private const val VOTE_STEP = 5
+
+/** Slider stops between the two ends, one per [VOTE_STEP]. */
+private const val VOTE_STEPS = (MyListEntry.MAX_VOTE - MyListEntry.MIN_VOTE) / VOTE_STEP - 1
 
 private const val TITLE_MAX_LINES = 2
 
@@ -76,6 +79,7 @@ private val BodyMinHeight = 360.dp
 /** Slimmer than Material's 16dp track and 44dp thumb. The touch target stays 48dp. */
 private val VoteTrackHeight = 6.dp
 private val VoteThumbSize = DpSize(width = 4.dp, height = 24.dp)
+private val VoteTickRadius = 1.5.dp
 
 private val ClearIconSize = 18.dp
 private val DateBorderWidth = 1.dp
@@ -258,6 +262,8 @@ private fun VoteSlider(vote: Int?, onVoteChange: (Int) -> Unit, modifier: Modifi
         thumbColor = accent,
         activeTrackColor = if (vote != null) accent else MaterialTheme.colorScheme.onSurfaceVariant,
         inactiveTrackColor = VndbTheme.colors.surfaceInset,
+        activeTickColor = VndbTheme.colors.onAccent,
+        inactiveTickColor = MaterialTheme.colorScheme.outline,
     )
     Slider(
         value = (vote ?: MyListEntry.MIN_VOTE).toFloat(), // No vote rests at 1.0
@@ -278,9 +284,11 @@ private fun VoteSlider(vote: Int?, onVoteChange: (Int) -> Unit, modifier: Modifi
                 sliderState = sliderState,
                 modifier = Modifier.height(VoteTrackHeight),
                 colors = colors,
-                // 90 stops are too dense to draw.
+                // A dot on every half point, the last one included (no separate stop indicator).
                 drawStopIndicator = null,
-                drawTick = { _, _ -> },
+                drawTick = { offset, color ->
+                    drawCircle(color = color, radius = VoteTickRadius.toPx(), center = offset)
+                },
             )
         },
         valueRange = MyListEntry.MIN_VOTE.toFloat()..MyListEntry.MAX_VOTE.toFloat(),
