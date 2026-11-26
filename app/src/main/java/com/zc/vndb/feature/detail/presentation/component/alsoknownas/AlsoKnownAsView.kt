@@ -2,7 +2,6 @@ package com.zc.vndb.feature.detail.presentation.component.alsoknownas
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -25,7 +24,6 @@ import kotlinx.collections.immutable.persistentListOf
 private val LanguageWidth = 96.dp
 
 /** Titles in other languages, then aliases as chips. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AlsoKnownAsView(model: AlsoKnownAsUIModel, modifier: Modifier = Modifier) {
     SectionCardView(

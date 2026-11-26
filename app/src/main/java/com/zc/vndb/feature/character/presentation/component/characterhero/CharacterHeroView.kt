@@ -3,7 +3,6 @@ package com.zc.vndb.feature.character.presentation.component.characterhero
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -73,7 +72,6 @@ fun CharacterHeroView(
 }
 
 /** "CV: Imai Asami, Other Actor", styled and clickable like the CV line on a character card. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun VoiceActorsLine(
     voiceActors: ImmutableList<HeroVoiceActorUIModel>,
@@ -94,7 +92,6 @@ private fun VoiceActorsLine(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun IdentityChips(model: CharacterHeroUIModel) {
     if (model.identity.isEmpty() && model.spoilerIdentity.isEmpty()) return

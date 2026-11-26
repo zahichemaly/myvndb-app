@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -131,7 +130,6 @@ private fun ReleaseAndLanguageLines(model: DetailHeroUIModel) {
 }
 
 /** "Developer:  5pb. / Nitroplus"; a name with a known producer id opens that producer. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DeveloperLine(
     developers: ImmutableList<HeroDeveloperUIModel>,
@@ -178,7 +176,6 @@ private fun DeveloperLine(
 }
 
 /** "Available in:  🇬🇧 English  🇰🇷 Korean  +10": the first languages besides the original, then a count. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AvailableInLine(model: DetailHeroUIModel) {
     if (model.availableLanguages.isEmpty()) return
@@ -247,7 +244,6 @@ private fun ScoreLine(model: DetailHeroUIModel) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HeroChips(model: DetailHeroUIModel, onTagClick: (String) -> Unit) {
     FlowRow(
@@ -289,7 +285,6 @@ private fun MetaLine(label: UiText, value: UiText?) {
  * "Length:  73h [Very Long] · 90 votes": the hours first, then the length class, then the votes.
  * The values wrap together under the label when the line is too narrow, so the votes never split.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LengthLine(model: DetailHeroUIModel) {
     if (model.lengthName == null && model.lengthValueLabel == null) return

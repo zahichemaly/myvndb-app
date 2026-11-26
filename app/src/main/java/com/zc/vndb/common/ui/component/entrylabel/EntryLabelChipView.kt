@@ -3,7 +3,6 @@ package com.zc.vndb.common.ui.component.entrylabel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -181,7 +180,6 @@ private fun ChipText(text: UiText, color: Color) {
 
 private const val PREVIEW_OWN_LABEL_ID = 13
 
-@OptIn(ExperimentalLayoutApi::class)
 @AdaptivePreviews
 @Composable
 private fun EntryLabelChipViewPreview() {

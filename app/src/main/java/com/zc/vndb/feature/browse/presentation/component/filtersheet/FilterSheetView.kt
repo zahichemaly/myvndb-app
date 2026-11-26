@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -159,7 +158,7 @@ private fun AgeSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> Unit)
                     label = rating.toLabel(),
                     isSelected = draft.ageRating == rating,
                     onClick = { onDraftChange(draft.copy(ageRating = rating)) },
-                    selectedColors = SelectedColors(),
+                    selectedColors = selectedColors(),
                 )
             }
         }
@@ -178,7 +177,7 @@ private fun GenreSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> Uni
                     onClick = {
                         onDraftChange(draft.copy(genres = draft.genres.toggled(genre)))
                     },
-                    selectedColors = SelectedColors(),
+                    selectedColors = selectedColors(),
                 )
             }
         }
@@ -303,7 +302,7 @@ private fun LengthSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> Un
                             ),
                         )
                     },
-                    selectedColors = SelectedColors(),
+                    selectedColors = selectedColors(),
                 )
             }
         }
@@ -330,7 +329,7 @@ private fun EraSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> Unit)
                             ),
                         )
                     },
-                    selectedColors = SelectedColors(),
+                    selectedColors = selectedColors(),
                 )
             }
         }
@@ -339,7 +338,6 @@ private fun EraSection(draft: FilterDraft, onDraftChange: (FilterDraft) -> Unit)
 
 private fun <T> Set<T>.toggled(item: T): Set<T> = if (item in this) this - item else this + item
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ChipFlow(content: @Composable () -> Unit) {
     FlowRow(
@@ -349,7 +347,7 @@ private fun ChipFlow(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun SelectedColors() = TintedColors(
+private fun selectedColors() = TintedColors(
     container = VndbTheme.colors.accent,
     content = VndbTheme.colors.onAccent,
     border = VndbTheme.colors.accent,

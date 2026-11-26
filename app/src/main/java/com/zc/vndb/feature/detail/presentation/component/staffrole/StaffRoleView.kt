@@ -2,7 +2,6 @@ package com.zc.vndb.feature.detail.presentation.component.staffrole
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -24,7 +23,6 @@ import kotlinx.collections.immutable.persistentListOf
 private val DefaultLabelWidth = 112.dp
 
 /** "Scenario:  Hino Yuuki, Hayase Ryou"; each name opens that person's staff page. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun StaffRoleView(
     role: StaffRoleUIModel,

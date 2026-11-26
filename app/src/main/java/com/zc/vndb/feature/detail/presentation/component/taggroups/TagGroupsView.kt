@@ -1,7 +1,6 @@
 package com.zc.vndb.feature.detail.presentation.component.taggroups
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -74,7 +73,6 @@ private fun GroupTitle(text: String) {
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ChipFlow(content: @Composable () -> Unit) {
     FlowRow(

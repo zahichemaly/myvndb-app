@@ -1,6 +1,7 @@
 package com.zc.vndb.feature.userlist.presentation.mapper
 
 import com.zc.vndb.common.domain.model.ListLabel
+import com.zc.vndb.common.ui.resource.PluralResource
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.userlist.domain.model.ListEntryProblem
@@ -55,8 +56,9 @@ fun ListEditorState.withDraft(
             StringResource.list_editor_notes_counter,
             listOf(draft.notes.orEmpty().length, MyListEntry.NOTES_MAX_LENGTH),
         ),
-        notesError = UiText.StringResource(
-            StringResource.list_editor_error_notes_length,
+        notesError = UiText.StringPlural(
+            PluralResource.list_editor_error_notes_length,
+            MyListEntry.NOTES_MAX_LENGTH,
             listOf(MyListEntry.NOTES_MAX_LENGTH),
         ).takeIf { ListEntryProblem.NotesTooLong in problems },
         isValid = problems.isEmpty(),

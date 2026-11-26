@@ -2,7 +2,6 @@ package com.zc.vndb.feature.detail.presentation.component.mylist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -104,7 +103,6 @@ private fun NotOnList(model: MyListCardUIModel, onEdit: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Entry(model: MyListCardUIModel) {
     Column(verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {

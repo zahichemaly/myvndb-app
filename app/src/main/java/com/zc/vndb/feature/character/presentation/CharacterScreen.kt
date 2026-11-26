@@ -2,7 +2,6 @@ package com.zc.vndb.feature.character.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -199,7 +198,6 @@ private fun LazyListScope.characterSections(
     appearancesSection(state, actions)
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AliasesSection(aliases: ImmutableList<UiText>) {
     SectionCardView(

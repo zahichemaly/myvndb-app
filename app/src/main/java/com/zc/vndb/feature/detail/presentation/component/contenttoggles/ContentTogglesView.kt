@@ -2,7 +2,6 @@ package com.zc.vndb.feature.detail.presentation.component.contenttoggles
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -17,7 +16,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 /** The vndb.org screenshot toggles: one row for sexual levels, one for violence levels. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ContentTogglesView(
     sexual: ImmutableList<ContentToggleUIState>,

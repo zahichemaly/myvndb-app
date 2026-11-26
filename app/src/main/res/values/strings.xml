@@ -52,7 +52,10 @@
     <!-- Browse -->
     <string name="browse_search_hint">Search visual novels…</string>
     <string name="browse_top_rated_title">Top Rated</string>
-    <string name="browse_top_rated_rule">Rated by at least %1$d voters</string>
+    <plurals name="browse_top_rated_rule">
+        <item quantity="one">Rated by at least %1$d voter</item>
+        <item quantity="other">Rated by at least %1$d voters</item>
+    </plurals>
     <string name="search_clear">Clear search</string>
     <string name="browse_age_all">All Ages</string>
     <string name="browse_age_adult">18+</string>
@@ -216,7 +219,6 @@
     <string name="detail_characters_primary">Primary</string>
     <string name="detail_characters_side">Side</string>
     <string name="detail_characters_appears">Makes an appearance</string>
-    <string name="detail_staff">Staff</string>
     <string name="detail_staff_original">Original edition</string>
     <string name="detail_staff_scenario">Scenario:</string>
     <string name="detail_staff_chardesign">Char. design:</string>
@@ -454,7 +456,6 @@
     <string name="theme_umineko">Umineko</string>
     <string name="theme_fate_stay_night">Fate/stay night</string>
     <string name="theme_selected">Selected</string>
-    <string name="cd_theme_preview">Preview of the %1$s theme</string>
     <string name="settings_section_spoilers">Spoilers</string>
     <string name="settings_section_adult">Adult content</string>
     <string name="settings_section_languages">Languages</string>
@@ -531,7 +532,10 @@
     <string name="list_editor_error_date_range">Pick a date between 1970-01-01 and today.</string>
     <string name="list_editor_error_finished_before">Finished can\'t be before Started.</string>
     <string name="list_editor_error_date_cleared">A saved date can\'t be removed. Pick another date instead.</string>
-    <string name="list_editor_error_notes_length">Notes can be at most %1$d characters.</string>
+    <plurals name="list_editor_error_notes_length">
+        <item quantity="one">Notes can be at most %1$d character.</item>
+        <item quantity="other">Notes can be at most %1$d characters.</item>
+    </plurals>
     <string name="list_editor_error_invalid">Fix the highlighted fields first.</string>
     <string name="error_rejected">VNDB rejected this: %1$s</string>
     <string name="cd_edit_list_entry">Edit list entry</string>

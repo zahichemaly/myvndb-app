@@ -1,7 +1,6 @@
 package com.zc.vndb.feature.character.presentation.component.traitgroups
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +18,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 /** "Traits": one chip group per VNDB trait group, plus how many the spoiler filter hides. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TraitGroupsView(
     groups: ImmutableList<TraitGroupUIModel>,

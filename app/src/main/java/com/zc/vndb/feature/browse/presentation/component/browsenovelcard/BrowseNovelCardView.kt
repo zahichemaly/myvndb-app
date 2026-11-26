@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -113,7 +112,6 @@ private fun MetaRow(model: BrowseNovelCardUIModel) {
  * One line: the tags, then the length pill ("Very Long (>50h)") right after them. The length always
  * shows; a tag that does not fit beside it is left out.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TagsAndLength(model: BrowseNovelCardUIModel) {
     if (model.tags.isEmpty() && model.lengthLabel == null) return

@@ -1,7 +1,6 @@
 package com.zc.vndb.common.ui.component.languagepills
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -16,7 +15,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 /** "🇬🇧 English" pills for the languages a novel is available in that the user chose to see. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LanguagePillsView(pills: ImmutableList<LanguagePillUIModel>, modifier: Modifier = Modifier) {
     if (pills.isEmpty()) return

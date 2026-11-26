@@ -3,7 +3,6 @@ package com.zc.vndb.common.ui.component.spoilerfilter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +34,6 @@ private val ShieldSize = 16.dp
  * "SPOILER FILTER: None (0) | Minor (1) | Major (2)". The options stay together on one line and
  * move under the label when the width runs out, so no label is ever squeezed or wrapped.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SpoilerFilterView(
     level: SpoilerLevel,

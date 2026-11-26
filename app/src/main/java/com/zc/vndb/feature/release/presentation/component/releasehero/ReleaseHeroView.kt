@@ -2,7 +2,6 @@ package com.zc.vndb.feature.release.presentation.component.releasehero
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -31,7 +30,6 @@ import kotlinx.collections.immutable.persistentListOf
 private val PackageWidth = 112.dp
 
 /** Package art, titles, release flags, then the release's fact lines. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ReleaseHeroView(model: ReleaseHeroUIModel, modifier: Modifier = Modifier) {
     SectionCardView(modifier = modifier) {

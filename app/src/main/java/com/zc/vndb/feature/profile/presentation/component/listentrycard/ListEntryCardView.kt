@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,7 +51,6 @@ private val EditIconSize = 18.dp
 private const val NOTES_MAX_LINES = 2
 
 /** A VN on the user's list: cover, titles, vote, dates, other labels, notes and last change. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ListEntryCardView(
     model: ListEntryCardUIModel,
@@ -182,7 +180,6 @@ private fun NotePill(note: UiText) {
 }
 
 /** Vote, start/finish dates and the entry's other labels, wrapping as needed. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EntryMeta(model: ListEntryCardUIModel) {
     if (model.voteLabel == null && model.dates.isEmpty() && model.labels.isEmpty()) return

@@ -2,7 +2,6 @@ package com.zc.vndb.feature.userlist.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -189,7 +188,6 @@ private fun Field(title: UiText, content: @Composable () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ChipFlow(options: ImmutableList<LabelOptionUIModel>, onClick: (Int) -> Unit) {
     FlowRow(

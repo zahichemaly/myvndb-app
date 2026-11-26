@@ -17,7 +17,6 @@
         <activity
             android:name=".app.MainActivity"
             android:exported="true"
-            android:label="@string/app_label"
             android:theme="@style/Theme.MyVNDB"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

@@ -124,8 +124,9 @@ fun topRatedHeaderUIModel(): ScopeHeaderUIModel = ScopeHeaderUIModel(
     originalName = null,
     typeLabel = null,
     isSexualCategory = false,
-    countLabel = UiText.StringResource(
-        StringResource.browse_top_rated_rule,
+    countLabel = UiText.StringPlural(
+        PluralResource.browse_top_rated_rule,
+        TOP_RATED_MIN_VOTES,
         listOf(TOP_RATED_MIN_VOTES),
     ),
     aliasesLabel = null,

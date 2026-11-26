@@ -5,7 +5,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -574,7 +573,6 @@ private fun LazyListScope.castTab(state: DetailState, actions: DetailActions) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CastContent(cast: CastUIModel, actions: DetailActions) {
     Column(verticalArrangement = Arrangement.spacedBy(VndbTheme.spacing.md)) {
