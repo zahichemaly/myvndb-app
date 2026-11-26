@@ -5,6 +5,11 @@ plugins {
     alias(libs.plugins.koin.compiler)
 }
 
+// Prefix for the APK and AAB file names (myvndb-development-release.apk) instead of the module name.
+base {
+    archivesName = "myvndb"
+}
+
 android {
     namespace = "com.zc.vndb"
     compileSdk {
