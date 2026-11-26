@@ -16,13 +16,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.NovelLength
+import com.zc.vndb.common.ui.component.bottomsheet.BottomSheetView
 import com.zc.vndb.common.ui.component.languagesdialog.LanguagesDialogView
 import com.zc.vndb.common.ui.component.selectablechip.SelectableChipView
 import com.zc.vndb.common.ui.mapper.nameOf
@@ -57,7 +55,6 @@ import kotlinx.collections.immutable.persistentListOf
  * The bottom sheet behind the filter icon: age rating, genres, languages, length and release era.
  * Edits stay in the draft; nothing is loaded until Apply, which closes the sheet.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterSheetView(
     sheet: FilterSheetUIState,
@@ -68,10 +65,9 @@ fun FilterSheetView(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ModalBottomSheet(
+    BottomSheetView(
         onDismissRequest = onDismiss,
         modifier = modifier,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = VndbTheme.colors.surfaceElevated,
     ) {
         FilterSheetContent(

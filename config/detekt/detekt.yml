@@ -83,6 +83,8 @@ style:
         reason: 'Use UiText.StringResource(StringResource.x).asString(); only UiText resolves resources.'
       - value: 'androidx.compose.ui.res.pluralStringResource'
         reason: 'Use UiText.StringPlural(PluralResource.x, count, args).asString(); only UiText resolves resources.'
+      - value: 'androidx.compose.material3.ModalBottomSheet'
+        reason: 'Use BottomSheetView (common/ui/component/bottomsheet): it themes the sheet and its system bars.'
 
 ktlint:
   code_style: 'android_studio'
