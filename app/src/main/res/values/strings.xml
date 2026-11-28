@@ -408,8 +408,8 @@
     <string name="login_step1_title">Create a token on vndb.org</string>
     <string name="login_step1_body">Log in on vndb.org, then open My Profile → Applications. The button below takes you straight there.</string>
     <string name="login_step1_action">Open VNDB tokens page</string>
-    <string name="login_step2_title">Give it access to your list</string>
-    <string name="login_step2_body">Name it (for example “%1$s”) and tick the permission to access your list, so private lists show here too. %1$s only reads your lists; it never changes them.</string>
+    <string name="login_step2_title">Tick both list permissions</string>
+    <string name="login_step2_body">Name it (for example “%1$s”), then tick both boxes:\n• Access private items on my list\n• Add/remove/edit items on my list\nThen tap Submit. %1$s needs these to show your private entries and edit your list.</string>
     <string name="login_step3_title">Copy the token and paste it below</string>
     <string name="login_step3_body">It looks like %1$s. Dashes and spaces don\'t matter.</string>
     <string name="login_token_example">xxxx-xxxxx-xxxxx-xxxx-xxxxx-xxxxx-xxxx</string>
@@ -475,12 +475,12 @@
     <string name="settings_show_sensitive">Show sensitive content</string>
     <string name="settings_show_sensitive_body">Covers aren\'t blurred, screenshots start with every content level, and sexual tags are listed.</string>
     <string name="settings_include_adult">Show 18+ titles by default</string>
-    <string name="settings_include_adult_body">Off shows only all-ages titles. On lists titles with an 18+ release.</string>
+    <string name="settings_include_adult_body">The default age rating filter set in Browse.</string>
     <string name="settings_confirm_adult_title">Show sensitive content?</string>
     <string name="settings_confirm_adult_body">This shows sexual and violent images and tags without blurring. Confirm that you are 18 or older.</string>
     <string name="settings_confirm_adult_action">I\'m 18 or older</string>
-    <string name="settings_card_languages">Cards</string>
-    <string name="settings_card_languages_body">Show up to 2 languages on VN cards.</string>
+    <string name="settings_card_languages">Languages on cards</string>
+    <string name="settings_card_languages_body">Show up to 2 languages on cards in Browse and Profile.</string>
     <string name="settings_card_languages_off">Off</string>
     <string name="settings_card_languages_hint">Pick up to 2. Leave empty to hide them.</string>
     <string name="language_pill_available_in">Available in %1$s</string>
