@@ -48,7 +48,7 @@ Two flavors, each with debug and release builds:
 | Flavor | Application id | App name | Release signing |
 |---|---|---|---|
 | `development` | `com.zc.vndb.dev` (version `…-dev`) | MyVNDB Dev | `debug.keystore` in the repo |
-| `production` | `com.zc.vndb` | MyVNDB | not configured (unsigned) |
+| `production` | `com.zc.vndb` | MyVNDB | Play upload key, passed in when building (see [Releasing](#releasing)) |
 
 Both flavors can be installed side by side.
 
@@ -63,6 +63,30 @@ Both flavors can be installed side by side.
 ```bash
 ./gradlew testDevelopmentDebugUnitTest
 ```
+
+## Releasing
+
+Pushing a tag `v<versionName>-<versionCode>-<track>` builds the `productionRelease` bundle with that version, signs it with the Play upload key and publishes it to that Google Play track (`.github/workflows/play-release.yml`).
+
+| Track | Google Play |
+|---|---|
+| `internal` | Internal testing |
+| `alpha` | Closed testing – Alpha |
+| `beta` | Open testing |
+| `production` | Production |
+
+```bash
+git tag -a v1.0.1-3-alpha -m "What's new in this release (at most 500 characters)."
+```
+
+```bash
+git push origin v1.0.1-3-alpha
+```
+
+- The tag's message becomes the release notes.
+- Each version code can be uploaded to Play only once, so every new build needs a higher code.
+
+Setup, secrets and troubleshooting: [docs/plans/18-play-release-pipeline.md](docs/plans/18-play-release-pipeline.md).
 
 ## Disclaimer
 
