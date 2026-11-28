@@ -1,6 +1,5 @@
 package com.zc.vndb.common.ui.component.wallpaper
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import coil3.compose.AsyncImage
 import com.zc.vndb.common.ui.theme.VndbTheme
 
 /**
@@ -19,8 +18,9 @@ import com.zc.vndb.common.ui.theme.VndbTheme
 fun WallpaperView(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Box(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
         VndbTheme.wallpaper?.let { wallpaper ->
-            Image(
-                painter = painterResource(wallpaper.image),
+            // Through Coil, so switching themes decodes the new wallpaper off the main thread.
+            AsyncImage(
+                model = wallpaper.image,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,

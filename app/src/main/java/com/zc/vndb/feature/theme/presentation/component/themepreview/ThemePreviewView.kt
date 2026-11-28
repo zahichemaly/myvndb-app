@@ -1,6 +1,5 @@
 package com.zc.vndb.feature.theme.presentation.component.themepreview
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -30,10 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.zc.vndb.common.domain.model.AppTheme
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
@@ -147,8 +146,10 @@ private fun PhoneMock(model: ThemeUIModel, modifier: Modifier = Modifier) {
                 .background(MaterialTheme.colorScheme.background),
         ) {
             VndbTheme.wallpaper?.let { wallpaper ->
-                Image(
-                    painter = painterResource(wallpaper.image),
+                // Coil decodes off the main thread, at the preview's size, and caches it, so
+                // scrolling the grid never waits on a full-size wallpaper.
+                AsyncImage(
+                    model = wallpaper.image,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
