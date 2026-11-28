@@ -199,7 +199,10 @@ class SettingsViewModelTest {
             collect(viewModel.state)
             advanceUntilIdle()
             assertEquals(
-                UiText.StringValue("Yorhel"),
+                UiText.StringResource(
+                    StringResource.settings_log_out_account,
+                    listOf("Yorhel", UiText.StringResource(StringResource.settings_access_read)),
+                ),
                 viewModel.state.value.accountLabel,
             )
 

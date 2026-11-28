@@ -361,6 +361,11 @@
     <string name="settings_log_out">Log out</string>
     <string name="settings_log_out_title">Log out?</string>
     <string name="settings_log_out_body">Your token will be removed from this device. You can log in again any time with the same or a new token.</string>
+    <string name="settings_log_out_account">%1$s · %2$s</string>
+    <string name="settings_access_read_edit">read &amp; edit access</string>
+    <string name="settings_access_read">read-only access</string>
+    <string name="settings_access_edit">edit access</string>
+    <string name="settings_access_public">public lists only</string>
     <string name="action_cancel">Cancel</string>
     <string name="profile_private_hidden">Private lists are hidden: this token can\'t read your list. Create one with list access to see them.</string>
     <string name="profile_hours_logged">%1$sh logged</string>

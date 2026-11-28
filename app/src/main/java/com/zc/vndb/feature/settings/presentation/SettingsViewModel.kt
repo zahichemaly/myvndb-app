@@ -17,6 +17,7 @@ import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.settings.domain.usecase.ClearImageCacheUseCase
 import com.zc.vndb.feature.settings.domain.usecase.GetImageCacheSizeUseCase
+import com.zc.vndb.feature.settings.presentation.mapper.toAccountLabel
 import com.zc.vndb.feature.settings.presentation.mapper.toSizeLabel
 import com.zc.vndb.feature.settings.presentation.mapper.withAppConfig
 import com.zc.vndb.feature.settings.presentation.mapper.withSettings
@@ -58,7 +59,7 @@ class SettingsViewModel(
         ) { state, settings, session, languages ->
             state.withSettings(settings, languages.inPickerOrder()).copy(
                 isSignedIn = session != null,
-                accountLabel = session?.let { UiText.StringValue(it.username) },
+                accountLabel = session?.toAccountLabel(),
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), _state.value)
 
