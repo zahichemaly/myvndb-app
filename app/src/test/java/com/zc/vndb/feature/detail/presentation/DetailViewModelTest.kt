@@ -287,6 +287,44 @@ class DetailViewModelTest {
     }
 
     @Test
+    fun `tags start capped, and see all and show less switch the list`() = runTest {
+        repository.novels["v2002"] = DetailSamples.novel(
+            tags = (1..13).map { DetailSamples.tag("Theme $it") },
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(12, viewModel.state.value.tagGroups.single().tags.size)
+        assertEquals(
+            UiText.StringResource(StringResource.detail_see_all_count, listOf(13)),
+            viewModel.state.value.tagsToggleLabel,
+        )
+
+        viewModel.onIntent(DetailIntent.AllTagsToggled)
+        assertEquals(13, viewModel.state.value.tagGroups.single().tags.size)
+        assertEquals(
+            UiText.StringResource(StringResource.detail_read_less),
+            viewModel.state.value.tagsToggleLabel,
+        )
+
+        viewModel.onIntent(DetailIntent.AllTagsToggled)
+        assertEquals(12, viewModel.state.value.tagGroups.single().tags.size)
+    }
+
+    @Test
+    fun `show all tags in settings starts the page with every tag`() = runTest {
+        settings.current.value = AppSettings(showAllTags = true)
+        repository.novels["v2002"] = DetailSamples.novel(
+            tags = (1..13).map { DetailSamples.tag("Theme $it") },
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.state.value.areAllTagsShown)
+        assertEquals(13, viewModel.state.value.tagGroups.single().tags.size)
+    }
+
+    @Test
     fun `actions become effects`() = runTest {
         val viewModel = createViewModel()
         advanceUntilIdle()

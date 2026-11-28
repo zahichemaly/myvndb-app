@@ -29,6 +29,7 @@ fun SettingsState.withSettings(
         SettingOptionUIModel(it.name, it.toLabel(), it == settings.titleLanguage)
     }.toImmutableList(),
     titleLanguageLabel = settings.titleLanguage.toLabel(),
+    showAllTags = settings.showAllTags,
     spoilerOptions = SpoilerPreference.entries.map {
         SettingOptionUIModel(
             key = it.name,

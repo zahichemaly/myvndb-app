@@ -47,6 +47,7 @@ class SettingsLocalDataSourceTest {
         val local = source()
         val changed = AppSettings(
             titleLanguage = TitleLanguage.Original,
+            showAllTags = true,
             defaultSpoilerLevel = SpoilerPreference.Minor,
             spoilIfFinished = true,
             showSensitiveContent = true,

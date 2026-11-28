@@ -48,6 +48,10 @@ data class DetailState(
     val alsoKnownAs: AlsoKnownAsUIModel? = null,
     val tagGroups: ImmutableList<TagGroupUIModel> = persistentListOf(),
     val hiddenTagsLabel: UiText? = null,
+    /** Every tag is listed, not only each group's most relevant; starts from Settings → Show all tags. */
+    val areAllTagsShown: Boolean = false,
+    /** "See all 34" / "Show less" on the tags card; null when every tag already shows. */
+    val tagsToggleLabel: UiText? = null,
     val contentNotes: ImmutableList<ContentNoteUIModel> = persistentListOf(),
     val relations: ImmutableList<RelationCardUIModel> = persistentListOf(),
     // Lazy sections

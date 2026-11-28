@@ -98,6 +98,8 @@ class SettingsViewModel(
                 save { it.copy(cardLanguages = intent.codes.toList()) }
             }
 
+            is SettingsIntent.ShowAllTagsChanged -> save { it.copy(showAllTags = intent.isOn) }
+
             is SettingsIntent.SpoilIfFinishedChanged -> save {
                 it.copy(
                     spoilIfFinished = intent.isOn,

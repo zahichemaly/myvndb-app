@@ -42,6 +42,7 @@ class SettingsLocalDataSource(
         val defaults = AppSettings()
         return AppSettings(
             titleLanguage = this[TITLE_LANGUAGE].toEnumOr(defaults.titleLanguage),
+            showAllTags = this[SHOW_ALL_TAGS] ?: defaults.showAllTags,
             defaultSpoilerLevel = this[SPOILER_LEVEL].toEnumOr(defaults.defaultSpoilerLevel),
             spoilIfFinished = this[SPOIL_IF_FINISHED] ?: defaults.spoilIfFinished,
             showSensitiveContent = appConfig.showSensitiveContent &&
@@ -66,6 +67,7 @@ class SettingsLocalDataSource(
 
     private fun MutablePreferences.write(settings: AppSettings) {
         this[TITLE_LANGUAGE] = settings.titleLanguage.name
+        this[SHOW_ALL_TAGS] = settings.showAllTags
         this[SPOILER_LEVEL] = settings.defaultSpoilerLevel.name
         this[SPOIL_IF_FINISHED] = settings.spoilIfFinished
         // A build that never shows sensitive content leaves the stored choice alone.
@@ -85,6 +87,7 @@ class SettingsLocalDataSource(
         const val SETTINGS_DATASTORE = "settings"
         private const val SEPARATOR = ","
         private val TITLE_LANGUAGE = stringPreferencesKey("title_language")
+        private val SHOW_ALL_TAGS = booleanPreferencesKey("show_all_tags")
         private val SPOILER_LEVEL = stringPreferencesKey("default_spoiler_level")
         private val SPOIL_IF_FINISHED = booleanPreferencesKey("spoil_if_finished")
         private val SHOW_SENSITIVE = booleanPreferencesKey("show_sensitive_content")

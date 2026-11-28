@@ -16,6 +16,7 @@ data class SettingsState(
     val themeLabel: UiText? = null,
     val titleLanguageOptions: ImmutableList<SettingOptionUIModel> = persistentListOf(),
     val titleLanguageLabel: UiText? = null,
+    val showAllTags: Boolean = false,
     val spoilerOptions: ImmutableList<SettingOptionUIModel> = persistentListOf(),
     val spoilerLabel: UiText? = null,
     val spoilIfFinished: Boolean = false,

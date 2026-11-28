@@ -15,6 +15,9 @@ sealed interface DetailIntent {
     data class SpoilerLevelSelected(val level: SpoilerLevel) : DetailIntent
     data object SynopsisToggled : DetailIntent
 
+    /** "See all" / "Show less" on the tags card. */
+    data object AllTagsToggled : DetailIntent
+
     /** Add to list / Edit on the My list card. */
     data object MyListClicked : DetailIntent
     data class RelationClicked(val id: String) : DetailIntent

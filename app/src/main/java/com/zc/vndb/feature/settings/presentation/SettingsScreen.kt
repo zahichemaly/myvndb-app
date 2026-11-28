@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Visibility
@@ -153,6 +154,16 @@ private fun LazyListScope.displaySection(state: SettingsState, actions: Settings
             onClick = { actions.open(SettingsDialog.TitleLanguage) },
             modifier = Modifier.fillMaxWidth(),
         ) { state.titleLanguageLabel?.let { SettingValueView(it) } }
+    }
+    item(key = "show-all-tags", contentType = "switch") {
+        SettingSwitchRowView(
+            icon = Icons.Outlined.Sell,
+            title = UiText.StringResource(StringResource.settings_show_all_tags),
+            body = UiText.StringResource(StringResource.settings_show_all_tags_body),
+            isOn = state.showAllTags,
+            onChange = { actions.onIntent(SettingsIntent.ShowAllTagsChanged(it)) },
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

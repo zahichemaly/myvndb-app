@@ -4,6 +4,7 @@ import com.zc.vndb.common.domain.model.Cover
 import com.zc.vndb.common.domain.model.TagCategory
 import com.zc.vndb.common.ui.component.spoilerfilter.model.SpoilerLevel
 import com.zc.vndb.common.ui.resource.PluralResource
+import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.detail.domain.model.DetailSamples.novel
 import com.zc.vndb.feature.detail.domain.model.DetailSamples.tag
@@ -79,5 +80,39 @@ class TagGroupUIModelMapperTest {
             crowded.toHiddenTagsLabel(SpoilerLevel.None),
         )
         assertNull(crowded.toHiddenTagsLabel(SpoilerLevel.Major))
+    }
+
+    @Test
+    fun `show all lifts the caps and the toggle label follows`() {
+        val crowded = novel(
+            tags = (1..20).map { tag("Safe $it", 2.0) } +
+                (1..3).map { tag("Spoiler $it", 3.0, spoiler = 2) } +
+                (1..8).map { tag("Tech $it", 2.0, category = TagCategory.Technical) },
+        )
+
+        val capped = crowded.toTagGroups(SpoilerLevel.None)
+        assertEquals(listOf(12, 6), capped.map { it.tags.size })
+        assertEquals(
+            UiText.StringResource(StringResource.detail_see_all_count, listOf(28)),
+            crowded.toTagsToggleLabel(SpoilerLevel.None),
+        )
+
+        val all = crowded.toTagGroups(SpoilerLevel.None, showAll = true)
+        assertEquals(listOf(20, 8), all.map { it.tags.size })
+        assertEquals(
+            UiText.StringResource(StringResource.detail_read_less),
+            crowded.toTagsToggleLabel(SpoilerLevel.None, showAll = true),
+        )
+        // Every spoiler tag would join the full list, so all three count as hidden.
+        assertEquals(
+            UiText.StringPlural(PluralResource.detail_hidden_by_spoiler, 3, listOf(3)),
+            crowded.toHiddenTagsLabel(SpoilerLevel.None, showAll = true),
+        )
+    }
+
+    @Test
+    fun `no toggle when the capped groups already hold every tag`() {
+        assertNull(detail.toTagsToggleLabel(SpoilerLevel.Major))
+        assertNull(detail.toTagsToggleLabel(SpoilerLevel.Major, showAll = true))
     }
 }

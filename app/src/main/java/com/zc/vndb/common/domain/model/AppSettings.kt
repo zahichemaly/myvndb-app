@@ -3,6 +3,8 @@ package com.zc.vndb.common.domain.model
 /** The user's preferences, from the Settings screen. Defaults apply until something is changed. */
 data class AppSettings(
     val titleLanguage: TitleLanguage = TitleLanguage.Romanized,
+    /** VN pages start with every tag listed instead of only the most relevant ones. */
+    val showAllTags: Boolean = false,
     /** Spoiler level VN and character pages start with. */
     val defaultSpoilerLevel: SpoilerPreference = SpoilerPreference.None,
     /** VNs on the signed-in user's Finished list open with every spoiler shown. */

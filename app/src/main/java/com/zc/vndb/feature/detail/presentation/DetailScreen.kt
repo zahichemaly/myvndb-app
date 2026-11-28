@@ -314,7 +314,9 @@ private fun LazyListScope.overviewTab(state: DetailState, actions: DetailActions
             groups = state.tagGroups,
             hiddenLabel = state.hiddenTagsLabel,
             notes = state.contentNotes,
+            toggleLabel = state.tagsToggleLabel,
             onTagClick = actions.onTagClick,
+            onToggleClick = { actions.onIntent(DetailIntent.AllTagsToggled) },
             modifier = Modifier.fillMaxWidth(),
         )
     }

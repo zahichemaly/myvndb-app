@@ -29,6 +29,7 @@ import com.zc.vndb.feature.detail.presentation.component.relationcard.mapper.toC
 import com.zc.vndb.feature.detail.presentation.component.taggroups.mapper.toContentNotes
 import com.zc.vndb.feature.detail.presentation.component.taggroups.mapper.toHiddenTagsLabel
 import com.zc.vndb.feature.detail.presentation.component.taggroups.mapper.toTagGroups
+import com.zc.vndb.feature.detail.presentation.component.taggroups.mapper.toTagsToggleLabel
 import com.zc.vndb.feature.detail.presentation.mapper.reviewsUrl
 import com.zc.vndb.feature.detail.presentation.mapper.toAlsoKnownAs
 import com.zc.vndb.feature.detail.presentation.mapper.toCastUIModel
@@ -185,6 +186,11 @@ class DetailViewModel(
                 it.copy(isSynopsisExpanded = !it.isSynopsisExpanded)
             }
 
+            DetailIntent.AllTagsToggled -> {
+                _state.update { it.copy(areAllTagsShown = !it.areAllTagsShown) }
+                renderSpoilerSections()
+            }
+
             is DetailIntent.RelationClicked -> sendEffect(DetailEffect.NavigateToNovel(intent.id))
 
             is DetailIntent.CharacterClicked -> sendEffect(
@@ -328,15 +334,20 @@ class DetailViewModel(
     }
 
     /**
-     * Starting spoiler level and screenshot levels from Settings; then, if "Spoil me if finished"
-     * is on and the VN is on the user's Finished list, every spoiler is shown.
+     * Starting spoiler level, screenshot levels and tag list from Settings; then, if "Spoil me if
+     * finished" is on and the VN is on the user's Finished list, every spoiler is shown.
      */
     private fun applyStartSettings() {
         if (isStartApplied) return
         isStartApplied = true
         contentFilters =
             if (settings.showSensitiveContent) ContentFilter.entries.toSet() else ContentFilter.Default
-        _state.update { it.copy(spoilerLevel = settings.defaultSpoilerLevel.toSpoilerLevel()) }
+        _state.update {
+            it.copy(
+                spoilerLevel = settings.defaultSpoilerLevel.toSpoilerLevel(),
+                areAllTagsShown = settings.showAllTags,
+            )
+        }
         if (settings.spoilIfFinished && settings.defaultSpoilerLevel != SpoilerPreference.Major) {
             viewModelScope.launch {
                 if (isNovelFinished(novelId) && !hasChosenSpoilerLevel) {
@@ -417,11 +428,13 @@ class DetailViewModel(
         _state.update { state ->
             val level = state.spoilerLevel
             val current = novel
+            val showSexual = settings.showSensitiveContent
+            val showAll = state.areAllTagsShown
             state.copy(
                 synopsis = current?.toSynopsis(level),
-                tagGroups = current?.toTagGroups(level, settings.showSensitiveContent)
-                    ?: state.tagGroups,
-                hiddenTagsLabel = current?.toHiddenTagsLabel(level, settings.showSensitiveContent),
+                tagGroups = current?.toTagGroups(level, showSexual, showAll) ?: state.tagGroups,
+                hiddenTagsLabel = current?.toHiddenTagsLabel(level, showSexual, showAll),
+                tagsToggleLabel = current?.toTagsToggleLabel(level, showSexual, showAll),
             )
         }
         render(DetailSection.Cast)

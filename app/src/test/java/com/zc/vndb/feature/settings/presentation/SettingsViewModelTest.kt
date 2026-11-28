@@ -116,9 +116,12 @@ class SettingsViewModelTest {
         )
         viewModel.onIntent(SettingsIntent.LanguagesConfirmed(setOf("ko")))
         viewModel.onIntent(SettingsIntent.IncludeAdultChanged(true))
+        viewModel.onIntent(SettingsIntent.ShowAllTagsChanged(true))
         advanceUntilIdle()
 
+        assertTrue(viewModel.state.value.showAllTags)
         with(settings.current.value) {
+            assertTrue(showAllTags)
             assertEquals(TitleLanguage.Original, titleLanguage)
             assertEquals(SpoilerPreference.Major, defaultSpoilerLevel)
             assertEquals(listOf("ko"), trendingLanguages)

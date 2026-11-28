@@ -462,6 +462,8 @@
     <string name="settings_section_about">About</string>
     <string name="settings_title_language">Title language</string>
     <string name="settings_title_language_body">Show titles in Romaji or in Japanese characters.</string>
+    <string name="settings_show_all_tags">Show all tags</string>
+    <string name="settings_show_all_tags_body">VN pages list every tag, not just the most relevant ones.</string>
     <string name="settings_title_romanized">Romanized</string>
     <string name="settings_title_original">Japanese</string>
     <string name="settings_spoiler_level">Default spoiler level</string>
