@@ -1,3 +1,5 @@
+import java.util.regex.Pattern
+
 plugins {
     alias(libs.plugins.vndb.android.application)
     alias(libs.plugins.kotlin.serialization)
@@ -84,6 +86,22 @@ android {
 androidComponents {
     onVariants(selector().withFlavor("environment" to "development").withBuildType("release")) { variant ->
         variant.signingConfig.setConfig(android.signingConfigs.getByName("development"))
+    }
+}
+
+// Leaves out of the Licenses page what ships no code. (The page itself groups the rest into one
+// row per project: the plugin's DuplicateMode.MERGE only merges a module with its own platform
+// artifacts, never sibling modules.)
+aboutLibraries {
+    library {
+        exclusionPatterns.addAll(
+            // BOMs only align versions.
+            Pattern.compile(".+-bom"),
+            // Compose Multiplatform wrappers (pulled in by AboutLibraries' own UI). On Android they
+            // are empty and resolve to the androidx libraries already listed, under other versions.
+            // ui-backhandler is the exception: it has code of its own.
+            Pattern.compile("""org\.jetbrains\.(compose|androidx)\.(?!ui:ui-backhandler$).+"""),
+        )
     }
 }
 

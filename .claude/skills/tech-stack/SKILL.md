@@ -255,7 +255,8 @@ fun CoverImageView(
 ### Open-source licenses (AboutLibraries)
 
 - The `com.mikepenz.aboutlibraries.plugin.android` Gradle plugin writes `res/raw/aboutlibraries.json` from the app's dependencies at build time, license texts included, so the page works offline.
-- Settings → Licenses shows it: `LicensesRoute` loads the bundled list with `produceLibraries()` and `LicensesScreen` renders it with the Material 3 `LibrariesContainer`. This list is static data packaged in the APK, so this one screen has no ViewModel, use case or repository (a deliberate exception to the MVI flow).
+- Its `aboutLibraries { library { exclusionPatterns } }` block in `app/build.gradle.kts` leaves out what ships no code: BOMs, and the Compose Multiplatform wrappers (`org.jetbrains.compose.*`, `org.jetbrains.androidx.*`) that are empty on Android, except `ui-backhandler`.
+- Settings → Licenses shows it: `LicensesRoute` loads the bundled list with `produceLibraries()`, groups it into one row per project with `groupedByProject()` (`licenses/mapper/LicensesUIModelMapper.kt`: same Maven group, repository and licenses), and `LicensesScreen` renders it with the Material 3 `LibrariesContainer`. This list is static data packaged in the APK, so this one screen has no ViewModel, use case or repository (a deliberate exception to the MVI flow). The plugin's `DuplicateMode.MERGE` can't do the grouping: it only merges a module with its own platform artifacts.
 - AboutLibraries types (`Libs`, `Library`) stay in that screen. Nothing else imports `com.mikepenz.*`.
 
 ---
