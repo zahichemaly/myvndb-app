@@ -1,6 +1,6 @@
 # Plan 18 — Publish to Google Play from a tag
 
-**Status: Implemented on `feature/play-release-pipeline` with fastlane (§9). Checked locally; the first `-alpha` and `-production` tags are the end-to-end checks.** An earlier script-based promotion was dropped for fastlane before it was pushed.
+**Status: Implemented on `feature/play-release-pipeline`: fastlane, in two workflows (`play-release.yml` for testing tracks, `play-promote.yml` for production; §9). Checked locally; the first `-alpha` and `-production` tags are the end-to-end checks.** An earlier script-based promotion was dropped for fastlane before it was pushed.
 
 Goal: pushing a tag `v<versionName>-<versionCode>-<track>` publishes to that Google Play track.
 - **Testing tracks:** the workflow builds `productionRelease` as an App Bundle with that version, signs it with the upload key and uploads it.
@@ -15,25 +15,28 @@ Rules: `.claude/skills/*` (`library-management` for Gradle: no new library is ne
 ## 1. How it works
 
 ```text
-git push origin v1.0.1-3-alpha                        git push origin v1.0.1-3-production
-        │                                                     │
-        ▼                                                     ▼
-GitHub Actions  .github/workflows/play-release.yml  (on: push tags v<x.y.z>-<code>-*)
-  parse    tag → versionName, versionCode, track   (bad tag: fails in seconds)
-  publish  (environment "google-play": holds the secrets, only release tags may use it)
-           Ruby + fastlane (versions pinned in Gemfile.lock)
-        │                                                     │
-   track internal / alpha / beta                         track production
-   notes from the tag message                            fastlane supply
-   → unit tests → bundleProductionRelease                  --track alpha
-     -PversionCode=3 -PversionName=1.0.1,                  --track_promote_to production
-     signed via android.injected.signing.*                 --version_code 3
-   → check it is signed → keep AAB + mapping             → Alpha's release with code 3,
-   → fastlane supply --track alpha --aab …                  notes included, goes to production
-        │                                                     │
-        ▼                                                     ▼
-Play App Signing re-signs → Closed testing – Alpha       Production (same build testers had)
+git push origin v1.0.1-3-alpha                         git push origin v1.0.1-3-production
+        │                                                      │
+        ▼                                                      ▼
+Play release  (play-release.yml)                       Play promote  (play-promote.yml)
+on: v<x.y.z>-<code>-*, except -production              on: v<x.y.z>-<code>-production
+  parse    tag → name, code, track                       read the tag → name, code
+           (internal|alpha|beta, else a clear error)     sparse checkout: Gemfile, Gemfile.lock only
+  publish  (environment "google-play")                   (environment "google-play")
+           full checkout                                 Ruby + fastlane (Gemfile.lock)
+           notes from the tag message                    fastlane supply --track alpha
+           unit tests → bundleProductionRelease            --track_promote_to production
+             -PversionCode=3 -PversionName=1.0.1,          --version_code 3
+             signed via android.injected.signing.*
+           check it is signed → keep AAB + mapping
+           Ruby + fastlane (Gemfile.lock)
+           fastlane supply --track alpha --aab …
+        │                                                      │
+        ▼                                                      ▼
+Play App Signing re-signs → Closed testing – Alpha     Alpha's build with code 3 → Production
 ```
+
+Two workflows, one job each: testing tracks build and upload, production only promotes. They share the `google-play` concurrency group, so a release and a promotion never edit Play at the same time.
 
 Tooling: fastlane's `supply` (`upload_to_play_store`) for both uploading and promoting, called from the workflow with `bundle exec fastlane supply --option value`, with no Fastfile.
 
@@ -101,145 +104,63 @@ defaultConfig {
 - Injected signing applies to every variant built in that Gradle run, so pass it only when building a release bundle. Never put it in `~/.gradle/gradle.properties`: every Android project on the machine, debug builds included, would be signed with the upload key.
 - `build-release-apk.yml` drops the `GITHUB_RUN_NUMBER` read from the build script and passes `-PversionCode=$GITHUB_RUN_NUMBER` instead.
 
-## 4. Workflow (`.github/workflows/play-release.yml`) and `Gemfile`
+## 4. Workflows and `Gemfile`
 
-Everything specific to this app is in the top `env:` block. To reuse the workflow in another app, copy it with the `Gemfile` and `Gemfile.lock`, change those five values, and set `UPLOAD_*` and `PLAY_SERVICE_ACCOUNT_JSON` in that repo's `google-play` environment.
+The workflow files are the reference; this is what each one does. Everything specific to this app is in each file's top `env:` block. To reuse them in another app, copy both workflows with `Gemfile` and `Gemfile.lock`, change those values, and set `UPLOAD_*` and `PLAY_SERVICE_ACCOUNT_JSON` in that repo's `google-play` environment.
 
 `Gemfile` (repo root):
 
 ```ruby
 source "https://rubygems.org"
 
-# Google Play uploads and promotions in .github/workflows/play-release.yml.
+# Google Play uploads and promotions: .github/workflows/play-release.yml and play-promote.yml.
 gem "fastlane", "~> 2.242"
 ```
 
 `Gemfile.lock` is generated with `bundle lock --add-platform x86_64-linux`, so the Linux runner installs the same versions as the lock.
 
-```yaml
-name: Play release
+### `play-release.yml`: testing tracks
 
-# Push v<versionName>-<versionCode>-<track> (e.g. v1.0.1-3-alpha). For a testing track, the release
-# bundle is built with that version and uploaded there. For production, the build Alpha has with
-# that version code is promoted.
-on:
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+-[0-9]+-*"
+- **Trigger:** `v[0-9]+.[0-9]+.[0-9]+-[0-9]+-*`, except `!v[0-9]+.[0-9]+.[0-9]+-[0-9]+-production`. A mistyped track (`v1.0.1-3-alhpa`) still starts it, and the parse job refuses it with a clear error, rather than nothing running.
+- **Settings (`env:`):** `APP_ID`, `MODULE`, `VARIANT`, `TEST_TASK`.
+- **`parse` job:** the tag regex with `(internal|alpha|beta)`; outputs the version name, code and track.
+- **`publish` job** (environment `google-play`):
+  1. Full checkout.
+  2. Release notes from the annotated tag's message, written to `$RUNNER_TEMP/metadata/en-US/changelogs/<versionCode>.txt`.
+  3. JDK 25 and Gradle.
+  4. Decode the upload keystore.
+  5. Unit tests and `:<module>:bundle<Variant>` with `-PversionCode`, `-PversionName` and `android.injected.signing.*`.
+  6. Find the bundle and mapping, and fail if the bundle is unsigned. Keep both as a run artifact (30 days).
+  7. Ruby 3.4 and fastlane (`ruby/setup-ruby` with `bundler-cache`). Write the Play key and export `PLAY_KEY` (through `$GITHUB_ENV`, because a job-level `env:` can't use `runner.temp`).
+  8. Upload:
+     ```bash
+     bundle exec fastlane supply --package_name "$APP_ID" --json_key "$PLAY_KEY" \
+       --track "$TRACK" --aab "$AAB" ${MAPPING:+--mapping "$MAPPING"} --release_status completed \
+       --metadata_path "$RUNNER_TEMP/metadata" \
+       --skip_upload_metadata true --skip_upload_images true --skip_upload_screenshots true
+     ```
 
-permissions:
-  contents: read
+### `play-promote.yml`: production
 
-# Play edits on one app must not overlap.
-concurrency:
-  group: play-release
-  cancel-in-progress: false
-
-# The only project-specific values. To reuse this workflow in another app, change these.
-env:
-  APP_ID: com.zc.vndb                     # Play package name
-  MODULE: app                             # Gradle module that builds the app
-  VARIANT: productionRelease              # builds :<module>:bundle<Variant>
-  TEST_TASK: testDevelopmentDebugUnitTest # runs before the build; empty to skip
-  PROMOTE_FROM: alpha                     # production tags promote the build this track has
-
-jobs:
-  parse:
-    # Unchanged from the current branch: checks the tag, outputs version_name, version_code, track.
-
-  publish:
-    needs: parse
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    # Holds the Play and upload-key secrets; only release tags (v*.*.*-*-*) may deploy to it.
-    environment: google-play
-    env:
-      TRACK: ${{ needs.parse.outputs.track }}
-      VERSION_NAME: ${{ needs.parse.outputs.version_name }}
-      VERSION_CODE: ${{ needs.parse.outputs.version_code }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      # fastlane at the versions in Gemfile.lock, cached between runs.
-      - name: Set up Ruby and fastlane
-        uses: ruby/setup-ruby@145243922b4465b78e04dd66294782c7de45901f # v1.345.0
-        with:
-          ruby-version: "3.4"
-          bundler-cache: true
-
-      - name: Write the Play service account key
-        env:
-          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-        run: |
-          [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ] || { echo "::error::PLAY_SERVICE_ACCOUNT_JSON is not set on the google-play environment"; exit 1; }
-          printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play-service-account.json"
-          # A job-level env can't use the runner context, so the path is exported from here.
-          echo "PLAY_KEY=$RUNNER_TEMP/play-service-account.json" >> "$GITHUB_ENV"
-
-      # ── Production: promote the build Alpha has with this version code (§5). Nothing is built.
-      - name: Promote to production
-        if: env.TRACK == 'production'
-        run: >-
-          bundle exec fastlane supply
-          --package_name "$APP_ID"
-          --json_key "$PLAY_KEY"
-          --track "$PROMOTE_FROM"
-          --track_promote_to production
-          --version_code "$VERSION_CODE"
-          --skip_upload_metadata true --skip_upload_changelogs true
-          --skip_upload_images true --skip_upload_screenshots true
-
-      # ── Testing tracks: build, sign and upload.
-
-      # The annotated tag's message is Play's "What's new" (en-US, at most 500 characters), written
-      # where fastlane looks for this version's notes: <metadata_path>/en-US/changelogs/<versionCode>.txt.
-      # Fetch the tag object itself: checkout can leave only a lightweight ref.
-      - name: Release notes from the tag
-        if: env.TRACK != 'production'
-        run: |
-          git fetch --force --no-tags origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
-          notes=""
-          if [ "$(git cat-file -t "refs/tags/$GITHUB_REF_NAME")" = "tag" ]; then
-            notes=$(git tag -l --format='%(contents:subject)%0a%0a%(contents:body)' "$GITHUB_REF_NAME")
-          fi
-          [ -n "$notes" ] || notes="Bug fixes and improvements."
-          if (( ${#notes} > 500 )); then
-            echo "::error::Release notes are ${#notes} characters; Play allows 500."
-            exit 1
-          fi
-          mkdir -p "$RUNNER_TEMP/metadata/en-US/changelogs"
-          printf '%s\n' "$notes" > "$RUNNER_TEMP/metadata/en-US/changelogs/$VERSION_CODE.txt"
-
-      # Set up JDK, Set up Gradle, Decode the upload keystore, Test and build the bundle,
-      # Find the bundle and check it is signed, Keep the bundle and mapping:
-      # unchanged from the current branch, each with `if: env.TRACK != 'production'`.
-
-      # Only the bundle, its mapping and this version's notes go up: the skip flags keep fastlane
-      # away from the store listing, which it would otherwise sync from the metadata folder.
-      - name: Upload to Google Play
-        if: env.TRACK != 'production'
-        run: >-
-          bundle exec fastlane supply
-          --package_name "$APP_ID"
-          --json_key "$PLAY_KEY"
-          --track "$TRACK"
-          --aab "$AAB"
-          ${MAPPING:+--mapping "$MAPPING"}
-          --release_status completed
-          --metadata_path "$RUNNER_TEMP/metadata"
-          --skip_upload_metadata true --skip_upload_images true --skip_upload_screenshots true
-
-      - name: Summary
-        run: |
-          if [ "$TRACK" = "production" ]; then what="Promoted"; else what="Built and published"; fi
-          echo "$what $VERSION_NAME ($VERSION_CODE) to $TRACK." >> "$GITHUB_STEP_SUMMARY"
-```
+- **Trigger:** `v[0-9]+.[0-9]+.[0-9]+-[0-9]+-production`.
+- **Settings (`env:`):** `APP_ID`, `PROMOTE_FROM` (`alpha`).
+- **One `promote` job** (environment `google-play`, 10-minute timeout):
+  1. Read the tag (regex ending in `-production`) into `VERSION_NAME` and `VERSION_CODE`.
+  2. Sparse checkout of `/Gemfile` and `/Gemfile.lock` only (`sparse-checkout-cone-mode: false`, `persist-credentials: false`): no project sources, no history, nothing to build. The lock is what pins fastlane's dependencies, which is why it isn't skipped.
+  3. Ruby 3.4 and fastlane, then write the Play key.
+  4. Promote:
+     ```bash
+     bundle exec fastlane supply --package_name "$APP_ID" --json_key "$PLAY_KEY" \
+       --track "$PROMOTE_FROM" --track_promote_to production --version_code "$VERSION_CODE" \
+       --skip_upload_metadata true --skip_upload_changelogs true \
+       --skip_upload_images true --skip_upload_screenshots true
+     ```
+- It never gets the upload keystore secrets.
 
 Notes on the fastlane calls (from fastlane's docs and `supply/lib/supply/uploader.rb`):
 
 - The skip flags matter: with a metadata folder and no skip flags, fastlane would also update the listing text, images and screenshots, and a promotion would try to update changelogs on production. `--skip_upload_metadata` doesn't cover changelogs, so uploads still send this version's notes.
-- The upload's release name is fastlane's default (from the bundle's version name). Nothing checks names anymore.
+- The upload's release name is fastlane's default (from the bundle's version name). Nothing checks names.
 - Every flag above is in `fastlane supply --help` for 2.242.0. Boolean flags take an optional value (`--skip_upload_metadata [VALUE]`), so `--skip_upload_metadata true` is valid. fastlane rejects unknown flags (`invalid option`), and both commands parse.
 
 ## 5. Production: promote, don't rebuild
@@ -314,7 +235,7 @@ The Alpha upload registered its signing key as your upload key. Play rejects bun
 
 1. Repo → **Settings → Environments → New environment** `google-play`.
    - **Deployment branches and tags → Selected branches and tags → Add rule → Tag** `v*.*.*-*-*`. Only release tags can then read its secrets.
-   - Optional: **Required reviewers** (you) if you want an approval click before every publish.
+   - Optional: **Required reviewers** (you) if you want an approval click before every release and promotion. For production only, see §7.
 2. In that environment, **Add environment secret**:
 
    | Secret | Value |
@@ -365,7 +286,8 @@ Tag the version name and code that Alpha currently has, e.g. `v1.0.1-3-productio
 - **Production only from `main`:** a step that fails a `v*-production` tag whose commit isn't on `origin/main`.
 - **Tag ruleset** (Settings → Rules → Rulesets → Tag, `v*`): only you can create, move or delete release tags. It also makes up for the track sitting at the end of the tag, where a mistaken `-production` is easier to miss.
 - **Staged production rollout:** `--rollout 0.2` on the promote step (§5).
-- **Sharing across apps:** copying the workflow and `Gemfile`/`Gemfile.lock` (§4) works for a second app. From the third, or once copies drift, move the workflow into one shared repo as a reusable workflow (`on: workflow_call`, with `app-id`, `module`, `variant`, `test-task` and `promote-from` inputs). Each app then keeps a short caller that triggers on the tags and passes its values. Its `google-play` environment and secrets stay in each app's repo.
+- **Approval for production only:** give `play-promote.yml` its own environment (e.g. `google-play-production`) with **Required reviewers** and its own copy of `PLAY_SERVICE_ACCOUNT_JSON`. Production then needs a click, and testing tracks stay automatic.
+- **Sharing across apps:** copying both workflows and `Gemfile`/`Gemfile.lock` (§4) works for a second app. From the third, or once copies drift, move them into one shared repo as reusable workflows (`on: workflow_call`, with `app-id`, `module`, `variant`, `test-task` and `promote-from` inputs). Each app then keeps two short callers that trigger on the tags and pass its values. Its `google-play` environment and secrets stay in each app's repo.
 - **Store listing from the repo:** fastlane can also publish the listing text and screenshots. `docs/store-listing/` would move into fastlane's `metadata/android/<language>/` layout and the skip flags would come off. Not part of this change.
 
 ## 8. When it fails
@@ -378,6 +300,8 @@ Tag the version name and code that Alpha currently has, e.g. `v1.0.1-3-productio
 | Precondition check failed (production) | Production access not granted yet | §6.A.2 |
 | The Android App Bundle was signed with the wrong key | `UPLOAD_KEYSTORE_BASE64` isn't the keystore that signed the Alpha upload | §6.B.1: compare the SHA-256, re-encode the right keystore |
 | Keystore was tampered with, or password was incorrect / Cannot recover key | Wrong `UPLOAD_KEYSTORE_PASSWORD`, `UPLOAD_KEY_ALIAS` or `UPLOAD_KEY_PASSWORD` | Fix the secret, re-run the job |
+| Nothing runs after pushing a tag | The tag isn't `v<x.y.z>-<code>-<track>` (e.g. `v1.0.1`), or the tagged commit doesn't have the workflows | Tag a commit that has them, in the right format |
+| `'…' is not v<x.y.z>-<versionCode>-<internal\|alpha\|beta>` (Play release) | Mistyped track, or a zero-padded code | Delete the tag, push the right one |
 | Fails before "Upload to Google Play" or "Promote to production" | Bad tag, tests, build, or missing secret | Fix, then delete and re-push the tag (`git push origin :refs/tags/<tag>`) |
 | Fails after the upload committed | The code is spent | New tag with a higher code |
 
@@ -416,5 +340,21 @@ These were checked locally, with fastlane installed from `Gemfile.lock` into a s
 - **Unchanged parts:** the `parse` job and the keystore, build and find-and-check `run:` blocks are byte-identical to the first commit, so the build checks above still hold.
 - **Key step:** it writes the key file and `PLAY_KEY`, and fails with a clear message when the secret is missing.
 - **Notes step:** an annotated tag's message lands in `metadata/en-US/changelogs/3.txt`.
+
+**Third commit (two workflows):**
+
+1. `play-release.yml` handles testing tracks only: its trigger excludes `-production`, its parse regex is `(internal|alpha|beta)`, and the promote step and every `if:` are gone.
+2. `play-promote.yml` is new: production tags only, one job, a sparse checkout of `Gemfile` and `Gemfile.lock`, Ruby and fastlane, and the promote command. No upload keystore secrets.
+3. Both share the `google-play` concurrency group. README and this plan describe the two.
+
+These were checked locally:
+- **YAML:** both files parse. The checkout inputs (`sparse-checkout`, `sparse-checkout-cone-mode`, `persist-credentials`) and setup-ruby inputs (`ruby-version`, `bundler-cache`) exist in the `action.yml` of the pinned commits.
+- **Sparse checkout:** a depth-1 clone of the branch with the same patterns (`git sparse-checkout set --no-cone /Gemfile /Gemfile.lock`) contains exactly `Gemfile` and `Gemfile.lock`.
+- **Tag routing:** the trigger patterns (as GitHub applies them, `!` exclusions included) and each parse step were run against sample tags:
+  - `-internal`, `-alpha` and `-beta` start only Play release, and `-production` only Play promote;
+  - `-alhpa` and `-prod` start Play release, which refuses them with the error;
+  - a zero-padded production code starts Play promote, which refuses it;
+  - `v1.0.1` and `release-…` start neither.
+- **fastlane:** the upload and promote commands, taken from the new files, parse with fastlane 2.242.0 and stop at the missing key file.
 
 Not checkable here: nothing can talk to Google Play without your key. The first `-alpha` tag (§6.E) checks the upload, and the first `-production` tag (§6.F) checks promotion, including that Alpha's notes carry over.

@@ -1,0 +1,87 @@
+name: Play promote
+
+# Push v<versionName>-<versionCode>-production, e.g. v1.0.1-3-production: promotes the build Alpha has
+# with that version code to production, release notes included. Nothing is built, and only Gemfile
+# and Gemfile.lock are checked out (they pin fastlane). See docs/plans/18-play-release-pipeline.md.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+-[0-9]+-production"
+
+permissions:
+  contents: read
+
+# Shared with play-release.yml: Play edits on one app must not overlap.
+concurrency:
+  group: google-play
+  cancel-in-progress: false
+
+# The only project-specific values. To reuse this workflow in another app, change these.
+env:
+  APP_ID: com.zc.vndb # Play package name
+  PROMOTE_FROM: alpha # the track whose build is promoted
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Holds the Play key; only release tags (v*.*.*-*-*) may deploy to it.
+    environment: google-play
+    steps:
+      - name: Read the tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          re='^v([0-9]+\.[0-9]+\.[0-9]+)-([1-9][0-9]{0,9})-production$'
+          if [[ ! "$TAG" =~ $re ]]; then
+            echo "::error::'$TAG' is not v<x.y.z>-<versionCode>-production, e.g. v1.0.1-3-production"
+            exit 1
+          fi
+          {
+            echo "VERSION_NAME=${BASH_REMATCH[1]}"
+            echo "VERSION_CODE=${BASH_REMATCH[2]}"
+          } >> "$GITHUB_ENV"
+
+      # Only the files that pin fastlane: no project sources, no history.
+      - name: Check out Gemfile and Gemfile.lock
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: |
+            /Gemfile
+            /Gemfile.lock
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      # fastlane at the versions in Gemfile.lock, cached between runs.
+      - name: Set up Ruby and fastlane
+        uses: ruby/setup-ruby@145243922b4465b78e04dd66294782c7de45901f # v1.345.0
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Write the Play service account key
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ] || { echo "::error::PLAY_SERVICE_ACCOUNT_JSON is not set on the google-play environment"; exit 1; }
+          printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play-service-account.json"
+          echo "PLAY_KEY=$RUNNER_TEMP/play-service-account.json" >> "$GITHUB_ENV"
+
+      # fastlane takes Alpha's release with this version code (notes included) to production as a
+      # completed release, and fails without changing anything if Alpha doesn't have it. The skip
+      # flags keep it away from the store listing and from production's changelogs.
+      - name: Promote to production
+        run: >-
+          bundle exec fastlane supply
+          --package_name "$APP_ID"
+          --json_key "$PLAY_KEY"
+          --track "$PROMOTE_FROM"
+          --track_promote_to production
+          --version_code "$VERSION_CODE"
+          --skip_upload_metadata true
+          --skip_upload_changelogs true
+          --skip_upload_images true
+          --skip_upload_screenshots true
+
+      - name: Summary
+        run: echo "Promoted $VERSION_NAME ($VERSION_CODE) from $PROMOTE_FROM to production." >> "$GITHUB_STEP_SUMMARY"

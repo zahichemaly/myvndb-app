@@ -66,14 +66,14 @@ Both flavors can be installed side by side.
 
 ## Releasing
 
-Pushing a tag `v<versionName>-<versionCode>-<track>` publishes to that Google Play track (`.github/workflows/play-release.yml`, using [fastlane](https://docs.fastlane.tools/actions/supply/) pinned in `Gemfile.lock`).
+Pushing a tag `v<versionName>-<versionCode>-<track>` publishes to that Google Play track, through [fastlane](https://docs.fastlane.tools/actions/supply/) pinned in `Gemfile.lock`.
 
-| Track | Google Play | What the tag does |
-|---|---|---|
-| `internal` | Internal testing | Builds the `productionRelease` bundle with that version, signs it with the Play upload key and uploads it |
-| `alpha` | Closed testing – Alpha | Same |
-| `beta` | Open testing | Same |
-| `production` | Production | Promotes the build Alpha has with that version code; nothing is built |
+| Track | Google Play | Workflow | What the tag does |
+|---|---|---|---|
+| `internal` | Internal testing | Play release (`play-release.yml`) | Builds the `productionRelease` bundle with that version, signs it with the Play upload key and uploads it |
+| `alpha` | Closed testing – Alpha | Play release | Same |
+| `beta` | Open testing | Play release | Same |
+| `production` | Production | Play promote (`play-promote.yml`) | Promotes the build Alpha has with that version code. Nothing is cloned or built: it checks out only `Gemfile` and `Gemfile.lock` |
 
 Test on Alpha, then promote the same build:
 
