@@ -473,11 +473,11 @@
     <string name="settings_spoil_if_finished_body">VNs on your Finished list open with every spoiler shown.</string>
     <string name="settings_spoil_if_finished_guest">Log in to use this: it reads your Finished list.</string>
     <string name="settings_show_sensitive">Show sensitive content</string>
-    <string name="settings_show_sensitive_body">Covers aren\'t blurred, screenshots start with every content level, and sexual tags are listed.</string>
+    <string name="settings_show_sensitive_body">Covers aren\'t blurred, screenshots start with every content level, and sexual tags and traits are listed.</string>
     <string name="settings_include_adult">Show 18+ titles by default</string>
     <string name="settings_include_adult_body">The default age rating filter set in Browse.</string>
     <string name="settings_confirm_adult_title">Show sensitive content?</string>
-    <string name="settings_confirm_adult_body">This shows sexual and violent images and tags without blurring. Confirm that you are 18 or older.</string>
+    <string name="settings_confirm_adult_body">This shows sexual and violent images, tags and traits without blurring. Confirm that you are 18 or older.</string>
     <string name="settings_confirm_adult_action">I\'m 18 or older</string>
     <string name="settings_card_languages">Languages on cards</string>
     <string name="settings_card_languages_body">Show up to 2 languages on cards in Browse and Profile.</string>

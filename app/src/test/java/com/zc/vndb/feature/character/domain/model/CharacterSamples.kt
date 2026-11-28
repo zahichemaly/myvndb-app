@@ -22,8 +22,19 @@ object CharacterSamples {
         voiceActor = null,
     )
 
-    fun trait(name: String, group: String = "Hair", spoiler: Int = 0, lie: Boolean = false) =
-        CharacterTrait(name = name, group = group, spoilerLevel = spoiler, isLie = lie)
+    fun trait(
+        name: String,
+        group: String = "Hair",
+        spoiler: Int = 0,
+        lie: Boolean = false,
+        sexual: Boolean = false,
+    ) = CharacterTrait(
+        name = name,
+        group = group,
+        spoilerLevel = spoiler,
+        isLie = lie,
+        isSexual = sexual,
+    )
 
     fun profile(
         appearances: List<CharacterAppearance> = emptyList(),

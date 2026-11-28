@@ -110,7 +110,13 @@ class CharacterProfileDTOMapperTest {
     fun `traits and appearances default to hidden spoilers, appearances are one per VN`() {
         val profile = dto(
             traits = listOf(
-                CharacterTraitDTO(name = "Tsundere", groupName = null, spoiler = null, lie = null),
+                CharacterTraitDTO(
+                    name = "Tsundere",
+                    groupName = null,
+                    spoiler = null,
+                    lie = null,
+                    sexual = null,
+                ),
             ),
             vns = listOf(
                 appearance("v1", "main", 0),
@@ -123,6 +129,7 @@ class CharacterProfileDTOMapperTest {
         assertEquals(2, trait.spoilerLevel)
         assertEquals("", trait.group)
         assertEquals(false, trait.isLie)
+        assertEquals(false, trait.isSexual)
         assertEquals(listOf("v1", "v2"), profile.appearances.map { it.novelId })
         assertEquals(CharacterRole.Main, profile.appearances[0].role)
         assertEquals(CharacterRole.Appears, profile.appearances[1].role)

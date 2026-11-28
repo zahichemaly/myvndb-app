@@ -7,7 +7,7 @@ data class AppSettings(
     val defaultSpoilerLevel: SpoilerPreference = SpoilerPreference.None,
     /** VNs on the signed-in user's Finished list open with every spoiler shown. */
     val spoilIfFinished: Boolean = false,
-    /** Covers are not blurred, screenshots start with every content level, sexual tags are listed. */
+    /** Covers are not blurred, screenshots start with every content level, sexual tags and traits are listed. */
     val showSensitiveContent: Boolean = false,
     /** Browse starts without an age filter instead of All Ages. */
     val includeAdultInBrowse: Boolean = false,

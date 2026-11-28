@@ -8,4 +8,6 @@ data class CharacterTrait(
     val spoilerLevel: Int,
     /** The character only pretends to have this trait. */
     val isLie: Boolean,
+    /** A sexual trait, shown only with Settings → Show sensitive content. */
+    val isSexual: Boolean,
 )

@@ -54,4 +54,27 @@ class TraitGroupUIModelMapperTest {
             personality.traits.last(),
         )
     }
+
+    @Test
+    fun `sexual traits are listed only with sensitive content and never counted as spoilers`() {
+        val withSexual = listOf(
+            trait("Kind", group = "Personality"),
+            trait("Sexual Trait", group = "Engages in (Sexual)", sexual = true),
+            trait("Sexual Spoiler", group = "Subject of (Sexual)", spoiler = 2, sexual = true),
+        )
+
+        val hidden = withSexual.toTraitGroups(SpoilerLevel.Major)
+        assertEquals(listOf("PERSONALITY"), hidden.map { (it.title as UiText.StringValue).value })
+        assertNull(withSexual.toHiddenTraitsLabel(SpoilerLevel.None))
+
+        val shown = withSexual.toTraitGroups(SpoilerLevel.Major, showSexual = true)
+        assertEquals(
+            listOf("PERSONALITY", "ENGAGES IN (SEXUAL)", "SUBJECT OF (SEXUAL)"),
+            shown.map { (it.title as UiText.StringValue).value },
+        )
+        assertEquals(
+            UiText.StringPlural(PluralResource.detail_hidden_by_spoiler, 1, listOf(1)),
+            withSexual.toHiddenTraitsLabel(SpoilerLevel.None, showSexual = true),
+        )
+    }
 }

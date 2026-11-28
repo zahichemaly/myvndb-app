@@ -9,4 +9,5 @@ data class CharacterTraitDTO(
     @SerialName("group_name") val groupName: String?,
     @SerialName("spoiler") val spoiler: Int?,
     @SerialName("lie") val lie: Boolean?,
+    @SerialName("sexual") val sexual: Boolean?,
 )

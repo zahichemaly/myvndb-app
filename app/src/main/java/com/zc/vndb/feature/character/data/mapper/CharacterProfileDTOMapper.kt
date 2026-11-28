@@ -70,6 +70,7 @@ private fun CharacterTraitDTO.toDomain() = CharacterTrait(
     group = groupName.orEmpty(),
     spoilerLevel = spoiler ?: MAJOR_SPOILER,
     isLie = lie ?: false,
+    isSexual = sexual ?: false,
 )
 
 private fun CharacterAppearanceDTO.toDomain(policy: SensitiveContentPolicy) = CharacterAppearance(
