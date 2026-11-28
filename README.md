@@ -1,8 +1,10 @@
 # MyVNDB
 
-An unofficial Android client for [vndb.org](https://vndb.org), the Visual Novel Database. It uses the public [VNDB API (Kana)](https://api.vndb.org/kana).
+An unofficial Android client for [vndb.org](https://vndb.org), the Visual Novel Database. It uses the
+public [VNDB API (Kana)](https://api.vndb.org/kana).
 
-Browse and search visual novels, then dig into the details: tags, releases, screenshots, staff, characters and voice actors.
+Browse and search visual novels, then dig into the details: tags, releases, screenshots, staff, characters and voice
+actors.
 
 <table>
   <tr>
@@ -20,6 +22,7 @@ Browse and search visual novels, then dig into the details: tags, releases, scre
 </table>
 
 ## Technologies
+
 - Kotlin
 - Jetpack Compose (Material 3, Adaptive)
 - Navigation 3
@@ -31,12 +34,14 @@ Browse and search visual novels, then dig into the details: tags, releases, scre
 - Detekt
 
 ## Architecture
+
 - Single `:app` module, organised by feature (discover, browse, detail, character, release, profile, login)
 - Clean Architecture: each feature has `data`, `domain`, `presentation` and `di` packages
 - MVI in the presentation layer: a ViewModel exposes one state and one-off effects, and handles intents
 - Shared code lives in `common`
 
 ## Requirements
+
 - Android Studio (latest stable)
 - JDK 11+
 - Android 8.1 (API 27) or newer
@@ -45,10 +50,10 @@ Browse and search visual novels, then dig into the details: tags, releases, scre
 
 Two flavors, each with debug and release builds:
 
-| Flavor | Application id | App name | Release signing |
-|---|---|---|---|
-| `development` | `com.zc.vndb.dev` (version `…-dev`) | MyVNDB Dev | `debug.keystore` in the repo |
-| `production` | `com.zc.vndb` | MyVNDB | Play upload key, passed in when building (see [Releasing](#releasing)) |
+| Flavor        | Application id                      | App name   | Release signing                                                        |
+|---------------|-------------------------------------|------------|------------------------------------------------------------------------|
+| `development` | `com.zc.vndb.dev` (version `…-dev`) | MyVNDB Dev | `debug.keystore` in the repo                                           |
+| `production`  | `com.zc.vndb`                       | MyVNDB     | Play upload key, passed in when building (see [Releasing](#releasing)) |
 
 Both flavors can be installed side by side.
 
@@ -66,14 +71,15 @@ Both flavors can be installed side by side.
 
 ## Releasing
 
-Pushing a tag `v<versionName>-<versionCode>-<track>` publishes to that Google Play track, through [fastlane](https://docs.fastlane.tools/actions/supply/) pinned in `Gemfile.lock`.
+Pushing a tag `v<versionName>-<versionCode>-<track>` publishes to that Google Play track,
+through [fastlane](https://docs.fastlane.tools/actions/supply/) pinned in `Gemfile.lock`.
 
-| Track | Google Play | Workflow | What the tag does |
-|---|---|---|---|
-| `internal` | Internal testing | Play release (`play-release.yml`) | Builds the `productionRelease` bundle with that version, signs it with the Play upload key and uploads it |
-| `alpha` | Closed testing – Alpha | Play release | Same |
-| `beta` | Open testing | Play release | Same |
-| `production` | Production | Play promote (`play-promote.yml`) | Promotes the build Alpha has with that version code. Nothing is cloned or built: it checks out only `Gemfile` and `Gemfile.lock` |
+| Track        | Google Play            | Workflow                          | What the tag does                                                                                                                |
+|--------------|------------------------|-----------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `internal`   | Internal testing       | Play release (`play-release.yml`) | Builds the `productionRelease` bundle with that version, signs it with the Play upload key and uploads it                        |
+| `alpha`      | Closed testing – Alpha | Play release                      | Same                                                                                                                             |
+| `beta`       | Open testing           | Play release                      | Same                                                                                                                             |
+| `production` | Production             | Play promote (`play-promote.yml`) | Promotes the build Alpha has with that version code. Nothing is cloned or built: it checks out only `Gemfile` and `Gemfile.lock` |
 
 Test on Alpha, then promote the same build:
 
@@ -93,7 +99,8 @@ git tag v1.0.1-3-production
 git push origin v1.0.1-3-production
 ```
 
-- An `-alpha`, `-beta` or `-internal` tag's message becomes the release notes. A production release keeps the notes it had on Alpha.
+- An `-alpha`, `-beta` or `-internal` tag's message becomes the release notes. A production release keeps the notes it
+  had on Alpha.
 - Each version code can be uploaded to Play only once, so every new build needs a higher code.
 - A production tag fails, changing nothing, if Alpha doesn't have that version code.
 
