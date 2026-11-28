@@ -13,6 +13,7 @@ sealed interface SettingsIntent {
     data class OptionSelected(val dialog: SettingsDialog, val key: String) : SettingsIntent
     data class LanguagesConfirmed(val codes: Set<String>) : SettingsIntent
     data class CardLanguagesConfirmed(val codes: Set<String>) : SettingsIntent
+    data class ShowAllTagsChanged(val isOn: Boolean) : SettingsIntent
     data class SpoilIfFinishedChanged(val isOn: Boolean) : SettingsIntent
     data class ShowSensitiveChanged(val isOn: Boolean) : SettingsIntent
     data object SensitiveConfirmed : SettingsIntent

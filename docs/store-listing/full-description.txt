@@ -1,0 +1,31 @@
+MyVNDB is an unofficial Android client for vndb.org, the Visual Novel Database. Find your next visual novel, dig into every detail and keep your VNDB lists up to date from your phone or tablet.
+
+Discover
+• Visual novel of the week, top rated titles and a random pick when you can't decide
+• New and trending releases, translations and patches in the languages you choose
+• A quote of the day from the database
+
+Browse and search
+• Search the whole database
+• Filter by genre, length, release date, original language and supported languages
+• Sort by relevance, popularity, rating, release date or title
+
+Every detail
+• Description, tags and content notes, with the spoiler level you choose
+• Screenshots and covers
+• Releases by platform and language
+• Characters, staff, voice actors and quotes
+• Pages for characters, releases, producers and staff
+
+Your lists
+• Log in with a VNDB API token to see your lists, votes and reading progress
+• Add visual novels to your list and set labels, your vote, start and finish dates and notes
+• Your token stays on your device
+
+Make it yours
+• Romanized or original-script titles
+• A default spoiler level, with an option to show everything for visual novels you've finished
+• Language flags on cards
+• Light, dark, AMOLED and many more color themes
+
+MyVNDB is not affiliated with or endorsed by vndb.org. All data comes from the public VNDB API and is subject to vndb.org's terms of use.

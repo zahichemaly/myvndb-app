@@ -3,11 +3,13 @@ package com.zc.vndb.common.domain.model
 /** The user's preferences, from the Settings screen. Defaults apply until something is changed. */
 data class AppSettings(
     val titleLanguage: TitleLanguage = TitleLanguage.Romanized,
+    /** VN pages start with every tag listed instead of only the most relevant ones. */
+    val showAllTags: Boolean = false,
     /** Spoiler level VN and character pages start with. */
     val defaultSpoilerLevel: SpoilerPreference = SpoilerPreference.None,
     /** VNs on the signed-in user's Finished list open with every spoiler shown. */
     val spoilIfFinished: Boolean = false,
-    /** Covers are not blurred, screenshots start with every content level, sexual tags are listed. */
+    /** Covers are not blurred, screenshots start with every content level, sexual tags and traits are listed. */
     val showSensitiveContent: Boolean = false,
     /** Browse starts without an age filter instead of All Ages. */
     val includeAdultInBrowse: Boolean = false,

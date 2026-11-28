@@ -1,7 +1,9 @@
 package com.zc.vndb.feature.discover.data.repository
 
+import com.zc.vndb.common.domain.model.AppConfigSamples
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.ReleaseDate
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.feature.discover.data.remote.DiscoverApiStub
 import com.zc.vndb.feature.discover.data.remote.DiscoverApiStub.Companion.fixture
 import com.zc.vndb.feature.discover.domain.model.Platform
@@ -19,7 +21,7 @@ import kotlinx.serialization.json.jsonObject
 class DiscoverRepositoryImplTest {
 
     private val api = DiscoverApiStub()
-    private val repository = DiscoverRepositoryImpl(api.service)
+    private val repository = DiscoverRepositoryImpl(api.service, AppConfigSamples.development)
 
     @Test
     fun `maps the top-rated fixture to domain novels`() = runTest {
@@ -32,6 +34,20 @@ class DiscoverRepositoryImplTest {
         assertEquals(90.7, first.rating)
         assertEquals("Alice Soft", first.developerName)
         assertEquals("https://t.vndb.org/cv/91/88391.jpg", first.cover?.url)
+    }
+
+    @Test
+    fun `a production build judges covers by the censored policy`() = runTest {
+        api.body = fixture("top_rated.json")
+        val production = DiscoverRepositoryImpl(api.service, AppConfigSamples.production)
+
+        val cover = production.getTopRatedNovels(limit = 3).getOrThrow().first().cover
+
+        assertEquals(SensitiveContentPolicy.Censored, cover?.policy)
+        assertEquals(
+            SensitiveContentPolicy.Standard,
+            repository.getTopRatedNovels(limit = 3).getOrThrow().first().cover?.policy,
+        )
     }
 
     @Test

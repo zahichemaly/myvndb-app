@@ -1,8 +1,9 @@
 package com.zc.vndb.feature.detail.data.mapper
 
+import com.zc.vndb.common.data.mapper.coverOf
 import com.zc.vndb.common.data.mapper.toReleaseDate
-import com.zc.vndb.common.domain.model.Cover
 import com.zc.vndb.common.domain.model.PlatformFamily
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.common.domain.model.VoiceActor
 import com.zc.vndb.feature.detail.data.dto.CoverReleaseDTO
 import com.zc.vndb.feature.detail.data.dto.NovelCreditsDTO
@@ -61,31 +62,21 @@ private fun StaffCreditDTO.toDomain() = StaffCredit(
 )
 
 /** Null for a screenshot without a URL. */
-fun ScreenshotDTO.toDomain(): Screenshot? {
+fun ScreenshotDTO.toDomain(policy: SensitiveContentPolicy): Screenshot? {
     val imageUrl = url ?: return null
     return Screenshot(
-        image = Cover(
-            url = imageUrl,
-            thumbnailUrl = thumbnail,
-            sexual = sexual ?: 0.0,
-            violence = violence ?: 0.0,
-        ),
+        image = coverOf(imageUrl, thumbnail, sexual, violence, policy),
         releaseId = release?.id,
         releaseTitle = release?.title,
     )
 }
 
 /** Package fronts and digital covers of the release; other package art is left out. */
-fun CoverReleaseDTO.toCovers(): List<CoverArt> = images.orEmpty()
+fun CoverReleaseDTO.toCovers(policy: SensitiveContentPolicy): List<CoverArt> = images.orEmpty()
     .filter { it.type in coverImageTypes && it.url != null }
     .map {
         CoverArt(
-            image = Cover(
-                url = checkNotNull(it.url),
-                thumbnailUrl = it.thumbnail,
-                sexual = it.sexual ?: 0.0,
-                violence = it.violence ?: 0.0,
-            ),
+            image = coverOf(checkNotNull(it.url), it.thumbnail, it.sexual, it.violence, policy),
             releaseId = id,
             releaseTitle = title.orEmpty(),
             isPackageFront = it.type == "pkgfront",

@@ -2,6 +2,7 @@ package com.zc.vndb.feature.character.data.repository
 
 import com.zc.vndb.common.data.network.appJson
 import com.zc.vndb.common.data.network.createHttpClient
+import com.zc.vndb.common.domain.model.AppConfigSamples
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.VoiceActor
 import com.zc.vndb.feature.character.data.remote.CharacterService
@@ -50,6 +51,7 @@ class CharacterRepositoryImplTest {
                 },
             ),
         ),
+        appConfig = AppConfigSamples.development,
     )
 
     @Test

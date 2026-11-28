@@ -3,6 +3,7 @@ package com.zc.vndb.feature.release.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.domain.usecase.GetAppConfigUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
 import com.zc.vndb.common.ui.component.error.mapper.toErrorUIModel
 import com.zc.vndb.feature.release.domain.model.ReleaseDetail
@@ -33,7 +34,11 @@ class ReleaseViewModel(
     @InjectedParam private val releaseId: String,
     private val getRelease: GetReleaseUseCase,
     private val observeSettings: ObserveSettingsUseCase,
+    getAppConfig: GetAppConfigUseCase,
 ) : ViewModel() {
+
+    /** False in builds that never show sensitive content: adult releases keep only the vndb.org link. */
+    private val showsSensitiveContent = getAppConfig().showSensitiveContent
 
     private val _state = MutableStateFlow(ReleaseState(releaseId = releaseId))
     val state: StateFlow<ReleaseState> = _state.asStateFlow()
@@ -136,7 +141,7 @@ class ReleaseViewModel(
         this@ReleaseViewModel.title = title
         return current.copy(
             hero = toHeroUIModel(),
-            links = toLinks(),
+            links = toLinks(showsSensitiveContent),
             novels = novels.map { novel -> novel.toRowUIModel(titleLanguage) }.toImmutableList(),
             languages = toLanguageUIModels(),
             producers = toProducerUIModels(),

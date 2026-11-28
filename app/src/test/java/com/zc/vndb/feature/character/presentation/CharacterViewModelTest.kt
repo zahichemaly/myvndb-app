@@ -37,6 +37,7 @@ class CharacterViewModelTest {
             traits = listOf(
                 CharacterSamples.trait("Long"),
                 CharacterSamples.trait("Secret", spoiler = 2),
+                CharacterSamples.trait("Explicit", group = "Engages in (Sexual)", sexual = true),
             ),
             appearances = listOf(
                 CharacterSamples.appearance("v2002", CharacterRole.Primary),
@@ -141,6 +142,24 @@ class CharacterViewModelTest {
         advanceUntilIdle()
 
         assertEquals(SpoilerLevel.Minor, viewModel.state.value.spoilerLevel)
+    }
+
+    @Test
+    fun `sexual traits stay hidden until sensitive content is shown`() = runTest {
+        val hidden = createViewModel()
+        advanceUntilIdle()
+        hidden.onIntent(CharacterIntent.SpoilerLevelSelected(SpoilerLevel.Major))
+
+        val hiddenTraits = hidden.state.value.traitGroups.flatMap { it.traits }
+        assertFalse(UiText.StringValue("Explicit") in hiddenTraits)
+        assertNull(hidden.state.value.hiddenTraitsLabel)
+
+        settings.current.value = AppSettings(showSensitiveContent = true)
+        val shown = createViewModel()
+        advanceUntilIdle()
+
+        val shownTraits = shown.state.value.traitGroups.flatMap { it.traits }
+        assertTrue(UiText.StringValue("Explicit") in shownTraits)
     }
 
     @Test

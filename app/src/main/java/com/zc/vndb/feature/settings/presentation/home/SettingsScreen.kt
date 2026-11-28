@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Visibility
@@ -155,6 +156,16 @@ private fun LazyListScope.displaySection(state: SettingsState, actions: Settings
             modifier = Modifier.fillMaxWidth(),
         ) { state.titleLanguageLabel?.let { SettingValueView(it) } }
     }
+    item(key = "show-all-tags", contentType = "switch") {
+        SettingSwitchRowView(
+            icon = Icons.Outlined.Sell,
+            title = UiText.StringResource(StringResource.settings_show_all_tags),
+            body = UiText.StringResource(StringResource.settings_show_all_tags_body),
+            isOn = state.showAllTags,
+            onChange = { actions.onIntent(SettingsIntent.ShowAllTagsChanged(it)) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
 }
 
 private fun LazyListScope.spoilerSection(state: SettingsState, actions: SettingsActions) {
@@ -189,15 +200,17 @@ private fun LazyListScope.spoilerSection(state: SettingsState, actions: Settings
 
 private fun LazyListScope.adultSection(state: SettingsState, actions: SettingsActions) {
     sectionHeader("adult", UiText.StringResource(StringResource.settings_section_adult))
-    item(key = "show-sensitive", contentType = "switch") {
-        SettingSwitchRowView(
-            icon = Icons.Outlined.Visibility,
-            title = UiText.StringResource(StringResource.settings_show_sensitive),
-            body = UiText.StringResource(StringResource.settings_show_sensitive_body),
-            isOn = state.showSensitiveContent,
-            onChange = { actions.onIntent(SettingsIntent.ShowSensitiveChanged(it)) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+    if (state.canShowSensitiveContent) {
+        item(key = "show-sensitive", contentType = "switch") {
+            SettingSwitchRowView(
+                icon = Icons.Outlined.Visibility,
+                title = UiText.StringResource(StringResource.settings_show_sensitive),
+                body = UiText.StringResource(StringResource.settings_show_sensitive_body),
+                isOn = state.showSensitiveContent,
+                onChange = { actions.onIntent(SettingsIntent.ShowSensitiveChanged(it)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
     item(key = "include-adult", contentType = "switch") {
         SettingSwitchRowView(
@@ -433,9 +446,10 @@ private val previewState = SettingsState(
     titleLanguageLabel = UiText.StringValue("Romanized"),
     spoilerLabel = UiText.StringValue("None"),
     isSignedIn = true,
-    accountLabel = UiText.StringValue("Yorhel"),
+    accountLabel = UiText.StringValue("Yorhel · read & edit access"),
     languagesLabel = UiText.StringValue("English, Japanese"),
     imageCacheLabel = UiText.StringValue("142 MB"),
+    canShowSensitiveContent = true,
     versionLabel = UiText.StringResource(
         StringResource.settings_version,
         listOf(UiText.StringResource(StringResource.app_name), "1.0.0", 1),

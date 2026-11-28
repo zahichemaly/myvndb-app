@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.zc.vndb.common.domain.model.AppConfig
 import com.zc.vndb.common.domain.model.AppSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -15,12 +16,16 @@ import kotlinx.io.IOException
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 
-/** The `settings` DataStore. Missing or unknown values fall back to [AppSettings] defaults. */
+/**
+ * The `settings` DataStore. Missing or unknown values fall back to [AppSettings] defaults. In a build
+ * that never shows sensitive content, "Show sensitive content" always reads as off, whatever is stored.
+ */
 @Single
 class SettingsLocalDataSource(
     @Named(
         SETTINGS_DATASTORE,
     ) private val dataStore: DataStore<Preferences>,
+    private val appConfig: AppConfig,
 ) {
 
     val settings: Flow<AppSettings> = dataStore.data
@@ -37,9 +42,11 @@ class SettingsLocalDataSource(
         val defaults = AppSettings()
         return AppSettings(
             titleLanguage = this[TITLE_LANGUAGE].toEnumOr(defaults.titleLanguage),
+            showAllTags = this[SHOW_ALL_TAGS] ?: defaults.showAllTags,
             defaultSpoilerLevel = this[SPOILER_LEVEL].toEnumOr(defaults.defaultSpoilerLevel),
             spoilIfFinished = this[SPOIL_IF_FINISHED] ?: defaults.spoilIfFinished,
-            showSensitiveContent = this[SHOW_SENSITIVE] ?: defaults.showSensitiveContent,
+            showSensitiveContent = appConfig.showSensitiveContent &&
+                (this[SHOW_SENSITIVE] ?: defaults.showSensitiveContent),
             includeAdultInBrowse = this[INCLUDE_ADULT] ?: defaults.includeAdultInBrowse,
             trendingLanguages = this[TRENDING_LANGUAGES]
                 ?.split(SEPARATOR)
@@ -60,9 +67,11 @@ class SettingsLocalDataSource(
 
     private fun MutablePreferences.write(settings: AppSettings) {
         this[TITLE_LANGUAGE] = settings.titleLanguage.name
+        this[SHOW_ALL_TAGS] = settings.showAllTags
         this[SPOILER_LEVEL] = settings.defaultSpoilerLevel.name
         this[SPOIL_IF_FINISHED] = settings.spoilIfFinished
-        this[SHOW_SENSITIVE] = settings.showSensitiveContent
+        // A build that never shows sensitive content leaves the stored choice alone.
+        if (appConfig.showSensitiveContent) this[SHOW_SENSITIVE] = settings.showSensitiveContent
         this[INCLUDE_ADULT] = settings.includeAdultInBrowse
         this[TRENDING_LANGUAGES] = settings.trendingLanguages.joinToString(SEPARATOR)
         this[CARD_LANGUAGES] = settings.cardLanguages.joinToString(SEPARATOR)
@@ -78,6 +87,7 @@ class SettingsLocalDataSource(
         const val SETTINGS_DATASTORE = "settings"
         private const val SEPARATOR = ","
         private val TITLE_LANGUAGE = stringPreferencesKey("title_language")
+        private val SHOW_ALL_TAGS = booleanPreferencesKey("show_all_tags")
         private val SPOILER_LEVEL = stringPreferencesKey("default_spoiler_level")
         private val SPOIL_IF_FINISHED = booleanPreferencesKey("spoil_if_finished")
         private val SHOW_SENSITIVE = booleanPreferencesKey("show_sensitive_content")

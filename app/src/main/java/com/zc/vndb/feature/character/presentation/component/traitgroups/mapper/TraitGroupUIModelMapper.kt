@@ -13,36 +13,40 @@ import kotlinx.collections.immutable.toImmutableList
 private val groupOrder =
     listOf("Hair", "Eyes", "Body", "Clothes", "Items", "Personality", "Role", "Engages in", "Subject of")
 
-/** Traits [level] allows, grouped. "Lie" traits are spoilers, so they only show at Major. */
-fun List<CharacterTrait>.toTraitGroups(level: SpoilerLevel): ImmutableList<TraitGroupUIModel> =
-    filter {
-        it.isVisibleAt(
-            level,
+/**
+ * Traits [level] allows, grouped; sexual traits only when [showSexual] (Settings → Show sensitive
+ * content). "Lie" traits are spoilers, so they only show at Major.
+ */
+fun List<CharacterTrait>.toTraitGroups(
+    level: SpoilerLevel,
+    showSexual: Boolean = false,
+): ImmutableList<TraitGroupUIModel> = filter { it.isAllowed(showSexual) && it.isVisibleAt(level) }
+    .groupBy { it.group }
+    .toList()
+    .sortedBy { (group, _) -> groupOrder.indexOf(group).takeIf { it >= 0 } ?: groupOrder.size }
+    .map { (group, traits) ->
+        TraitGroupUIModel(
+            title = UiText.StringValue(group.uppercase()),
+            traits = traits.map { trait ->
+                if (trait.isLie) {
+                    UiText.StringResource(
+                        StringResource.character_trait_lie,
+                        listOf(trait.name),
+                    )
+                } else {
+                    UiText.StringValue(trait.name)
+                }
+            }.toImmutableList(),
         )
     }
-        .groupBy { it.group }
-        .toList()
-        .sortedBy { (group, _) -> groupOrder.indexOf(group).takeIf { it >= 0 } ?: groupOrder.size }
-        .map { (group, traits) ->
-            TraitGroupUIModel(
-                title = UiText.StringValue(group.uppercase()),
-                traits = traits.map { trait ->
-                    if (trait.isLie) {
-                        UiText.StringResource(
-                            StringResource.character_trait_lie,
-                            listOf(trait.name),
-                        )
-                    } else {
-                        UiText.StringValue(trait.name)
-                    }
-                }.toImmutableList(),
-            )
-        }
-        .toImmutableList()
+    .toImmutableList()
 
-/** How many traits [level] hides; null when none. */
-fun List<CharacterTrait>.toHiddenTraitsLabel(level: SpoilerLevel): UiText? {
-    val hidden = count { !it.isVisibleAt(level) }
+/** How many traits [level] hides; null when none. Sexual traits left out by [showSexual] don't count. */
+fun List<CharacterTrait>.toHiddenTraitsLabel(
+    level: SpoilerLevel,
+    showSexual: Boolean = false,
+): UiText? {
+    val hidden = count { it.isAllowed(showSexual) && !it.isVisibleAt(level) }
     return if (hidden == 0) {
         null
     } else {
@@ -53,6 +57,8 @@ fun List<CharacterTrait>.toHiddenTraitsLabel(level: SpoilerLevel): UiText? {
         )
     }
 }
+
+private fun CharacterTrait.isAllowed(showSexual: Boolean): Boolean = showSexual || !isSexual
 
 private fun CharacterTrait.isVisibleAt(level: SpoilerLevel): Boolean =
     spoilerLevel <= level.maxLevel && (!isLie || level == SpoilerLevel.Major)

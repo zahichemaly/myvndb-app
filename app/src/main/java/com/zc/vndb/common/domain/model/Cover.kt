@@ -6,12 +6,10 @@ data class Cover(
     val thumbnailUrl: String?,
     val sexual: Double,
     val violence: Double,
+    /** The build's rule for [isSensitive]. */
+    val policy: SensitiveContentPolicy = SensitiveContentPolicy.Standard,
 ) {
-    /** Covers at or above "suggestive" / "violent" are blurred until the user opts in. */
+    /** Sensitive covers are blurred until the user opts in, which builds that never show them don't allow. */
     val isSensitive: Boolean
-        get() = sexual >= SENSITIVE_THRESHOLD || violence >= SENSITIVE_THRESHOLD
-
-    private companion object {
-        const val SENSITIVE_THRESHOLD = 1.0
-    }
+        get() = policy.isSensitive(sexual, violence)
 }

@@ -22,14 +22,20 @@ private const val MAX_LEVEL = 2
 /**
  * Screenshots allowed by [filters]: a screenshot shows when both its sexual and its violence
  * level (VNDB's averages rounded to 0, 1 or 2) are switched on. Toggles carry per-level counts.
+ * With [blursSensitive] (builds that never reveal sensitive content), sensitive ones are blurred.
  */
-fun List<Screenshot>.toMediaUIModel(filters: Set<ContentFilter>): MediaUIModel {
+fun List<Screenshot>.toMediaUIModel(
+    filters: Set<ContentFilter>,
+    blursSensitive: Boolean,
+): MediaUIModel {
     val visible = filter { it.isAllowedBy(filters) }
     var index = 0
     val groups = visible.groupBy { it.releaseId }.map { (_, shots) ->
         ScreenshotGroupUIModel(
             title = shots.first().releaseTitle?.let(UiText::StringValue),
-            screenshots = shots.map { it.toImageUIModel(index++) }.toImmutableList(),
+            screenshots = shots
+                .map { it.toImageUIModel(index++, blursSensitive) }
+                .toImmutableList(),
         )
     }
     val hidden = size - visible.size
@@ -45,10 +51,19 @@ fun List<Screenshot>.toMediaUIModel(filters: Set<ContentFilter>): MediaUIModel {
     )
 }
 
-/** The viewer over the screenshots [filters] allow, opened at [index]. */
-fun List<Screenshot>.toViewer(filters: Set<ContentFilter>, index: Int): ImageViewerUIState =
-    ImageViewerUIState(
-        images = filter { it.isAllowedBy(filters) }
+/**
+ * The viewer over the screenshots [filters] allow, opened at the [index]th of them. Without
+ * [includesSensitive], sensitive ones are left out so swiping never reaches them.
+ */
+fun List<Screenshot>.toViewer(
+    filters: Set<ContentFilter>,
+    index: Int,
+    includesSensitive: Boolean,
+): ImageViewerUIState {
+    val allowed = filter { it.isAllowedBy(filters) }
+    val isShown = { screenshot: Screenshot -> includesSensitive || !screenshot.image.isSensitive }
+    return ImageViewerUIState(
+        images = allowed.filter(isShown)
             .map {
                 ViewerImageUIModel(
                     url = it.image.url,
@@ -56,8 +71,9 @@ fun List<Screenshot>.toViewer(filters: Set<ContentFilter>, index: Int): ImageVie
                 )
             }
             .toImmutableList(),
-        startIndex = index,
+        startIndex = allowed.take(index).count(isShown),
     )
+}
 
 fun List<CoverArt>.toCoverUIModels(): ImmutableList<MediaImageUIModel> = mapIndexed {
         index,
@@ -72,15 +88,19 @@ fun List<CoverArt>.toCoverUIModels(): ImmutableList<MediaImageUIModel> = mapInde
     )
 }.toImmutableList()
 
-fun List<CoverArt>.toViewer(index: Int): ImageViewerUIState = ImageViewerUIState(
-    images = map {
-        ViewerImageUIModel(
-            url = it.image.url,
-            caption = UiText.StringValue(it.releaseTitle),
-        )
-    }.toImmutableList(),
-    startIndex = index,
-)
+/** The viewer over the covers, opened at [index]; without [includesSensitive], sensitive ones are left out. */
+fun List<CoverArt>.toViewer(index: Int, includesSensitive: Boolean): ImageViewerUIState {
+    val isShown = { cover: CoverArt -> includesSensitive || !cover.image.isSensitive }
+    return ImageViewerUIState(
+        images = filter(isShown).map {
+            ViewerImageUIModel(
+                url = it.image.url,
+                caption = UiText.StringValue(it.releaseTitle),
+            )
+        }.toImmutableList(),
+        startIndex = take(index).count(isShown),
+    )
+}
 
 private fun List<Screenshot>.toggles(
     filters: Set<ContentFilter>,
@@ -95,12 +115,12 @@ private fun List<Screenshot>.toggles(
         )
     }.toImmutableList()
 
-private fun Screenshot.toImageUIModel(index: Int) = MediaImageUIModel(
+private fun Screenshot.toImageUIModel(index: Int, blursSensitive: Boolean) = MediaImageUIModel(
     url = image.url,
     thumbnailUrl = image.thumbnailUrl,
     caption = releaseTitle?.let(UiText::StringValue),
-    // Shown only because the reader allowed its level, so it is not blurred.
-    isSensitive = false,
+    // Listed because the reader allowed its level, so only a build that never reveals it blurs it.
+    isSensitive = blursSensitive && image.isSensitive,
     index = index,
 )
 

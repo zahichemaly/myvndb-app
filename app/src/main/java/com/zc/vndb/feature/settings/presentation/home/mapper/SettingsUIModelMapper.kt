@@ -1,7 +1,9 @@
 package com.zc.vndb.feature.settings.presentation.home.mapper
 
+import com.zc.vndb.common.domain.model.AppConfig
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.LanguageOption
+import com.zc.vndb.common.domain.model.Session
 import com.zc.vndb.common.domain.model.SpoilerPreference
 import com.zc.vndb.common.domain.model.TitleLanguage
 import com.zc.vndb.common.ui.component.spoilerfilter.mapper.toIcon
@@ -28,6 +30,7 @@ fun SettingsState.withSettings(
         SettingOptionUIModel(it.name, it.toLabel(), it == settings.titleLanguage)
     }.toImmutableList(),
     titleLanguageLabel = settings.titleLanguage.toLabel(),
+    showAllTags = settings.showAllTags,
     spoilerOptions = SpoilerPreference.entries.map {
         SettingOptionUIModel(
             key = it.name,
@@ -48,6 +51,34 @@ fun SettingsState.withSettings(
     cardLanguagesLabel = settings.cardLanguages.takeIf { it.isNotEmpty() }
         ?.toLanguagesLabel(languages::nameOf)
         ?: UiText.StringResource(StringResource.settings_card_languages_off),
+)
+
+/** The rows that depend on the build: the version and the "Show sensitive content" switch. */
+fun SettingsState.withAppConfig(appConfig: AppConfig): SettingsState = copy(
+    versionLabel = UiText.StringResource(
+        StringResource.settings_version,
+        listOf(
+            UiText.StringResource(StringResource.app_name),
+            appConfig.versionName,
+            appConfig.versionCode,
+        ),
+    ),
+    canShowSensitiveContent = appConfig.showSensitiveContent,
+)
+
+/** "Yorhel · read & edit access": the Log out row's subtitle, with what the token allows. */
+fun Session.toAccountLabel(): UiText = UiText.StringResource(
+    StringResource.settings_log_out_account,
+    listOf(username, toAccessLabel()),
+)
+
+private fun Session.toAccessLabel(): UiText = UiText.StringResource(
+    when {
+        canReadPrivateList && canWriteList -> StringResource.settings_access_read_edit
+        canReadPrivateList -> StringResource.settings_access_read
+        canWriteList -> StringResource.settings_access_edit
+        else -> StringResource.settings_access_public
+    },
 )
 
 /** The listed languages, plus any saved choice that is not in the list so it can still be unticked. */

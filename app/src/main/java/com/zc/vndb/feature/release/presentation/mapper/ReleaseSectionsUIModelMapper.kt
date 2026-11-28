@@ -16,7 +16,11 @@ import kotlinx.collections.immutable.toImmutableList
 /** The release's page on vndb.org. */
 fun releaseUrl(id: String): String = "https://vndb.org/$id"
 
-fun ReleaseDetail.toLinks(): ImmutableList<LinkUIModel> = buildList {
+/**
+ * vndb.org first, then the release's own links (stores, official site). Builds that never show
+ * sensitive content leave out an adult release's own links: they mostly lead to adult stores.
+ */
+fun ReleaseDetail.toLinks(showsSensitiveContent: Boolean): ImmutableList<LinkUIModel> = buildList {
     add(
         LinkUIModel(
             UiText.StringResource(StringResource.detail_vndb_link),
@@ -24,7 +28,9 @@ fun ReleaseDetail.toLinks(): ImmutableList<LinkUIModel> = buildList {
             isVndb = true,
         ),
     )
-    links.forEach { add(LinkUIModel(UiText.StringValue(it.label), it.url, isVndb = false)) }
+    if (showsSensitiveContent || !isAdultOnly) {
+        links.forEach { add(LinkUIModel(UiText.StringValue(it.label), it.url, isVndb = false)) }
+    }
 }.toImmutableList()
 
 /** Each language, with its own title only when it differs from the titles the hero already shows. */

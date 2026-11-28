@@ -47,6 +47,9 @@ class CharacterViewModel(
     private var loadJob: Job? = null
     private var titleLanguage = TitleLanguage.Romanized
 
+    /** Settings → Show sensitive content (always off in production): lists sexual traits. */
+    private var showSensitiveContent = false
+
     /** The starting spoiler level (Settings) is applied on the first successful load only. */
     private var isStartApplied = false
 
@@ -94,6 +97,7 @@ class CharacterViewModel(
         loadJob = viewModelScope.launch {
             val settings = observeSettings.current()
             titleLanguage = settings.titleLanguage
+            showSensitiveContent = settings.showSensitiveContent
             getCharacter(characterId)
                 .onSuccess { loaded ->
                     profile = loaded
@@ -130,7 +134,9 @@ class CharacterViewModel(
         loadJob?.cancel()
         _state.update { it.copy(isRefreshing = true) }
         loadJob = viewModelScope.launch {
-            titleLanguage = observeSettings.current().titleLanguage
+            val settings = observeSettings.current()
+            titleLanguage = settings.titleLanguage
+            showSensitiveContent = settings.showSensitiveContent
             getCharacter(characterId)
                 .onSuccess { loaded ->
                     showProfile(loaded)
@@ -167,8 +173,8 @@ class CharacterViewModel(
                     )
                     ?.takeIf { text -> text.isNotEmpty() }
                     ?.let(UiText::StringValue),
-                traitGroups = current.traits.toTraitGroups(level),
-                hiddenTraitsLabel = current.traits.toHiddenTraitsLabel(level),
+                traitGroups = current.traits.toTraitGroups(level, showSensitiveContent),
+                hiddenTraitsLabel = current.traits.toHiddenTraitsLabel(level, showSensitiveContent),
                 appearances = visible.map { appearance ->
                     appearance.toRowUIModel(titleLanguage)
                 }.toImmutableList(),

@@ -3,6 +3,7 @@ package com.zc.vndb.feature.character.data.mapper
 import com.zc.vndb.common.data.mapper.toCover
 import com.zc.vndb.common.data.mapper.toReleaseDate
 import com.zc.vndb.common.domain.model.CharacterRole
+import com.zc.vndb.common.domain.model.SensitiveContentPolicy
 import com.zc.vndb.common.domain.model.VoiceActor
 import com.zc.vndb.feature.character.data.dto.CharacterAppearanceDTO
 import com.zc.vndb.feature.character.data.dto.CharacterNovelVoicesPageDTO
@@ -20,7 +21,7 @@ import com.zc.vndb.feature.character.domain.model.Sex
 private const val MAJOR_SPOILER = 2
 private const val BIRTHDAY_PARTS = 2
 
-fun CharacterProfileDTO.toDomain(): CharacterProfile {
+fun CharacterProfileDTO.toDomain(policy: SensitiveContentPolicy): CharacterProfile {
     val apparentSex = sex?.getOrNull(0).toSex()
     val apparentGender = gender?.getOrNull(0).toGender()
     return CharacterProfile(
@@ -29,7 +30,7 @@ fun CharacterProfileDTO.toDomain(): CharacterProfile {
         originalName = original?.takeIf { it.isNotBlank() && it != name },
         aliases = aliases.orEmpty().filter { it.isNotBlank() }.distinct(),
         description = description?.takeIf { it.isNotBlank() },
-        image = image?.toCover(),
+        image = image?.toCover(policy),
         age = age,
         birthday = birthday?.takeIf { it.size == BIRTHDAY_PARTS }?.let { (month, day) ->
             Birthday(
@@ -46,7 +47,7 @@ fun CharacterProfileDTO.toDomain(): CharacterProfile {
         gender = apparentGender,
         spoilerGender = gender?.getOrNull(1).toGender()?.takeIf { it != apparentGender },
         traits = traits.orEmpty().map { it.toDomain() },
-        appearances = vns.orEmpty().distinctBy { it.id }.map { it.toDomain() },
+        appearances = vns.orEmpty().distinctBy { it.id }.map { it.toDomain(policy) },
     )
 }
 
@@ -69,15 +70,16 @@ private fun CharacterTraitDTO.toDomain() = CharacterTrait(
     group = groupName.orEmpty(),
     spoilerLevel = spoiler ?: MAJOR_SPOILER,
     isLie = lie ?: false,
+    isSexual = sexual ?: false,
 )
 
-private fun CharacterAppearanceDTO.toDomain() = CharacterAppearance(
+private fun CharacterAppearanceDTO.toDomain(policy: SensitiveContentPolicy) = CharacterAppearance(
     novelId = id,
     novelTitle = title.orEmpty(),
     novelOriginalTitle = altTitle,
     releaseDate = released.toReleaseDate(),
     rating = rating,
-    cover = image?.toCover(),
+    cover = image?.toCover(policy),
     role = when (role) {
         "main" -> CharacterRole.Main
         "primary" -> CharacterRole.Primary

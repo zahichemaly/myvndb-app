@@ -32,4 +32,12 @@ data class ReleaseDetail(
     val producers: List<ReleaseProducer>,
     val images: List<ReleaseImage>,
     val links: List<ExternalLink>,
-)
+) {
+    /** Rated 18+ or flagged as having erotic content. */
+    val isAdultOnly: Boolean
+        get() = (minAge ?: 0) >= ADULT_AGE || hasAdultContent
+
+    private companion object {
+        const val ADULT_AGE = 18
+    }
+}

@@ -1,6 +1,8 @@
 package com.zc.vndb.feature.detail.presentation
 
 import app.cash.turbine.test
+import com.zc.vndb.common.domain.model.AppConfig
+import com.zc.vndb.common.domain.model.AppConfigSamples
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.CharacterRole
 import com.zc.vndb.common.domain.model.DomainError
@@ -13,6 +15,7 @@ import com.zc.vndb.common.domain.model.VoiceActor
 import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSessionRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
+import com.zc.vndb.common.domain.usecase.GetAppConfigUseCase
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSessionUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
@@ -82,22 +85,24 @@ class DetailViewModelTest {
     private val sessions = FakeSessionRepository()
     private val userListRepository = FakeUserListRepository()
 
-    private fun createViewModel() = DetailViewModel(
-        novelId = "v2002",
-        getNovelDetail = GetNovelDetailUseCase(repository),
-        getNovelEditions = GetNovelEditionsUseCase(repository),
-        getNovelCast = GetNovelCastUseCase(repository),
-        getNovelScreenshots = GetNovelScreenshotsUseCase(repository),
-        getNovelCovers = GetNovelCoversUseCase(repository),
-        getNovelReleases = GetNovelReleasesUseCase(repository),
-        getNovelQuotes = GetNovelQuotesUseCase(repository),
-        observeSettings = ObserveSettingsUseCase(settings),
-        observeLanguages = ObserveLanguagesUseCase(languages),
-        isNovelFinished = IsNovelFinishedUseCase(sessions, userListRepository),
-        observeSession = ObserveSessionUseCase(sessions),
-        getMyListEntry = GetMyListEntryUseCase(sessions, userListRepository),
-        observeListChanges = ObserveListChangesUseCase(userListRepository),
-    )
+    private fun createViewModel(appConfig: AppConfig = AppConfigSamples.development) =
+        DetailViewModel(
+            novelId = "v2002",
+            getNovelDetail = GetNovelDetailUseCase(repository),
+            getNovelEditions = GetNovelEditionsUseCase(repository),
+            getNovelCast = GetNovelCastUseCase(repository),
+            getNovelScreenshots = GetNovelScreenshotsUseCase(repository),
+            getNovelCovers = GetNovelCoversUseCase(repository),
+            getNovelReleases = GetNovelReleasesUseCase(repository),
+            getNovelQuotes = GetNovelQuotesUseCase(repository),
+            observeSettings = ObserveSettingsUseCase(settings),
+            observeLanguages = ObserveLanguagesUseCase(languages),
+            isNovelFinished = IsNovelFinishedUseCase(sessions, userListRepository),
+            observeSession = ObserveSessionUseCase(sessions),
+            getMyListEntry = GetMyListEntryUseCase(sessions, userListRepository),
+            observeListChanges = ObserveListChangesUseCase(userListRepository),
+            getAppConfig = GetAppConfigUseCase(appConfig),
+        )
 
     private fun DetailViewModel.need(section: DetailSection) = onIntent(
         DetailIntent.SectionNeeded(section),
@@ -279,6 +284,44 @@ class DetailViewModelTest {
 
         viewModel.onIntent(DetailIntent.SynopsisToggled)
         assertTrue(viewModel.state.value.isSynopsisExpanded)
+    }
+
+    @Test
+    fun `tags start capped, and see all and show less switch the list`() = runTest {
+        repository.novels["v2002"] = DetailSamples.novel(
+            tags = (1..13).map { DetailSamples.tag("Theme $it") },
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(12, viewModel.state.value.tagGroups.single().tags.size)
+        assertEquals(
+            UiText.StringResource(StringResource.detail_see_all_count, listOf(13)),
+            viewModel.state.value.tagsToggleLabel,
+        )
+
+        viewModel.onIntent(DetailIntent.AllTagsToggled)
+        assertEquals(13, viewModel.state.value.tagGroups.single().tags.size)
+        assertEquals(
+            UiText.StringResource(StringResource.detail_read_less),
+            viewModel.state.value.tagsToggleLabel,
+        )
+
+        viewModel.onIntent(DetailIntent.AllTagsToggled)
+        assertEquals(12, viewModel.state.value.tagGroups.single().tags.size)
+    }
+
+    @Test
+    fun `show all tags in settings starts the page with every tag`() = runTest {
+        settings.current.value = AppSettings(showAllTags = true)
+        repository.novels["v2002"] = DetailSamples.novel(
+            tags = (1..13).map { DetailSamples.tag("Theme $it") },
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.state.value.areAllTagsShown)
+        assertEquals(13, viewModel.state.value.tagGroups.single().tags.size)
     }
 
     @Test

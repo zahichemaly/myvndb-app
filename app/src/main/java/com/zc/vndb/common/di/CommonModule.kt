@@ -13,6 +13,7 @@ import com.zc.vndb.common.data.local.SettingsLocalDataSource
 import com.zc.vndb.common.data.network.LogcatHttpLogger
 import com.zc.vndb.common.data.network.appJson
 import com.zc.vndb.common.data.network.createHttpClient
+import com.zc.vndb.common.domain.model.AppConfig
 import io.ktor.client.HttpClient
 import kotlin.time.Clock
 import kotlinx.serialization.json.Json
@@ -22,15 +23,26 @@ import org.koin.core.annotation.Module
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 
+/** This build's [AppConfig], from Gradle's `BuildConfig`: the only place that reads it. */
+fun buildAppConfig(): AppConfig = AppConfig(
+    versionName = BuildConfig.VERSION_NAME,
+    versionCode = BuildConfig.VERSION_CODE,
+    isDebug = BuildConfig.DEBUG,
+    showSensitiveContent = BuildConfig.SHOW_SENSITIVE_CONTENT,
+)
+
 @Module
 @ComponentScan("com.zc.vndb.common")
 class CommonModule {
     @Single
+    fun appConfig(): AppConfig = buildAppConfig()
+
+    @Single
     fun json(): Json = appJson
 
     @Single
-    fun httpClient(json: Json): HttpClient =
-        createHttpClient(json = json, logger = if (BuildConfig.DEBUG) LogcatHttpLogger() else null)
+    fun httpClient(json: Json, appConfig: AppConfig): HttpClient =
+        createHttpClient(json = json, logger = if (appConfig.isDebug) LogcatHttpLogger() else null)
 
     @Single
     fun clock(): Clock = Clock.System

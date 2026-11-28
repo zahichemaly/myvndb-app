@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.zc.vndb.common.ui.component.chip.TagChipView
 import com.zc.vndb.common.ui.component.sectioncard.SectionCardView
+import com.zc.vndb.common.ui.component.textlink.TextLinkView
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.common.ui.theme.TintedColors
@@ -21,18 +22,28 @@ import com.zc.vndb.feature.detail.presentation.model.TagChipUIModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
-/** "Tags & Content": tag groups, how many the spoiler filter hides, and content notes. */
+/**
+ * "Tags & Content": tag groups, how many the spoiler filter hides, and content notes. [toggleLabel]
+ * ("See all 34" / "Show less") sits in the header when some tags are left out.
+ */
 @Composable
 fun TagGroupsView(
     groups: ImmutableList<TagGroupUIModel>,
     hiddenLabel: UiText?,
     notes: ImmutableList<ContentNoteUIModel>,
+    toggleLabel: UiText?,
     onTagClick: (String) -> Unit,
+    onToggleClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     SectionCardView(
         modifier = modifier,
         title = UiText.StringResource(StringResource.detail_tags_and_content),
+        trailing = toggleLabel?.let { label ->
+            {
+                TextLinkView(label = label, onClick = onToggleClick)
+            }
+        },
     ) {
         groups.forEach { group ->
             GroupTitle(group.title.asString())
@@ -103,7 +114,9 @@ private fun TagGroupsViewPreview() {
                 ),
             ),
             hiddenLabel = UiText.StringValue("3 hidden by spoiler filter"),
+            toggleLabel = UiText.StringValue("See all 24"),
             onTagClick = {},
+            onToggleClick = {},
             notes = persistentListOf(
                 ContentNoteUIModel(UiText.StringValue("No sexual content"), ContentNoteTone.Safe),
             ),

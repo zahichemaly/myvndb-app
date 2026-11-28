@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.LanguageOption
 import com.zc.vndb.common.domain.model.SpoilerPreference
+import com.zc.vndb.common.domain.usecase.GetAppConfigUseCase
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSessionUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSettingsUseCase
@@ -28,6 +29,7 @@ import com.zc.vndb.feature.detail.presentation.component.relationcard.mapper.toC
 import com.zc.vndb.feature.detail.presentation.component.taggroups.mapper.toContentNotes
 import com.zc.vndb.feature.detail.presentation.component.taggroups.mapper.toHiddenTagsLabel
 import com.zc.vndb.feature.detail.presentation.component.taggroups.mapper.toTagGroups
+import com.zc.vndb.feature.detail.presentation.component.taggroups.mapper.toTagsToggleLabel
 import com.zc.vndb.feature.detail.presentation.mapper.reviewsUrl
 import com.zc.vndb.feature.detail.presentation.mapper.toAlsoKnownAs
 import com.zc.vndb.feature.detail.presentation.mapper.toCastUIModel
@@ -86,7 +88,11 @@ class DetailViewModel(
     private val observeSession: ObserveSessionUseCase,
     private val getMyListEntry: GetMyListEntryUseCase,
     private val observeListChanges: ObserveListChangesUseCase,
+    getAppConfig: GetAppConfigUseCase,
 ) : ViewModel() {
+
+    /** False in builds that never show sensitive content: blurred images stay blurred and closed. */
+    private val canRevealSensitiveContent = getAppConfig().showSensitiveContent
 
     private val editionsLoader = SectionLoader(
         scope = viewModelScope,
@@ -115,7 +121,12 @@ class DetailViewModel(
         key = Quote::id,
     ) { render(DetailSection.Quotes) }
 
-    private val _state = MutableStateFlow(DetailState(novelId = novelId).withTabs())
+    private val _state = MutableStateFlow(
+        DetailState(
+            novelId = novelId,
+            canRevealSensitiveContent = canRevealSensitiveContent,
+        ).withTabs(),
+    )
     val state: StateFlow<DetailState> = _state.asStateFlow()
 
     private val _effect = Channel<DetailEffect>(Channel.BUFFERED)
@@ -175,6 +186,11 @@ class DetailViewModel(
                 it.copy(isSynopsisExpanded = !it.isSynopsisExpanded)
             }
 
+            DetailIntent.AllTagsToggled -> {
+                _state.update { it.copy(areAllTagsShown = !it.areAllTagsShown) }
+                renderSpoilerSections()
+            }
+
             is DetailIntent.RelationClicked -> sendEffect(DetailEffect.NavigateToNovel(intent.id))
 
             is DetailIntent.CharacterClicked -> sendEffect(
@@ -221,18 +237,26 @@ class DetailViewModel(
     private fun onMediaIntent(intent: DetailIntent) {
         when (intent) {
             is DetailIntent.ScreenshotClicked -> {
-                val viewer = screenshotsLoader.data.orEmpty().toViewer(contentFilters, intent.index)
+                val viewer = screenshotsLoader.data.orEmpty()
+                    .toViewer(
+                        contentFilters,
+                        intent.index,
+                        includesSensitive = canRevealSensitiveContent,
+                    )
                 _state.update { it.copy(viewer = viewer) }
             }
 
             is DetailIntent.CoverClicked -> _state.update {
-                it.copy(viewer = coversLoader.data.orEmpty().toViewer(intent.index))
+                it.copy(
+                    viewer = coversLoader.data.orEmpty()
+                        .toViewer(intent.index, includesSensitive = canRevealSensitiveContent),
+                )
             }
 
             DetailIntent.ViewerDismissed -> _state.update { it.copy(viewer = null) }
 
-            is DetailIntent.CoverRevealRequested -> _state.update {
-                it.copy(coverReveal = CoverRevealRequest(intent.viewerIndex))
+            is DetailIntent.CoverRevealRequested -> if (canRevealSensitiveContent) {
+                _state.update { it.copy(coverReveal = CoverRevealRequest(intent.viewerIndex)) }
             }
 
             DetailIntent.CoverRevealConfirmed -> confirmCoverReveal()
@@ -310,15 +334,20 @@ class DetailViewModel(
     }
 
     /**
-     * Starting spoiler level and screenshot levels from Settings; then, if "Spoil me if finished"
-     * is on and the VN is on the user's Finished list, every spoiler is shown.
+     * Starting spoiler level, screenshot levels and tag list from Settings; then, if "Spoil me if
+     * finished" is on and the VN is on the user's Finished list, every spoiler is shown.
      */
     private fun applyStartSettings() {
         if (isStartApplied) return
         isStartApplied = true
         contentFilters =
             if (settings.showSensitiveContent) ContentFilter.entries.toSet() else ContentFilter.Default
-        _state.update { it.copy(spoilerLevel = settings.defaultSpoilerLevel.toSpoilerLevel()) }
+        _state.update {
+            it.copy(
+                spoilerLevel = settings.defaultSpoilerLevel.toSpoilerLevel(),
+                areAllTagsShown = settings.showAllTags,
+            )
+        }
         if (settings.spoilIfFinished && settings.defaultSpoilerLevel != SpoilerPreference.Major) {
             viewModelScope.launch {
                 if (isNovelFinished(novelId) && !hasChosenSpoilerLevel) {
@@ -361,7 +390,12 @@ class DetailViewModel(
                 )
 
                 DetailSection.Screenshots -> state.copy(
-                    screenshots = screenshotsLoader.state.map { it.toMediaUIModel(contentFilters) },
+                    screenshots = screenshotsLoader.state.map {
+                        it.toMediaUIModel(
+                            contentFilters,
+                            blursSensitive = !canRevealSensitiveContent,
+                        )
+                    },
                 )
 
                 DetailSection.Covers -> state.copy(
@@ -394,11 +428,13 @@ class DetailViewModel(
         _state.update { state ->
             val level = state.spoilerLevel
             val current = novel
+            val showSexual = settings.showSensitiveContent
+            val showAll = state.areAllTagsShown
             state.copy(
                 synopsis = current?.toSynopsis(level),
-                tagGroups = current?.toTagGroups(level, settings.showSensitiveContent)
-                    ?: state.tagGroups,
-                hiddenTagsLabel = current?.toHiddenTagsLabel(level, settings.showSensitiveContent),
+                tagGroups = current?.toTagGroups(level, showSexual, showAll) ?: state.tagGroups,
+                hiddenTagsLabel = current?.toHiddenTagsLabel(level, showSexual, showAll),
+                tagsToggleLabel = current?.toTagsToggleLabel(level, showSexual, showAll),
             )
         }
         render(DetailSection.Cast)
@@ -433,7 +469,10 @@ class DetailViewModel(
                 areCoversRevealed = true,
                 coverReveal = null,
                 viewer = viewerIndex?.let { index ->
-                    coversLoader.data.orEmpty().toViewer(index)
+                    coversLoader.data.orEmpty().toViewer(
+                        index,
+                        includesSensitive = canRevealSensitiveContent,
+                    )
                 } ?: it.viewer,
             )
         }

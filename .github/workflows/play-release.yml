@@ -1,0 +1,178 @@
+name: Play release
+
+# Push v<versionName>-<versionCode>-<track> for a testing track (internal, alpha or beta), e.g.
+# v1.0.1-3-alpha: builds the release bundle with that version, signs it with the upload key and
+# uploads it to that track. Production tags go to play-promote.yml instead.
+# See docs/plans/18-play-release-pipeline.md.
+# Every v<x.y.z>-<code>-<track> tag except production triggers this, so a mistyped track
+# (v1.0.1-3-alhpa) fails with a clear error instead of running nothing.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+-[0-9]+-*"
+      - "!v[0-9]+.[0-9]+.[0-9]+-[0-9]+-production"
+
+permissions:
+  contents: read
+
+# Shared with play-promote.yml: Play edits on one app must not overlap.
+concurrency:
+  group: google-play
+  cancel-in-progress: false
+
+# The only project-specific values. To reuse this workflow in another app, change these.
+env:
+  APP_ID: com.zc.vndb                     # Play package name
+  MODULE: app                             # Gradle module that builds the app
+  VARIANT: productionRelease              # builds :<module>:bundle<Variant>
+  TEST_TASK: testDevelopmentDebugUnitTest # runs before the build; empty to skip
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      track: ${{ steps.tag.outputs.track }}
+      version_name: ${{ steps.tag.outputs.version_name }}
+      version_code: ${{ steps.tag.outputs.version_code }}
+    steps:
+      - id: tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          re='^v([0-9]+\.[0-9]+\.[0-9]+)-([1-9][0-9]{0,9})-(internal|alpha|beta)$'
+          if [[ ! "$TAG" =~ $re ]]; then
+            echo "::error::'$TAG' is not v<x.y.z>-<versionCode>-<internal|alpha|beta>, e.g. v1.0.1-3-alpha (production tags are promoted by the Play promote workflow)"
+            exit 1
+          fi
+          if (( BASH_REMATCH[2] > 2100000000 )); then
+            echo "::error::versionCode ${BASH_REMATCH[2]} is above Play's limit (2100000000)"
+            exit 1
+          fi
+          {
+            echo "version_name=${BASH_REMATCH[1]}"
+            echo "version_code=${BASH_REMATCH[2]}"
+            echo "track=${BASH_REMATCH[3]}"
+          } >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: parse
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Holds the Play and upload-key secrets; only release tags (v*.*.*-*-*) may deploy to it.
+    environment: google-play
+    env:
+      TRACK: ${{ needs.parse.outputs.track }}
+      VERSION_NAME: ${{ needs.parse.outputs.version_name }}
+      VERSION_CODE: ${{ needs.parse.outputs.version_code }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The annotated tag's message is Play's "What's new" (en-US, at most 500 characters), written
+      # where fastlane looks for this version's notes: <metadata_path>/en-US/changelogs/<versionCode>.txt.
+      # Fetch the tag object itself: checkout can leave only a lightweight ref.
+      - name: Release notes from the tag
+        run: |
+          git fetch --force --no-tags origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
+          notes=""
+          if [ "$(git cat-file -t "refs/tags/$GITHUB_REF_NAME")" = "tag" ]; then
+            notes=$(git tag -l --format='%(contents:subject)%0a%0a%(contents:body)' "$GITHUB_REF_NAME")
+          fi
+          [ -n "$notes" ] || notes="Bug fixes and improvements."
+          if (( ${#notes} > 500 )); then
+            echo "::error::Release notes are ${#notes} characters; Play allows 500."
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/metadata/en-US/changelogs"
+          printf '%s\n' "$notes" > "$RUNNER_TEMP/metadata/en-US/changelogs/$VERSION_CODE.txt"
+
+      - name: Set up JDK
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: 25 # the Gradle daemon JVM (gradle/gradle-daemon-jvm.properties), so Gradle doesn't download it
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Decode the upload keystore
+        env:
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          [ -n "$UPLOAD_KEYSTORE_BASE64" ] || { echo "::error::UPLOAD_KEYSTORE_BASE64 is not set on the google-play environment"; exit 1; }
+          printf '%s' "$UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+
+      # The upload key goes in through AGP's own android.injected.signing.* properties, so the
+      # build script needs no signing config for it.
+      - name: Test and build the bundle
+        env:
+          UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
+          UPLOAD_KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+          UPLOAD_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
+        # productionRelease → :app:bundleProductionRelease. $TEST_TASK is unquoted on purpose:
+        # when it's empty, no task is passed.
+        run: |
+          first=$(printf %s "${VARIANT:0:1}" | tr '[:lower:]' '[:upper:]')
+          ./gradlew $TEST_TASK ":$MODULE:bundle${first}${VARIANT:1}" \
+            -PversionCode="$VERSION_CODE" \
+            -PversionName="$VERSION_NAME" \
+            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/upload.jks" \
+            -Pandroid.injected.signing.store.password="$UPLOAD_KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$UPLOAD_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$UPLOAD_KEY_PASSWORD" \
+            --stacktrace
+
+      # Finds the outputs whatever the module's archivesName, and fails on an unsigned bundle.
+      - name: Find the bundle and check it is signed
+        run: |
+          aab=$(find "$MODULE/build/outputs/bundle/$VARIANT" -name '*.aab' | head -n 1)
+          [ -n "$aab" ] || { echo "::error::No .aab in $MODULE/build/outputs/bundle/$VARIANT"; exit 1; }
+          jarsigner -verify "$aab" | grep -q "jar verified" \
+            || { echo "::error::$aab is not signed: check the android.injected.signing.* properties"; exit 1; }
+          mapping="$MODULE/build/outputs/mapping/$VARIANT/mapping.txt"
+          [ -f "$mapping" ] || mapping="" # no R8, no mapping
+          { echo "AAB=$aab"; echo "MAPPING=$mapping"; } >> "$GITHUB_ENV"
+
+      - name: Keep the bundle and mapping
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ env.APP_ID }}-${{ env.VERSION_NAME }}-${{ env.VERSION_CODE }}
+          path: |
+            ${{ env.AAB }}
+            ${{ env.MAPPING }}
+          retention-days: 30
+
+      # fastlane at the versions in Gemfile.lock, cached between runs.
+      - name: Set up Ruby and fastlane
+        uses: ruby/setup-ruby@145243922b4465b78e04dd66294782c7de45901f # v1.345.0
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Write the Play service account key
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ] || { echo "::error::PLAY_SERVICE_ACCOUNT_JSON is not set on the google-play environment"; exit 1; }
+          printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play-service-account.json"
+          echo "PLAY_KEY=$RUNNER_TEMP/play-service-account.json" >> "$GITHUB_ENV"
+
+      # Only the bundle, its mapping and this version's notes go up: the skip flags keep fastlane
+      # away from the store listing, which it would otherwise sync from the metadata folder.
+      - name: Upload to Google Play
+        run: >-
+          bundle exec fastlane supply
+          --package_name "$APP_ID"
+          --json_key "$PLAY_KEY"
+          --track "$TRACK"
+          --aab "$AAB"
+          ${MAPPING:+--mapping "$MAPPING"}
+          --release_status completed
+          --metadata_path "$RUNNER_TEMP/metadata"
+          --skip_upload_metadata true
+          --skip_upload_images true
+          --skip_upload_screenshots true
+
+      - name: Summary
+        run: echo "Built and published $VERSION_NAME ($VERSION_CODE) to $TRACK." >> "$GITHUB_STEP_SUMMARY"

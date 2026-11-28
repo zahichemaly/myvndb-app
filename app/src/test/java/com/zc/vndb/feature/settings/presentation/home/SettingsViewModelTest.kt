@@ -1,6 +1,8 @@
 package com.zc.vndb.feature.settings.presentation.home
 
 import app.cash.turbine.test
+import com.zc.vndb.common.domain.model.AppConfig
+import com.zc.vndb.common.domain.model.AppConfigSamples
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.DomainError
 import com.zc.vndb.common.domain.model.LanguageOption
@@ -11,6 +13,7 @@ import com.zc.vndb.common.domain.repository.FakeLanguageRepository
 import com.zc.vndb.common.domain.repository.FakeSessionRepository
 import com.zc.vndb.common.domain.repository.FakeSettingsRepository
 import com.zc.vndb.common.domain.repository.ImageCacheRepository
+import com.zc.vndb.common.domain.usecase.GetAppConfigUseCase
 import com.zc.vndb.common.domain.usecase.LogOutUseCase
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSessionUseCase
@@ -55,16 +58,18 @@ class SettingsViewModelTest {
     private val cache = FakeImageCache(bytes = 149_000_000)
     private val languages = FakeLanguageRepository()
 
-    private fun createViewModel() = SettingsViewModel(
-        observeSettings = ObserveSettingsUseCase(settings),
-        observeSession = ObserveSessionUseCase(sessions),
-        observeLanguages = ObserveLanguagesUseCase(languages),
-        refreshLanguages = RefreshLanguagesUseCase(languages),
-        updateSettings = UpdateSettingsUseCase(settings),
-        getImageCacheSize = GetImageCacheSizeUseCase(cache),
-        clearImageCache = ClearImageCacheUseCase(cache),
-        logOut = LogOutUseCase(sessions),
-    )
+    private fun createViewModel(appConfig: AppConfig = AppConfigSamples.development) =
+        SettingsViewModel(
+            getAppConfig = GetAppConfigUseCase(appConfig),
+            observeSettings = ObserveSettingsUseCase(settings),
+            observeSession = ObserveSessionUseCase(sessions),
+            observeLanguages = ObserveLanguagesUseCase(languages),
+            refreshLanguages = RefreshLanguagesUseCase(languages),
+            updateSettings = UpdateSettingsUseCase(settings),
+            getImageCacheSize = GetImageCacheSizeUseCase(cache),
+            clearImageCache = ClearImageCacheUseCase(cache),
+            logOut = LogOutUseCase(sessions),
+        )
 
     private fun TestScope.collect(state: StateFlow<SettingsState>) {
         backgroundScope.launch { state.collect {} }
@@ -111,9 +116,12 @@ class SettingsViewModelTest {
         )
         viewModel.onIntent(SettingsIntent.LanguagesConfirmed(setOf("ko")))
         viewModel.onIntent(SettingsIntent.IncludeAdultChanged(true))
+        viewModel.onIntent(SettingsIntent.ShowAllTagsChanged(true))
         advanceUntilIdle()
 
+        assertTrue(viewModel.state.value.showAllTags)
         with(settings.current.value) {
+            assertTrue(showAllTags)
             assertEquals(TitleLanguage.Original, titleLanguage)
             assertEquals(SpoilerPreference.Major, defaultSpoilerLevel)
             assertEquals(listOf("ko"), trendingLanguages)
@@ -191,7 +199,10 @@ class SettingsViewModelTest {
             collect(viewModel.state)
             advanceUntilIdle()
             assertEquals(
-                UiText.StringValue("Yorhel"),
+                UiText.StringResource(
+                    StringResource.settings_log_out_account,
+                    listOf("Yorhel", UiText.StringResource(StringResource.settings_access_read)),
+                ),
                 viewModel.state.value.accountLabel,
             )
 
@@ -361,5 +372,32 @@ class SettingsViewModelTest {
 
         assertEquals(SettingsDialog.CardLanguages, viewModel.state.value.dialog)
         assertTrue(viewModel.state.value.languages.isNotEmpty())
+    }
+
+    @Test
+    fun `a development build offers Show sensitive content, with its version`() = runTest {
+        val viewModel = createViewModel()
+        collect(viewModel.state)
+        advanceUntilIdle()
+
+        with(viewModel.state.value) {
+            assertTrue(canShowSensitiveContent)
+            assertEquals(
+                UiText.StringResource(
+                    StringResource.settings_version,
+                    listOf(UiText.StringResource(StringResource.app_name), "1.0.0-dev", 7),
+                ),
+                versionLabel,
+            )
+        }
+    }
+
+    @Test
+    fun `a production build hides Show sensitive content`() = runTest {
+        val viewModel = createViewModel(AppConfigSamples.production)
+        collect(viewModel.state)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.state.value.canShowSensitiveContent)
     }
 }

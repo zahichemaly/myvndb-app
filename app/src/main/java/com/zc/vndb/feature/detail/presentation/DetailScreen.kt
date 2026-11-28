@@ -266,6 +266,7 @@ private fun LazyListScope.header(
             onDeveloperClick = actions.onDeveloperClick,
             onTagClick = actions.onTagClick,
             onRevealCoverClick = { actions.onRevealCover(null) },
+            canRevealCover = state.canRevealSensitiveContent,
             isCoverRevealed = state.areCoversRevealed,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -313,7 +314,9 @@ private fun LazyListScope.overviewTab(state: DetailState, actions: DetailActions
             groups = state.tagGroups,
             hiddenLabel = state.hiddenTagsLabel,
             notes = state.contentNotes,
+            toggleLabel = state.tagsToggleLabel,
             onTagClick = actions.onTagClick,
+            onToggleClick = { actions.onIntent(DetailIntent.AllTagsToggled) },
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -521,6 +524,7 @@ private fun LazyListScope.mediaTab(state: DetailState, actions: DetailActions, c
                 CoverCarousel(
                     covers = covers,
                     areRevealed = state.areCoversRevealed,
+                    canReveal = state.canRevealSensitiveContent,
                     onCoverClick = actions.onCoverClick,
                     onRevealCover = actions.onRevealCover,
                 )
@@ -529,17 +533,22 @@ private fun LazyListScope.mediaTab(state: DetailState, actions: DetailActions, c
     }
 }
 
-/** The covers; a blurred one first asks "I'm 18 or older", then opens in the viewer unblurred. */
+/**
+ * The covers; a blurred one first asks "I'm 18 or older", then opens in the viewer unblurred. Without
+ * [canReveal] (builds that never show sensitive content) a blurred cover stays blurred and closed.
+ */
 @Composable
 private fun CoverCarousel(
     covers: ImmutableList<MediaImageUIModel>,
     areRevealed: Boolean,
+    canReveal: Boolean,
     onCoverClick: (Int) -> Unit,
     onRevealCover: (Int?) -> Unit,
 ) {
     val showsSensitive = areRevealed || LocalShowSensitiveContent.current
     LazyRow(horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm)) {
         items(items = covers, key = { it.url }) { cover ->
+            val isBlurred = cover.isSensitive && !showsSensitive
             CoverImageView(
                 url = cover.thumbnailUrl ?: cover.url,
                 isSensitive = cover.isSensitive && !areRevealed,
@@ -547,12 +556,8 @@ private fun CoverCarousel(
                 modifier = Modifier
                     .width(CoverThumbWidth)
                     .aspectRatio(VndbTheme.dimens.coverAspectRatio)
-                    .clickable {
-                        if (cover.isSensitive && !showsSensitive) {
-                            onRevealCover(cover.index)
-                        } else {
-                            onCoverClick(cover.index)
-                        }
+                    .clickable(enabled = !isBlurred || canReveal) {
+                        if (isBlurred) onRevealCover(cover.index) else onCoverClick(cover.index)
                     },
             )
         }

@@ -1,6 +1,5 @@
 package com.zc.vndb.feature.theme.presentation.component.themepreview
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -13,10 +12,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -30,10 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.zc.vndb.common.domain.model.AppTheme
 import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
@@ -46,12 +45,14 @@ import com.zc.vndb.feature.theme.presentation.component.themepreview.model.Theme
 
 /** The wallpaper's own 1080 x 2400 ratio, so the preview shows all of it, as the real screen does. */
 private const val PREVIEW_ASPECT_RATIO = 9f / 20f
-private val SwatchSize = 18.dp
+
+/** A swatch's size on a roomy card; on a narrow one the four share what the check leaves. */
+private val MaxSwatchSize = 18.dp
 private val NavDotSize = 8.dp
 private val ScoreBadgeWidth = 24.dp
 private val ScoreBadgeHeight = 10.dp
 
-/** The check icon's size, kept as the name row's minimum height so selecting a card never shifts the layout. */
+/** The check icon's slot, kept empty when not selected so selecting a card never shifts the layout. */
 private val CheckIconSize = 24.dp
 private const val NAV_DOT_COUNT = 3
 
@@ -87,27 +88,45 @@ fun ThemePreviewView(model: ThemeUIModel, onSelect: () -> Unit, modifier: Modifi
                 .clip(shape)
                 .border(borderWidth, borderColor, shape),
         )
-        // The check sits at the end of the swatch row, not next to the name, so a long name keeps the
-        // full width and never breaks mid-word when selected. The row is always check-tall, so selecting
-        // a card does not shift it against its neighbours.
+        SwatchRow(model = model)
+        Text(
+            text = model.name.asString(),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+/**
+ * The theme's four swatches, then the check when selected. The check sits here, not next to the name, so a
+ * long name keeps the full width and never breaks mid-word when selected. Its slot is kept when not
+ * selected, so the row is always check-tall and the swatches are the same size on every card: selecting a
+ * card shifts nothing against its neighbours.
+ */
+@Composable
+private fun SwatchRow(model: ThemeUIModel) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // The swatches share the width the check leaves, up to their full size, so on a narrow card they
+        // shrink a little instead of running under the check.
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = CheckIconSize),
-            verticalAlignment = Alignment.CenterVertically,
+                .weight(1f)
+                .clearAndSetSemantics {},
+            horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.xs),
         ) {
             VndbTheme(model.spec) {
-                Row(
-                    modifier = Modifier.clearAndSetSemantics {},
-                    horizontalArrangement = Arrangement.spacedBy(VndbTheme.spacing.sm),
-                ) {
-                    Swatch(MaterialTheme.colorScheme.background)
-                    Swatch(VndbTheme.colors.surfaceCard)
-                    Swatch(VndbTheme.colors.accent)
-                    Swatch(VndbTheme.colors.score)
-                }
+                val swatchModifier = Modifier.weight(1f, fill = false)
+                Swatch(MaterialTheme.colorScheme.background, swatchModifier)
+                Swatch(VndbTheme.colors.surfaceCard, swatchModifier)
+                Swatch(VndbTheme.colors.accent, swatchModifier)
+                Swatch(VndbTheme.colors.score, swatchModifier)
             }
-            Spacer(modifier = Modifier.weight(1f))
+        }
+        Box(modifier = Modifier.size(CheckIconSize)) {
             if (model.isSelected) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
@@ -118,19 +137,15 @@ fun ThemePreviewView(model: ThemeUIModel, onSelect: () -> Unit, modifier: Modifi
                 )
             }
         }
-        Text(
-            text = model.name.asString(),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
     }
 }
 
 @Composable
-private fun Swatch(color: Color) {
+private fun Swatch(color: Color, modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier
-            .size(SwatchSize)
+        modifier = modifier
+            .widthIn(max = MaxSwatchSize)
+            .aspectRatio(1f)
             .clip(CircleShape)
             .background(color)
             .border(VndbTheme.dimens.borderWidth, VndbTheme.colors.borderSubtle, CircleShape),
@@ -147,8 +162,10 @@ private fun PhoneMock(model: ThemeUIModel, modifier: Modifier = Modifier) {
                 .background(MaterialTheme.colorScheme.background),
         ) {
             VndbTheme.wallpaper?.let { wallpaper ->
-                Image(
-                    painter = painterResource(wallpaper.image),
+                // Coil decodes off the main thread, at the preview's size, and caches it, so
+                // scrolling the grid never waits on a full-size wallpaper.
+                AsyncImage(
+                    model = wallpaper.image,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,

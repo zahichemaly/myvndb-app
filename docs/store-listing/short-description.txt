@@ -1,0 +1,1 @@
+Unofficial vndb.org client: discover visual novels and keep your lists in sync.

@@ -2,10 +2,10 @@ package com.zc.vndb.feature.settings.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.zc.vndb.BuildConfig
 import com.zc.vndb.common.domain.model.AppSettings
 import com.zc.vndb.common.domain.model.SpoilerPreference
 import com.zc.vndb.common.domain.model.TitleLanguage
+import com.zc.vndb.common.domain.usecase.GetAppConfigUseCase
 import com.zc.vndb.common.domain.usecase.LogOutUseCase
 import com.zc.vndb.common.domain.usecase.ObserveLanguagesUseCase
 import com.zc.vndb.common.domain.usecase.ObserveSessionUseCase
@@ -17,7 +17,9 @@ import com.zc.vndb.common.ui.resource.StringResource
 import com.zc.vndb.common.ui.text.UiText
 import com.zc.vndb.feature.settings.domain.usecase.ClearImageCacheUseCase
 import com.zc.vndb.feature.settings.domain.usecase.GetImageCacheSizeUseCase
+import com.zc.vndb.feature.settings.presentation.home.mapper.toAccountLabel
 import com.zc.vndb.feature.settings.presentation.home.mapper.toSizeLabel
+import com.zc.vndb.feature.settings.presentation.home.mapper.withAppConfig
 import com.zc.vndb.feature.settings.presentation.home.mapper.withSettings
 import com.zc.vndb.feature.settings.presentation.home.model.SettingsDialog
 import kotlinx.coroutines.channels.Channel
@@ -35,6 +37,7 @@ import org.koin.core.annotation.KoinViewModel
 /** Every change is written at once; other screens pick it up from the shared settings. */
 @KoinViewModel
 class SettingsViewModel(
+    getAppConfig: GetAppConfigUseCase,
     observeSettings: ObserveSettingsUseCase,
     observeSession: ObserveSessionUseCase,
     observeLanguages: ObserveLanguagesUseCase,
@@ -45,18 +48,7 @@ class SettingsViewModel(
     private val logOut: LogOutUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(
-        SettingsState(
-            versionLabel = UiText.StringResource(
-                StringResource.settings_version,
-                listOf(
-                    UiText.StringResource(StringResource.app_name),
-                    BuildConfig.VERSION_NAME,
-                    BuildConfig.VERSION_CODE,
-                ),
-            ),
-        ),
-    )
+    private val _state = MutableStateFlow(SettingsState().withAppConfig(getAppConfig()))
 
     val state: StateFlow<SettingsState> =
         combine(
@@ -67,7 +59,7 @@ class SettingsViewModel(
         ) { state, settings, session, languages ->
             state.withSettings(settings, languages.inPickerOrder()).copy(
                 isSignedIn = session != null,
-                accountLabel = session?.let { UiText.StringValue(it.username) },
+                accountLabel = session?.toAccountLabel(),
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), _state.value)
 
@@ -108,6 +100,8 @@ class SettingsViewModel(
                 closeDialog()
                 save { it.copy(cardLanguages = intent.codes.toList()) }
             }
+
+            is SettingsIntent.ShowAllTagsChanged -> save { it.copy(showAllTags = intent.isOn) }
 
             is SettingsIntent.SpoilIfFinishedChanged -> save {
                 it.copy(
