@@ -14,3 +14,6 @@
 .cxx
 local.properties
 /build-logic/convention/build
+# Bundler (fastlane for Play releases)
+/.bundle
+/vendor/bundle

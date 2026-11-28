@@ -66,14 +66,16 @@ Both flavors can be installed side by side.
 
 ## Releasing
 
-Pushing a tag `v<versionName>-<versionCode>-<track>` builds the `productionRelease` bundle with that version, signs it with the Play upload key and publishes it to that Google Play track (`.github/workflows/play-release.yml`).
+Pushing a tag `v<versionName>-<versionCode>-<track>` publishes to that Google Play track (`.github/workflows/play-release.yml`, using [fastlane](https://docs.fastlane.tools/actions/supply/) pinned in `Gemfile.lock`).
 
-| Track | Google Play |
-|---|---|
-| `internal` | Internal testing |
-| `alpha` | Closed testing – Alpha |
-| `beta` | Open testing |
-| `production` | Production |
+| Track | Google Play | What the tag does |
+|---|---|---|
+| `internal` | Internal testing | Builds the `productionRelease` bundle with that version, signs it with the Play upload key and uploads it |
+| `alpha` | Closed testing – Alpha | Same |
+| `beta` | Open testing | Same |
+| `production` | Production | Promotes the build Alpha has with that version code; nothing is built |
+
+Test on Alpha, then promote the same build:
 
 ```bash
 git tag -a v1.0.1-3-alpha -m "What's new in this release (at most 500 characters)."
@@ -83,8 +85,17 @@ git tag -a v1.0.1-3-alpha -m "What's new in this release (at most 500 characters
 git push origin v1.0.1-3-alpha
 ```
 
-- The tag's message becomes the release notes.
+```bash
+git tag v1.0.1-3-production
+```
+
+```bash
+git push origin v1.0.1-3-production
+```
+
+- An `-alpha`, `-beta` or `-internal` tag's message becomes the release notes. A production release keeps the notes it had on Alpha.
 - Each version code can be uploaded to Play only once, so every new build needs a higher code.
+- A production tag fails, changing nothing, if Alpha doesn't have that version code.
 
 Setup, secrets and troubleshooting: [docs/plans/18-play-release-pipeline.md](docs/plans/18-play-release-pipeline.md).
 
